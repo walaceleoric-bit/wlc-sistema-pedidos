@@ -130,6 +130,15 @@ namespace WlcSistemaPedidos.Controllers
                     MensagemInicial =
                         configuracao.MensagemInicial,
 
+                    EmissaoFiscalAtiva =
+                        configuracao.EmissaoFiscalAtiva,
+
+                    AmbienteFiscal =
+                        configuracao.AmbienteFiscal,
+
+                    ProvedorFiscal =
+                        configuracao.ProvedorFiscal,
+
                     LogoUrlAtual =
                         configuracao.LogoUrl,
 
@@ -205,6 +214,12 @@ namespace WlcSistemaPedidos.Controllers
 
             model.MensagemInicial =
                 LimparTexto(model.MensagemInicial);
+
+            model.AmbienteFiscal =
+                LimparTexto(model.AmbienteFiscal);
+
+            model.ProvedorFiscal =
+                LimparTexto(model.ProvedorFiscal);
 
             if (!string.IsNullOrWhiteSpace(
                     model.WhatsAppPedidos))
@@ -326,6 +341,15 @@ namespace WlcSistemaPedidos.Controllers
 
             configuracao.MensagemInicial =
                 model.MensagemInicial;
+
+            configuracao.EmissaoFiscalAtiva =
+                model.EmissaoFiscalAtiva;
+
+            configuracao.AmbienteFiscal =
+                model.AmbienteFiscal;
+
+            configuracao.ProvedorFiscal =
+                model.ProvedorFiscal;
 
             configuracao.DataAtualizacao =
                 DateTime.UtcNow;

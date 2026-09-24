@@ -1,0 +1,655 @@
+﻿@using WlcSistemaPedidos.Models
+@model NotaFiscal
+
+@{
+    Layout = null;
+    ViewData["Title"] = "Detalhes da Nota Fiscal";
+
+    string nomeEstabelecimento =
+        ViewBag.NomeEstabelecimento ?? "Sistema de Pedidos";
+
+    string logoEstabelecimento =
+        ViewBag.LogoEstabelecimento ?? "/images/logo-wlc.png";
+}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>Nota Fiscal #@Model.Id - @nomeEstabelecimento</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f5f5;
+            color: #292929;
+        }
+
+        .topo {
+            background: #fff;
+            border-bottom: 3px solid #f58220;
+        }
+
+        .topo-conteudo {
+            max-width: 1200px;
+            margin: auto;
+            padding: 10px 20px;
+            min-height: 78px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .marca {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: #222;
+        }
+
+        .marca img {
+            width: 58px;
+            height: 58px;
+            object-fit: contain;
+        }
+
+        .marca strong {
+            display: block;
+            font-size: 17px;
+        }
+
+        .marca span {
+            display: block;
+            color: #777;
+            font-size: 12px;
+            margin-top: 3px;
+        }
+
+        .menu {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .menu a,
+        .btn-sair {
+            padding: 10px 13px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #333;
+            font-weight: 700;
+            font-size: 14px;
+            border: 0;
+            background: transparent;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .menu a:hover,
+        .menu .ativo,
+        .btn-sair:hover {
+            background: #f58220;
+            color: #fff;
+        }
+
+        .menu form {
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 28px 20px 45px;
+            min-height: calc(100vh - 145px);
+        }
+
+        .cabecalho {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            margin: 0 0 5px;
+            font-size: 28px;
+        }
+
+        .subtitulo {
+            margin: 0;
+            color: #777;
+            font-size: 14px;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid #e5e5e5;
+            border-radius: 12px;
+            padding: 22px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            margin: 0 0 18px;
+            font-size: 18px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+        }
+
+        .campo-info {
+            border-bottom: 1px solid #eeeeee;
+            padding-bottom: 12px;
+        }
+
+        .campo-info small {
+            display: block;
+            color: #888;
+            font-size: 11px;
+            margin-bottom: 5px;
+        }
+
+        .campo-info strong,
+        .campo-info span {
+            font-size: 14px;
+            word-break: break-word;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 7px 11px;
+            border-radius: 20px;
+            background: #fff2e8;
+            color: #e96e00;
+            font-weight: 800;
+            font-size: 12px;
+        }
+
+        .valor {
+            color: #26753a;
+            font-size: 17px !important;
+        }
+
+        .texto-retorno {
+            background: #fafafa;
+            border: 1px solid #eeeeee;
+            border-radius: 8px;
+            padding: 14px;
+            font-size: 12px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+            min-height: 50px;
+        }
+
+        .aviso {
+            background: #fff8ed;
+            border: 1px solid #f5d3a5;
+            color: #8a5700;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .btn {
+            border: 0;
+            border-radius: 8px;
+            padding: 11px 16px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-family: inherit;
+        }
+
+        .btn-laranja {
+            background: #f58220;
+            color: #fff;
+        }
+
+        .btn-claro {
+            background: #fff;
+            color: #e96e00;
+            border: 1px solid #f58220;
+        }
+
+        .acoes {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .link-documento {
+            color: #e96e00;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .link-documento:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            background: #fff;
+            border-top: 1px solid #e5e5e5;
+            padding: 22px;
+            text-align: center;
+            color: #777;
+            font-size: 12px;
+        }
+
+        footer strong {
+            color: #f58220;
+        }
+
+        @@media(max-width:700px) {
+            .topo-conteudo,
+            .cabecalho {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .menu {
+                justify-content: center;
+            }
+
+            .grid,
+            .grid-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .acoes {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="topo">
+
+    <div class="topo-conteudo">
+
+        <a asp-controller="Admin"
+           asp-action="Index"
+           class="marca">
+
+            <img src="@logoEstabelecimento"
+                 alt="@nomeEstabelecimento" />
+
+            <div>
+                <strong>@nomeEstabelecimento</strong>
+                <span>Painel Administrativo</span>
+            </div>
+
+        </a>
+
+        <nav class="menu">
+
+            <a asp-controller="Admin"
+               asp-action="Index">
+                Início
+            </a>
+
+            <a asp-controller="Pedidos"
+               asp-action="Index">
+                Pedidos
+            </a>
+
+            <a asp-controller="Pedidos"
+               asp-action="Historico">
+                Histórico
+            </a>
+
+            <a asp-controller="Produtos"
+               asp-action="Index">
+                Produtos
+            </a>
+
+            <a asp-controller="Clientes"
+               asp-action="Index">
+                Clientes
+            </a>
+
+            <a asp-controller="Lembretes"
+               asp-action="Index">
+                Lembretes
+            </a>
+
+            <a asp-controller="NotasFiscais"
+               asp-action="Index"
+               class="ativo">
+                NF
+            </a>
+
+            <a asp-controller="Configuracoes"
+               asp-action="Index">
+                Configurações
+            </a>
+
+            <form asp-controller="Conta"
+                  asp-action="Sair"
+                  method="post">
+                @Html.AntiForgeryToken()
+
+                <button type="submit"
+                        class="btn-sair">
+                    Sair
+                </button>
+            </form>
+
+        </nav>
+
+    </div>
+
+</header>
+
+<main class="container">
+
+    <div class="cabecalho">
+
+        <div>
+            <h1>Nota Fiscal #@Model.Id</h1>
+
+            <p class="subtitulo">
+                Informações fiscais do pedido #@Model.PedidoId
+            </p>
+        </div>
+
+        <div class="acoes">
+
+            <a asp-controller="Pedidos"
+               asp-action="Detalhes"
+               asp-route-id="@Model.PedidoId"
+               class="btn btn-claro">
+                Ver pedido
+            </a>
+
+            <a asp-controller="NotasFiscais"
+               asp-action="Index"
+               class="btn btn-laranja">
+                Voltar para NF
+            </a>
+
+        </div>
+
+    </div>
+
+    @if (Model.Status == StatusNotaFiscal.Pendente)
+    {
+        <div class="aviso">
+            Esta nota está preparada e aguardando a integração
+            com a API fiscal. Nenhum documento fiscal foi emitido ainda.
+        </div>
+    }
+
+    <section class="card">
+
+        <h2>Situação fiscal</h2>
+
+        <div class="grid-3">
+
+            <div class="campo-info">
+                <small>Status</small>
+
+                <span class="status">
+                    @Model.Status
+                </span>
+            </div>
+
+            <div class="campo-info">
+                <small>Data de criação</small>
+
+                <strong>
+                    @(Model.DataCriacao.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))
+                </strong>
+            </div>
+
+            <div class="campo-info">
+                <small>Administrador responsável</small>
+
+                <strong>
+                    @(Model.UsuarioResponsavel?.Nome ?? "-")
+                </strong>
+            </div>
+
+        </div>
+
+    </section>
+
+    <section class="card">
+
+        <h2>Pedido</h2>
+
+        <div class="grid">
+
+            <div class="campo-info">
+                <small>Número do pedido</small>
+                <strong>#@Model.PedidoId</strong>
+            </div>
+
+            <div class="campo-info">
+                <small>Cliente</small>
+                <strong>@Model.Pedido.NomeCliente</strong>
+            </div>
+
+            <div class="campo-info">
+                <small>Data do pedido</small>
+
+                <strong>
+                    @(Model.Pedido.DataPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))
+                </strong>
+            </div>
+
+            <div class="campo-info">
+                <small>Valor do pedido</small>
+
+                <strong class="valor">
+                    @Model.Pedido.Total.ToString("C2")
+                </strong>
+            </div>
+
+        </div>
+
+    </section>
+
+    <section class="card">
+
+        <h2>Identificação da nota</h2>
+
+        <div class="grid">
+
+            <div class="campo-info">
+                <small>Número da nota</small>
+                <strong>@(Model.NumeroNota ?? "-")</strong>
+            </div>
+
+            <div class="campo-info">
+                <small>Série</small>
+                <strong>@(Model.Serie ?? "-")</strong>
+            </div>
+
+            <div class="campo-info">
+                <small>Chave de acesso</small>
+                <strong>@(Model.ChaveAcesso ?? "-")</strong>
+            </div>
+
+            <div class="campo-info">
+                <small>Protocolo</small>
+                <strong>@(Model.Protocolo ?? "-")</strong>
+            </div>
+
+        </div>
+
+    </section>
+
+    <section class="card">
+
+        <h2>Integração fiscal</h2>
+
+        <div class="grid">
+
+            <div class="campo-info">
+                <small>Provedor fiscal</small>
+                <strong>@(Model.ProvedorFiscal ?? "-")</strong>
+            </div>
+
+            <div class="campo-info">
+                <small>Identificador externo</small>
+                <strong>@(Model.IdentificadorExterno ?? "-")</strong>
+            </div>
+
+            <div class="campo-info">
+                <small>Data de envio</small>
+
+                <strong>
+                    @if (Model.DataEnvio.HasValue)
+                    {
+                        @(Model.DataEnvio.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))
+                    }
+                    else
+                    {
+                        <span>-</span>
+                    }
+                </strong>
+            </div>
+
+            <div class="campo-info">
+                <small>Data de autorização</small>
+
+                <strong>
+                    @if (Model.DataAutorizacao.HasValue)
+                    {
+                        @(Model.DataAutorizacao.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))
+                    }
+                    else
+                    {
+                        <span>-</span>
+                    }
+                </strong>
+            </div>
+
+            <div class="campo-info">
+                <small>Data de cancelamento</small>
+
+                <strong>
+                    @if (Model.DataCancelamento.HasValue)
+                    {
+                        @(Model.DataCancelamento.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))
+                    }
+                    else
+                    {
+                        <span>-</span>
+                    }
+                </strong>
+            </div>
+
+        </div>
+
+    </section>
+
+    <section class="card">
+
+        <h2>Documentos fiscais</h2>
+
+        <div class="grid">
+
+            <div class="campo-info">
+                <small>PDF</small>
+
+                @if (!string.IsNullOrWhiteSpace(Model.UrlPdf))
+                {
+                    <a href="@Model.UrlPdf"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="link-documento">
+                        Abrir PDF
+                    </a>
+                }
+                else
+                {
+                    <strong>-</strong>
+                }
+            </div>
+
+            <div class="campo-info">
+                <small>XML</small>
+
+                @if (!string.IsNullOrWhiteSpace(Model.UrlXml))
+                {
+                    <a href="@Model.UrlXml"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="link-documento">
+                        Abrir XML
+                    </a>
+                }
+                else
+                {
+                    <strong>-</strong>
+                }
+            </div>
+
+        </div>
+
+    </section>
+
+    <section class="card">
+
+        <h2>Retorno fiscal</h2>
+
+        <div class="campo-info">
+            <small>Retorno do provedor</small>
+
+            <div class="texto-retorno">@(string.IsNullOrWhiteSpace(Model.RetornoFiscal) ? "Nenhum retorno fiscal registrado." : Model.RetornoFiscal)</div>
+        </div>
+
+        <div class="campo-info"
+             style="margin-top:18px;">
+
+            <small>Erro fiscal</small>
+
+            <div class="texto-retorno">@(string.IsNullOrWhiteSpace(Model.ErroFiscal) ? "Nenhum erro fiscal registrado." : Model.ErroFiscal)</div>
+
+        </div>
+
+    </section>
+
+</main>
+
+<footer>
+    Desenvolvido por <strong>WLC Sistemas</strong>
+</footer>
+
+</body>
+</html>

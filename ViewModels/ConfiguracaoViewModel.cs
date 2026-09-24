@@ -93,6 +93,21 @@ namespace WlcSistemaPedidos.ViewModels
         public string? MensagemInicial { get; set; }
 
         // ==========================================
+        // FISCAL / NOTA FISCAL
+        // ==========================================
+
+        [Display(Name = "Ativar emissão fiscal")]
+        public bool EmissaoFiscalAtiva { get; set; }
+
+        [StringLength(50)]
+        [Display(Name = "Ambiente fiscal")]
+        public string? AmbienteFiscal { get; set; }
+
+        [StringLength(100)]
+        [Display(Name = "Provedor fiscal")]
+        public string? ProvedorFiscal { get; set; }
+
+        // ==========================================
         // LOGO DO ESTABELECIMENTO
         // ==========================================
 

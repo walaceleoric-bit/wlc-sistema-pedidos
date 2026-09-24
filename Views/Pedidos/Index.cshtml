@@ -29,9 +29,10 @@
         .marca img { width:58px; height:58px; object-fit:contain; }
         .marca strong { display:block; font-size:17px; }
         .marca span { display:block; color:#777; font-size:12px; margin-top:3px; }
-        .menu { display:flex; gap:8px; flex-wrap:wrap; }
-        .menu a { padding:10px 13px; border-radius:8px; text-decoration:none; color:#333; font-weight:700; font-size:14px; }
-        .menu a:hover,.menu .ativo { background:#f58220; color:#fff; }
+        .menu { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        .menu a,.btn-sair { padding:10px 13px; border-radius:8px; text-decoration:none; color:#333; font-weight:700; font-size:14px; border:0; background:transparent; cursor:pointer; font-family:inherit; }
+        .menu a:hover,.menu .ativo,.btn-sair:hover { background:#f58220; color:#fff; }
+        .menu form { margin:0; }
         .container { max-width:1200px; margin:auto; padding:28px 20px 45px; }
         .cabecalho { display:flex; justify-content:space-between; align-items:center; gap:15px; margin-bottom:20px; }
         h1 { margin:0 0 5px; font-size:28px; }
@@ -66,9 +67,19 @@
         <nav class="menu">
             <a asp-controller="Admin" asp-action="Index">Início</a>
             <a asp-controller="Pedidos" asp-action="Index" class="ativo">Pedidos</a>
+            <a asp-controller="Pedidos" asp-action="Historico">Histórico</a>
             <a asp-controller="Produtos" asp-action="Index">Produtos</a>
             <a asp-controller="Clientes" asp-action="Index">Clientes</a>
+            <a asp-controller="Lembretes" asp-action="Index">Lembretes</a>
+            <a asp-controller="NotasFiscais" asp-action="Index">NF</a>
             <a asp-controller="Configuracoes" asp-action="Index">Configurações</a>
+
+            <form asp-controller="Conta"
+                  asp-action="Sair"
+                  method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn-sair">Sair</button>
+            </form>
         </nav>
     </div>
 </header>
@@ -127,7 +138,7 @@
                     <tr>
                         <td><strong>#@pedido.Id</strong></td>
                         <td>@pedido.NomeCliente</td>
-                        <td>@pedido.DataPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@(pedido.DataPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))</td>
                         <td><span class="status">@pedido.Status</span></td>
                         <td><strong>@pedido.Total.ToString("C2")</strong></td>
                         <td>

@@ -20,6 +20,7 @@ namespace WlcSistemaPedidos.Data
         public DbSet<MovimentacaoFinanceira> MovimentacoesFinanceiras { get; set; }
         public DbSet<ConfiguracaoSistema> ConfiguracoesSistema { get; set; }
         public DbSet<LembretePedido> LembretesPedidos { get; set; }
+        public DbSet<NotaFiscal> NotasFiscais { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -100,6 +101,38 @@ namespace WlcSistemaPedidos.Data
                     l.Ativo,
                     l.Enviado,
                     l.DataHoraAgendada
+                });
+
+            // ==========================================
+            // NOTA FISCAL
+            // ==========================================
+
+            // Pedido -> Nota Fiscal
+            // Um pedido poderá possuir apenas uma nota fiscal.
+            builder.Entity<NotaFiscal>()
+                .HasOne(n => n.Pedido)
+                .WithOne(p => p.NotaFiscal)
+                .HasForeignKey<NotaFiscal>(n => n.PedidoId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Índice único para reforçar a regra no banco.
+            builder.Entity<NotaFiscal>()
+                .HasIndex(n => n.PedidoId)
+                .IsUnique();
+
+            // Administrador responsável pela operação fiscal
+            builder.Entity<NotaFiscal>()
+                .HasOne(n => n.UsuarioResponsavel)
+                .WithMany()
+                .HasForeignKey(n => n.UsuarioResponsavelId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Ajuda nas consultas da tela fiscal.
+            builder.Entity<NotaFiscal>()
+                .HasIndex(n => new
+                {
+                    n.Status,
+                    n.DataCriacao
                 });
         }
     }

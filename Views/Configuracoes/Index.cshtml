@@ -602,8 +602,8 @@
             Início
         </a>
 
-        <a href="#"
-           class="futuro">
+        <a asp-controller="Pedidos"
+           asp-action="Historico">
             Histórico
         </a>
 
@@ -617,8 +617,13 @@
             Clientes
         </a>
 
-        <a href="#"
-           class="futuro">
+        <a asp-controller="Lembretes"
+           asp-action="Index">
+            Lembretes
+        </a>
+
+        <a asp-controller="NotasFiscais"
+           asp-action="Index">
             NF
         </a>
 
@@ -912,6 +917,79 @@
 
                 <span asp-validation-for="MensagemInicial"
                       class="validacao"></span>
+
+            </div>
+
+        </section>
+
+        <!-- NOTA FISCAL -->
+
+        <section class="card">
+
+            <div class="card-cabecalho">
+                <h2>Nota Fiscal</h2>
+                <p>
+                    Prepare a emissão fiscal do estabelecimento.
+                    A integração com a API fiscal será configurada posteriormente.
+                </p>
+            </div>
+
+            <div class="grid">
+
+                <div class="switch-box">
+
+                    <input asp-for="EmissaoFiscalAtiva"
+                           type="checkbox" />
+
+                    <div class="switch-texto">
+                        <strong>Ativar emissão fiscal</strong>
+
+                        <span>
+                            Habilita o módulo de nota fiscal no sistema.
+                        </span>
+                    </div>
+
+                </div>
+
+                <div class="grupo">
+
+                    <label asp-for="AmbienteFiscal"></label>
+
+                    <select asp-for="AmbienteFiscal"
+                            class="campo">
+                        <option value="">Selecione</option>
+                        <option value="Homologacao">Homologação / Testes</option>
+                        <option value="Producao">Produção</option>
+                    </select>
+
+                    <span asp-validation-for="AmbienteFiscal"
+                          class="validacao"></span>
+
+                    <small class="ajuda">
+                        Utilize homologação durante os testes.
+                        Produção será usada quando a API fiscal estiver configurada.
+                    </small>
+
+                </div>
+
+            </div>
+
+            <div class="grupo sem-margem">
+
+                <label asp-for="ProvedorFiscal"></label>
+
+                <input asp-for="ProvedorFiscal"
+                       class="campo"
+                       maxlength="100"
+                       placeholder="Será definido na integração da API fiscal" />
+
+                <span asp-validation-for="ProvedorFiscal"
+                      class="validacao"></span>
+
+                <small class="ajuda">
+                    Pode permanecer em branco por enquanto.
+                    O provedor será definido quando fizermos a integração fiscal.
+                </small>
 
             </div>
 

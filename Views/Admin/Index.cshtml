@@ -416,9 +416,8 @@
                 Lembretes
             </a>
 
-            <a href="#"
-               class="futuro"
-               title="Módulo fiscal será implementado posteriormente">
+            <a asp-controller="NotasFiscais"
+               asp-action="Index">
                 NF
             </a>
 
@@ -623,7 +622,9 @@
 
             </a>
 
-            <div class="atalho desabilitado">
+            <a asp-controller="NotasFiscais"
+               asp-action="Index"
+               class="atalho">
 
                 <div class="atalho-icone">
                     NF
@@ -634,10 +635,10 @@
                 </strong>
 
                 <span>
-                    Área preparada para emissão e consulta fiscal.
+                    Prepare e consulte os registros fiscais dos pedidos.
                 </span>
 
-            </div>
+            </a>
 
         </section>
 

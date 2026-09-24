@@ -1,0 +1,522 @@
+﻿@using WlcSistemaPedidos.Models
+@model IEnumerable<Pedido>
+
+@{
+    Layout = null;
+    ViewData["Title"] = "Pedidos disponíveis para NF";
+
+    string nomeEstabelecimento =
+        ViewBag.NomeEstabelecimento ?? "Sistema de Pedidos";
+
+    string logoEstabelecimento =
+        ViewBag.LogoEstabelecimento ?? "/images/logo-wlc.png";
+
+    int paginaAtual = ViewBag.PaginaAtual ?? 1;
+    int totalPaginas = ViewBag.TotalPaginas ?? 0;
+    int totalPedidos = ViewBag.TotalPedidos ?? 0;
+}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>Pedidos disponíveis - @nomeEstabelecimento</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f5f5;
+            color: #292929;
+        }
+
+        .topo {
+            background: #fff;
+            border-bottom: 3px solid #f58220;
+        }
+
+        .topo-conteudo {
+            max-width: 1200px;
+            margin: auto;
+            padding: 10px 20px;
+            min-height: 78px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .marca {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: #222;
+        }
+
+        .marca img {
+            width: 58px;
+            height: 58px;
+            object-fit: contain;
+        }
+
+        .marca strong {
+            display: block;
+            font-size: 17px;
+        }
+
+        .marca span {
+            display: block;
+            color: #777;
+            font-size: 12px;
+            margin-top: 3px;
+        }
+
+        .menu {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .menu a,
+        .btn-sair {
+            padding: 10px 13px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #333;
+            font-weight: 700;
+            font-size: 14px;
+            border: 0;
+            background: transparent;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .menu a:hover,
+        .menu .ativo,
+        .btn-sair:hover {
+            background: #f58220;
+            color: #fff;
+        }
+
+        .menu form {
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 28px 20px 45px;
+            min-height: calc(100vh - 145px);
+        }
+
+        .cabecalho {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            margin: 0 0 5px;
+            font-size: 28px;
+        }
+
+        .subtitulo {
+            margin: 0;
+            color: #777;
+            font-size: 14px;
+        }
+
+        .mensagem {
+            background: #fff;
+            border: 1px solid #e5e5e5;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .tabela-box {
+            background: #fff;
+            border: 1px solid #e5e5e5;
+            border-radius: 12px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+
+        th,
+        td {
+            padding: 14px 13px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+        }
+
+        th {
+            background: #fafafa;
+            color: #555;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 6px 9px;
+            border-radius: 20px;
+            background: #edf8ef;
+            color: #26753a;
+            font-weight: 800;
+            font-size: 11px;
+        }
+
+        .btn {
+            border: 0;
+            border-radius: 8px;
+            padding: 11px 16px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-family: inherit;
+        }
+
+        .btn-laranja {
+            background: #f58220;
+            color: #fff;
+        }
+
+        .btn-claro {
+            background: #fff;
+            color: #e96e00;
+            border: 1px solid #f58220;
+        }
+
+        .vazio {
+            background: #fff;
+            border: 1px solid #e5e5e5;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            color: #777;
+        }
+
+        .paginacao {
+            display: flex;
+            justify-content: center;
+            gap: 7px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        .paginacao a,
+        .paginacao span {
+            min-width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fff;
+            color: #333;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .paginacao .ativa {
+            background: #f58220;
+            color: #fff;
+            border-color: #f58220;
+        }
+
+        footer {
+            background: #fff;
+            border-top: 1px solid #e5e5e5;
+            padding: 22px;
+            text-align: center;
+            color: #777;
+            font-size: 12px;
+        }
+
+        footer strong {
+            color: #f58220;
+        }
+
+        @@media(max-width:700px) {
+            .topo-conteudo,
+            .cabecalho {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .menu {
+                justify-content: center;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="topo">
+
+    <div class="topo-conteudo">
+
+        <a asp-controller="Admin"
+           asp-action="Index"
+           class="marca">
+
+            <img src="@logoEstabelecimento"
+                 alt="@nomeEstabelecimento" />
+
+            <div>
+                <strong>@nomeEstabelecimento</strong>
+                <span>Painel Administrativo</span>
+            </div>
+
+        </a>
+
+        <nav class="menu">
+
+            <a asp-controller="Admin"
+               asp-action="Index">
+                Início
+            </a>
+
+            <a asp-controller="Pedidos"
+               asp-action="Index">
+                Pedidos
+            </a>
+
+            <a asp-controller="Pedidos"
+               asp-action="Historico">
+                Histórico
+            </a>
+
+            <a asp-controller="Produtos"
+               asp-action="Index">
+                Produtos
+            </a>
+
+            <a asp-controller="Clientes"
+               asp-action="Index">
+                Clientes
+            </a>
+
+            <a asp-controller="Lembretes"
+               asp-action="Index">
+                Lembretes
+            </a>
+
+            <a asp-controller="NotasFiscais"
+               asp-action="Index"
+               class="ativo">
+                NF
+            </a>
+
+            <a asp-controller="Configuracoes"
+               asp-action="Index">
+                Configurações
+            </a>
+
+            <form asp-controller="Conta"
+                  asp-action="Sair"
+                  method="post">
+                @Html.AntiForgeryToken()
+
+                <button type="submit"
+                        class="btn-sair">
+                    Sair
+                </button>
+            </form>
+
+        </nav>
+
+    </div>
+
+</header>
+
+<main class="container">
+
+    <div class="cabecalho">
+
+        <div>
+
+            <h1>Pedidos disponíveis para NF</h1>
+
+            <p class="subtitulo">
+                @totalPedidos pedido(s) finalizado(s) aguardando preparação fiscal
+            </p>
+
+        </div>
+
+        <a asp-controller="NotasFiscais"
+           asp-action="Index"
+           class="btn btn-claro">
+            Voltar para NF
+        </a>
+
+    </div>
+
+    @if (TempData["Sucesso"] != null)
+    {
+        <div class="mensagem">
+            @TempData["Sucesso"]
+        </div>
+    }
+
+    @if (TempData["Erro"] != null)
+    {
+        <div class="mensagem">
+            @TempData["Erro"]
+        </div>
+    }
+
+    @if (Model.Any())
+    {
+        <div class="tabela-box">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Pedido</th>
+                        <th>Cliente</th>
+                        <th>Data do pedido</th>
+                        <th>Finalização</th>
+                        <th>Status</th>
+                        <th>Total</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                @foreach (var pedido in Model)
+                {
+                    <tr>
+
+                        <td>
+                            <strong>#@pedido.Id</strong>
+                        </td>
+
+                        <td>
+                            @pedido.NomeCliente
+                        </td>
+
+                        <td>
+                            @(pedido.DataPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))
+                        </td>
+
+                        <td>
+                            @if (pedido.DataFinalizacao.HasValue)
+                            {
+                                @(pedido.DataFinalizacao.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))
+                            }
+                            else
+                            {
+                                <span>-</span>
+                            }
+                        </td>
+
+                        <td>
+                            <span class="status">
+                                @pedido.Status
+                            </span>
+                        </td>
+
+                        <td>
+                            <strong>
+                                @pedido.Total.ToString("C2")
+                            </strong>
+                        </td>
+
+                        <td>
+
+                            <form asp-controller="NotasFiscais"
+                                  asp-action="Preparar"
+                                  method="post"
+                                  onsubmit="return confirm('Deseja preparar o pedido #@pedido.Id para emissão fiscal?');">
+
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden"
+                                       name="pedidoId"
+                                       value="@pedido.Id" />
+
+                                <button type="submit"
+                                        class="btn btn-laranja">
+                                    Preparar NF
+                                </button>
+
+                            </form>
+
+                        </td>
+
+                    </tr>
+                }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        @if (totalPaginas > 1)
+        {
+            <nav class="paginacao">
+
+                @for (int i = 1; i <= totalPaginas; i++)
+                {
+                    if (i == paginaAtual)
+                    {
+                        <span class="ativa">
+                            @i
+                        </span>
+                    }
+                    else
+                    {
+                        <a asp-controller="NotasFiscais"
+                           asp-action="PedidosDisponiveis"
+                           asp-route-pagina="@i">
+                            @i
+                        </a>
+                    }
+                }
+
+            </nav>
+        }
+    }
+    else
+    {
+        <div class="vazio">
+            Não existem pedidos finalizados aguardando preparação fiscal.
+        </div>
+    }
+
+</main>
+
+<footer>
+    Desenvolvido por <strong>WLC Sistemas</strong>
+</footer>
+
+</body>
+</html>

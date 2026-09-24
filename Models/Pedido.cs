@@ -65,7 +65,7 @@ namespace WlcSistemaPedidos.Models
         [Column(TypeName = "numeric(12,2)")]
         public decimal ValorPago { get; set; }
 
-        // Preparação para futura integração fiscal / NF
+        // Preparação para integração fiscal / NF
         public bool EnviadoParaFiscal { get; set; } = false;
 
         public DateTime? DataEnvioFiscal { get; set; }
@@ -76,8 +76,12 @@ namespace WlcSistemaPedidos.Models
         [StringLength(1000)]
         public string? RetornoFiscal { get; set; }
 
+        // Nota fiscal vinculada ao pedido
+        public NotaFiscal? NotaFiscal { get; set; }
+
         // Itens
-        public ICollection<ItemPedido> Itens { get; set; } = new List<ItemPedido>();
+        public ICollection<ItemPedido> Itens { get; set; }
+            = new List<ItemPedido>();
     }
 
     public enum StatusPedido

@@ -115,8 +115,26 @@ namespace WlcSistemaPedidos.Controllers
                     : configuracao.LogoUrl;
         }
 
+        private async Task<string?> ObterUrlSistema()
+        {
+            var configuracao =
+                await _context.ConfiguracoesSistema
+                    .AsNoTracking()
+                    .OrderBy(c => c.Id)
+                    .FirstOrDefaultAsync();
+
+            if (string.IsNullOrWhiteSpace(
+                configuracao?.UrlSistema))
+            {
+                return null;
+            }
+
+            return configuracao.UrlSistema.Trim();
+        }
+
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+            int pagina = 1)
         {
             var administrador =
                 await ObterAdministrador();
@@ -128,12 +146,40 @@ namespace WlcSistemaPedidos.Controllers
                     "Conta");
             }
 
-            var lembretes =
-                await _context.LembretesPedidos
+            const int itensPorPagina = 10;
+
+            if (pagina < 1)
+            {
+                pagina = 1;
+            }
+
+            var consulta =
+                _context.LembretesPedidos
                     .AsNoTracking()
                     .Include(l => l.Cliente)
                     .OrderBy(l => l.Enviado)
-                    .ThenBy(l => l.DataHoraAgendada)
+                    .ThenBy(l => l.DataHoraAgendada);
+
+            var totalItens =
+                await consulta.CountAsync();
+
+            var totalPaginas =
+                (int)Math.Ceiling(
+                    totalItens /
+                    (double)itensPorPagina);
+
+            if (totalPaginas > 0 &&
+                pagina > totalPaginas)
+            {
+                pagina = totalPaginas;
+            }
+
+            var lembretes =
+                await consulta
+                    .Skip(
+                        (pagina - 1) *
+                        itensPorPagina)
+                    .Take(itensPorPagina)
                     .ToListAsync();
 
             /*
@@ -154,6 +200,10 @@ namespace WlcSistemaPedidos.Controllers
                             lembrete.DataEnvio.Value);
                 }
             }
+
+            ViewBag.PaginaAtual = pagina;
+            ViewBag.TotalPaginas = totalPaginas;
+            ViewBag.TotalItens = totalItens;
 
             await CarregarEstabelecimento();
 
@@ -179,6 +229,22 @@ namespace WlcSistemaPedidos.Controllers
             var agoraBrasil =
                 ObterAgoraBrasil();
 
+            var urlSistema =
+                await ObterUrlSistema();
+
+            var mensagem =
+                "Olá! Passando para lembrar do seu pedido. " +
+                "Acesse nosso sistema para fazer seu pedido.";
+
+            if (!string.IsNullOrWhiteSpace(
+                urlSistema))
+            {
+                mensagem +=
+                    Environment.NewLine +
+                    Environment.NewLine +
+                    urlSistema;
+            }
+
             var model =
                 new LembretePedido
                 {
@@ -186,8 +252,7 @@ namespace WlcSistemaPedidos.Controllers
                         agoraBrasil.AddHours(1),
 
                     Mensagem =
-                        "Olá! Passando para lembrar do seu pedido. " +
-                        "Acesse nosso sistema para fazer seu pedido."
+                        mensagem
                 };
 
             return View(model);
@@ -239,7 +304,8 @@ namespace WlcSistemaPedidos.Controllers
             }
 
             if (cliente != null &&
-                string.IsNullOrWhiteSpace(cliente.Telefone))
+                string.IsNullOrWhiteSpace(
+                    cliente.Telefone))
             {
                 ModelState.AddModelError(
                     nameof(model.ClienteId),
@@ -249,7 +315,8 @@ namespace WlcSistemaPedidos.Controllers
             var agoraBrasil =
                 ObterAgoraBrasil();
 
-            if (model.DataHoraAgendada <= agoraBrasil)
+            if (model.DataHoraAgendada <=
+                agoraBrasil)
             {
                 ModelState.AddModelError(
                     nameof(model.DataHoraAgendada),
@@ -274,6 +341,25 @@ namespace WlcSistemaPedidos.Controllers
                 await CarregarEstabelecimento();
 
                 return View(model);
+            }
+
+            /*
+             * Garante que o link público do sistema
+             * esteja presente no lembrete.
+             */
+            var urlSistema =
+                await ObterUrlSistema();
+
+            if (!string.IsNullOrWhiteSpace(
+                    urlSistema) &&
+                !model.Mensagem.Contains(
+                    urlSistema,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                model.Mensagem +=
+                    Environment.NewLine +
+                    Environment.NewLine +
+                    urlSistema;
             }
 
             /*
@@ -383,6 +469,58 @@ namespace WlcSistemaPedidos.Controllers
 
             TempData["Sucesso"] =
                 "Lembrete cancelado com sucesso.";
+
+            return RedirectToAction(
+                nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Excluir(
+            int id)
+        {
+            var administrador =
+                await ObterAdministrador();
+
+            if (administrador == null)
+            {
+                return RedirectToAction(
+                    "AcessoNegado",
+                    "Conta");
+            }
+
+            var lembrete =
+                await _context.LembretesPedidos
+                    .FirstOrDefaultAsync(l =>
+                        l.Id == id);
+
+            if (lembrete == null)
+            {
+                return NotFound();
+            }
+
+            /*
+             * Lembrete ainda pendente não pode
+             * ser excluído diretamente.
+             * Primeiro deve ser cancelado.
+             */
+            if (lembrete.Ativo &&
+                !lembrete.Enviado)
+            {
+                TempData["Erro"] =
+                    "Cancele o lembrete antes de excluí-lo.";
+
+                return RedirectToAction(
+                    nameof(Index));
+            }
+
+            _context.LembretesPedidos.Remove(
+                lembrete);
+
+            await _context.SaveChangesAsync();
+
+            TempData["Sucesso"] =
+                "Lembrete excluído com sucesso.";
 
             return RedirectToAction(
                 nameof(Index));

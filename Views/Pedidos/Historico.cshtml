@@ -428,6 +428,11 @@
             </a>
 
             <a asp-controller="Pedidos"
+               asp-action="Index">
+                Pedidos
+            </a>
+
+            <a asp-controller="Pedidos"
                asp-action="Historico"
                class="ativo">
                 Histórico
@@ -443,8 +448,13 @@
                 Clientes
             </a>
 
-            <a href="#"
-               class="futuro">
+            <a asp-controller="Lembretes"
+               asp-action="Index">
+                Lembretes
+            </a>
+
+            <a asp-controller="NotasFiscais"
+               asp-action="Index">
                 NF
             </a>
 
