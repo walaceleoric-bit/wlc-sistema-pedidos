@@ -1,0 +1,1008 @@
+﻿@using WlcSistemaPedidos.Models
+@model IEnumerable<Produto>
+
+@{
+    Layout = null;
+
+    var categorias =
+        ViewBag.Categorias as IEnumerable<Categoria>
+        ?? Enumerable.Empty<Categoria>();
+
+    int paginaAtual = ViewBag.PaginaAtual ?? 1;
+    int totalPaginas = ViewBag.TotalPaginas ?? 0;
+    int totalProdutos = ViewBag.TotalProdutos ?? 0;
+
+    string busca = ViewBag.Busca as string ?? "";
+    int? categoriaId = ViewBag.CategoriaId as int?;
+
+    string nomeCliente =
+        ViewBag.NomeCliente as string ?? "Cliente";
+
+    bool permitirNovosPedidos =
+        ViewBag.PermitirNovosPedidos ?? true;
+
+    decimal saldoDevedor =
+        ViewBag.SaldoDevedor ?? 0m;
+
+    string nomeEstabelecimento =
+        ViewBag.NomeEstabelecimento
+        ?? "Sistema de Pedidos";
+
+    string logoEstabelecimento =
+        ViewBag.LogoEstabelecimento
+        ?? "/images/logo-wlc.png";
+}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>Produtos - @nomeEstabelecimento</title>
+
+    <style>
+
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                font-family: Arial, Helvetica, sans-serif;
+                background: #f5f5f5;
+                color: #292929;
+            }
+
+            /* =========================
+               TOPO
+            ========================= */
+
+            .topo {
+                background: #ffffff;
+                border-bottom: 3px solid #f58220;
+                box-shadow: 0 2px 12px rgba(0,0,0,.08);
+                position: sticky;
+                top: 0;
+                z-index: 100;
+            }
+
+            .topo-conteudo {
+                max-width: 1250px;
+                margin: auto;
+                min-height: 78px;
+                padding: 10px 20px;
+
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 25px;
+            }
+
+            .marca {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                text-decoration: none;
+                color: #222;
+            }
+
+            .marca img {
+                width: 58px;
+                height: 58px;
+                object-fit: contain;
+            }
+
+            .marca-texto strong {
+                display: block;
+                font-size: 17px;
+            }
+
+            .marca-texto span {
+                display: block;
+                margin-top: 3px;
+                font-size: 12px;
+                color: #777;
+            }
+
+            .menu {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .menu a,
+            .menu button {
+                border: 0;
+                background: transparent;
+                color: #333;
+                font-weight: 700;
+                font-size: 14px;
+                padding: 11px 14px;
+                border-radius: 8px;
+                text-decoration: none;
+                cursor: pointer;
+                transition: .2s;
+            }
+
+            .menu a:hover,
+            .menu button:hover {
+                background: #fff2e8;
+                color: #e96e00;
+            }
+
+            .menu .ativo {
+                background: #f58220;
+                color: #fff;
+            }
+
+            .menu .ativo:hover {
+                background: #e67210;
+                color: #fff;
+            }
+
+            .form-sair {
+                margin: 0;
+            }
+
+            /* =========================
+               CONTEÚDO
+            ========================= */
+
+            .container {
+                max-width: 1250px;
+                margin: auto;
+                padding: 28px 20px 45px;
+            }
+
+            .cabecalho-pagina {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 20px;
+                margin-bottom: 22px;
+            }
+
+            .cabecalho-pagina h1 {
+                margin: 0 0 6px;
+                font-size: 28px;
+            }
+
+            .cabecalho-pagina p {
+                margin: 0;
+                color: #777;
+                font-size: 14px;
+            }
+
+            /* =========================
+               RESUMO DO CLIENTE
+            ========================= */
+
+            .resumo-cliente {
+                display: flex;
+                align-items: stretch;
+                justify-content: flex-end;
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+
+            .cliente-info,
+            .saldo-info {
+                background: #fff;
+                border: 1px solid #e5e5e5;
+                border-radius: 12px;
+                padding: 12px 16px;
+            }
+
+            .cliente-info {
+                min-width: 230px;
+            }
+
+            .saldo-info {
+                min-width: 180px;
+            }
+
+            .cliente-info small,
+            .saldo-info small {
+                display: block;
+                color: #777;
+                margin-bottom: 4px;
+                font-size: 12px;
+            }
+
+            .cliente-info > strong {
+                display: block;
+                color: #f58220;
+                font-size: 15px;
+            }
+
+            .saldo-valor {
+                display: block;
+                font-size: 19px;
+                font-weight: 900;
+            }
+
+            .saldo-status {
+                display: block;
+                margin-top: 3px;
+                font-size: 11px;
+                font-weight: 700;
+            }
+
+            .saldo-devedor {
+                color: #c62828;
+            }
+
+            .saldo-em-dia {
+                color: #218838;
+            }
+
+            .status-pedidos {
+                margin-top: 10px;
+                padding-top: 9px;
+                border-top: 1px solid #eeeeee;
+                font-size: 11px;
+                font-weight: 700;
+            }
+
+            .status-liberado {
+                color: #218838;
+            }
+
+            .status-bloqueado {
+                color: #c62828;
+            }
+
+            /* =========================
+               AVISO
+            ========================= */
+
+            .aviso-bloqueio {
+                background: #fff3f3;
+                border: 1px solid #f1b8b8;
+                border-left: 5px solid #c62828;
+                color: #8c1d1d;
+                padding: 14px 16px;
+                border-radius: 9px;
+                margin-bottom: 20px;
+                font-size: 14px;
+                line-height: 1.5;
+            }
+
+            /* =========================
+               MENSAGENS
+            ========================= */
+
+            .mensagem-sucesso,
+            .mensagem-erro {
+                padding: 13px 16px;
+                border-radius: 9px;
+                margin-bottom: 20px;
+                font-size: 14px;
+                font-weight: 700;
+            }
+
+            .mensagem-sucesso {
+                background: #eef9f0;
+                border: 1px solid #b9dfbf;
+                color: #218838;
+            }
+
+            .mensagem-erro {
+                background: #fff3f3;
+                border: 1px solid #f1b8b8;
+                color: #c62828;
+            }
+
+            /* =========================
+               FILTROS
+            ========================= */
+
+            .filtros {
+                background: #fff;
+                padding: 18px;
+                border-radius: 12px;
+                border: 1px solid #e7e7e7;
+                margin-bottom: 22px;
+            }
+
+            .filtros-form {
+                display: grid;
+                grid-template-columns: 1fr 260px auto;
+                gap: 10px;
+            }
+
+            .campo {
+                width: 100%;
+                border: 1px solid #d8d8d8;
+                border-radius: 8px;
+                padding: 12px 13px;
+                outline: none;
+                font-size: 14px;
+                background: #fff;
+            }
+
+            .campo:focus {
+                border-color: #f58220;
+                box-shadow: 0 0 0 3px rgba(245,130,32,.12);
+            }
+
+            .btn-filtrar {
+                border: 0;
+                background: #f58220;
+                color: #fff;
+                font-weight: bold;
+                padding: 0 22px;
+                border-radius: 8px;
+                cursor: pointer;
+            }
+
+            .btn-filtrar:hover {
+                background: #df6d0c;
+            }
+
+            .resultado {
+                margin-top: 12px;
+                color: #777;
+                font-size: 13px;
+            }
+
+            /* =========================
+               PRODUTOS
+            ========================= */
+
+            .produtos-grid {
+                display: grid;
+                grid-template-columns:
+                    repeat(auto-fill, minmax(230px, 1fr));
+                gap: 18px;
+            }
+
+            .produto-card {
+                background: #fff;
+                border-radius: 14px;
+                border: 1px solid #e7e7e7;
+                overflow: hidden;
+                transition: .2s;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .produto-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 22px rgba(0,0,0,.09);
+                border-color: #f3c29b;
+            }
+
+            .produto-imagem {
+                height: 190px;
+                background: #f1f1f1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+            }
+
+            .produto-imagem img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .sem-imagem {
+                text-align: center;
+                color: #aaa;
+                font-size: 13px;
+            }
+
+            .sem-imagem span {
+                display: block;
+                font-size: 36px;
+                margin-bottom: 5px;
+            }
+
+            .produto-conteudo {
+                padding: 16px;
+                display: flex;
+                flex-direction: column;
+                flex: 1;
+            }
+
+            .categoria {
+                color: #e96e00;
+                font-size: 11px;
+                font-weight: 800;
+                text-transform: uppercase;
+                margin-bottom: 6px;
+            }
+
+            .produto-nome {
+                font-size: 17px;
+                font-weight: 800;
+                margin: 0 0 7px;
+            }
+
+            .produto-descricao {
+                color: #777;
+                font-size: 13px;
+                line-height: 1.45;
+                margin: 0 0 15px;
+                min-height: 38px;
+            }
+
+            .produto-rodape {
+                margin-top: auto;
+            }
+
+            .preco {
+                display: block;
+                color: #222;
+                font-size: 22px;
+                font-weight: 900;
+                margin-bottom: 11px;
+            }
+
+            .btn-adicionar {
+                display: block;
+                width: 100%;
+                border: 0;
+                border-radius: 8px;
+                padding: 11px;
+                font-weight: bold;
+                background: #f58220;
+                color: #fff;
+                cursor: pointer;
+            }
+
+            .btn-adicionar:hover {
+                background: #df6d0c;
+            }
+
+            .btn-adicionar:disabled {
+                background: #bbb;
+                cursor: not-allowed;
+            }
+
+            /* =========================
+               VAZIO
+            ========================= */
+
+            .vazio {
+                background: #fff;
+                border: 1px solid #e5e5e5;
+                border-radius: 12px;
+                padding: 50px 20px;
+                text-align: center;
+                color: #777;
+            }
+
+            .vazio strong {
+                display: block;
+                color: #333;
+                font-size: 19px;
+                margin-bottom: 7px;
+            }
+
+            /* =========================
+               PAGINAÇÃO
+            ========================= */
+
+            .paginacao {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 7px;
+                margin-top: 30px;
+            }
+
+            .paginacao a,
+            .paginacao span {
+                min-width: 38px;
+                height: 38px;
+                padding: 0 11px;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-decoration: none;
+                border: 1px solid #ddd;
+                background: #fff;
+                color: #333;
+                font-size: 13px;
+                font-weight: bold;
+            }
+
+            .paginacao a:hover {
+                border-color: #f58220;
+                color: #f58220;
+            }
+
+            .paginacao .pagina-ativa {
+                background: #f58220;
+                color: #fff;
+                border-color: #f58220;
+            }
+
+            /* =========================
+               RODAPÉ
+            ========================= */
+
+            footer {
+                background: #fff;
+                border-top: 1px solid #e5e5e5;
+                padding: 22px 20px;
+                text-align: center;
+                color: #777;
+                font-size: 12px;
+            }
+
+            footer strong {
+                color: #f58220;
+            }
+
+            /* =========================
+               RESPONSIVO
+            ========================= */
+
+            @@media (max-width: 800px) {
+
+                .topo-conteudo {
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+
+                .marca {
+                    justify-content: center;
+                }
+
+                .menu {
+                    justify-content: center;
+                    flex-wrap: wrap;
+                }
+
+                .cabecalho-pagina {
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+
+                .resumo-cliente {
+                    justify-content: flex-start;
+                }
+
+                .cliente-info,
+                .saldo-info {
+                    flex: 1;
+                }
+
+                .filtros-form {
+                    grid-template-columns: 1fr;
+                }
+
+                .btn-filtrar {
+                    padding: 12px;
+                }
+            }
+
+            @@media (max-width: 520px) {
+
+                .container {
+                    padding: 20px 12px 35px;
+                }
+
+                .produtos-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .produto-imagem {
+                    height: 220px;
+                }
+
+                .menu a,
+                .menu button {
+                    padding: 9px 10px;
+                    font-size: 13px;
+                }
+
+                .resumo-cliente {
+                    flex-direction: column;
+                }
+
+                .cliente-info,
+                .saldo-info {
+                    width: 100%;
+                }
+            }
+
+    </style>
+</head>
+
+<body>
+
+    <!-- TOPO -->
+    <header class="topo">
+
+        <div class="topo-conteudo">
+
+            <a asp-controller="Home"
+               asp-action="Index"
+               class="marca">
+
+                <img src="@logoEstabelecimento"
+                     alt="@nomeEstabelecimento" />
+
+                <div class="marca-texto">
+                    <strong>@nomeEstabelecimento</strong>
+                    <span>Sistema de Pedidos</span>
+                </div>
+
+            </a>
+
+            <nav class="menu">
+
+                <a asp-controller="Home"
+                   asp-action="Index">
+                    Início
+                </a>
+
+                <a asp-controller="Cliente"
+                   asp-action="Historico">
+                    Histórico
+                </a>
+
+                <a asp-controller="Cliente"
+                   asp-action="Produtos"
+                   class="ativo">
+                    Produtos
+                </a>
+
+                <a asp-controller="Carrinho"
+                   asp-action="Index">
+                    Carrinho
+                </a>
+
+                <form asp-controller="Conta"
+                      asp-action="Sair"
+                      method="post"
+                      class="form-sair">
+
+                    @Html.AntiForgeryToken()
+
+                    <button type="submit">
+                        Sair
+                    </button>
+
+                </form>
+
+            </nav>
+
+        </div>
+
+    </header>
+
+    <!-- CONTEÚDO -->
+    <main class="container">
+
+        <div class="cabecalho-pagina">
+
+            <div>
+
+                <h1>Produtos</h1>
+
+                <p>
+                    Escolha seus produtos e monte seu pedido.
+                </p>
+
+            </div>
+
+            <div class="resumo-cliente">
+
+                <div class="cliente-info">
+
+                    <small>Cliente</small>
+
+                    <strong>
+                        @nomeCliente
+                    </strong>
+
+                    <div class="status-pedidos">
+
+                        @if (permitirNovosPedidos)
+                        {
+                            <span class="status-liberado">
+                                ● Liberado para novos pedidos
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="status-bloqueado">
+                                ● Novos pedidos bloqueados
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+
+                <div class="saldo-info">
+
+                    <small>Saldo atual</small>
+
+                    @if (saldoDevedor > 0)
+                    {
+                        <span class="saldo-valor saldo-devedor">
+                            @saldoDevedor.ToString("C2")
+                        </span>
+
+                        <span class="saldo-status saldo-devedor">
+                            Saldo devedor
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="saldo-valor saldo-em-dia">
+                            @saldoDevedor.ToString("C2")
+                        </span>
+
+                        <span class="saldo-status saldo-em-dia">
+                            Em dia
+                        </span>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+        @if (!permitirNovosPedidos)
+        {
+            <div class="aviso-bloqueio">
+
+                <strong>
+                    Novos pedidos temporariamente indisponíveis.
+                </strong>
+
+                Entre em contato com o estabelecimento
+                para mais informações.
+
+            </div>
+        }
+
+        @if (TempData["Sucesso"] != null)
+        {
+            <div class="mensagem-sucesso">
+                @TempData["Sucesso"]
+            </div>
+        }
+
+        @if (TempData["Erro"] != null)
+        {
+            <div class="mensagem-erro">
+                @TempData["Erro"]
+            </div>
+        }
+
+        <!-- FILTROS -->
+        <section class="filtros">
+
+            <form method="get"
+                  asp-controller="Cliente"
+                  asp-action="Produtos"
+                  class="filtros-form">
+
+                <input type="text"
+                       name="busca"
+                       value="@busca"
+                       class="campo"
+                       placeholder="Buscar produto..." />
+
+                <select name="categoriaId"
+                        class="campo">
+
+                    <option value="">
+                        Todas as categorias
+                    </option>
+
+                    @foreach (var categoria in categorias)
+                    {
+                        if (categoriaId == categoria.Id)
+                        {
+                            <option value="@categoria.Id"
+                                    selected>
+                                @categoria.Nome
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="@categoria.Id">
+                                @categoria.Nome
+                            </option>
+                        }
+                    }
+
+                </select>
+
+                <button type="submit"
+                        class="btn-filtrar">
+                    Buscar
+                </button>
+
+            </form>
+
+            <div class="resultado">
+                @totalProdutos produto(s) encontrado(s)
+            </div>
+
+        </section>
+
+        <!-- PRODUTOS -->
+        @if (Model.Any())
+        {
+            <section class="produtos-grid">
+
+                @foreach (var produto in Model)
+                {
+                    <article class="produto-card">
+
+                        <div class="produto-imagem">
+
+                            @if (!string.IsNullOrWhiteSpace(
+                                produto.ImagemUrl))
+                            {
+                                <img src="@produto.ImagemUrl"
+                                     alt="@produto.Nome" />
+                            }
+                            else
+                            {
+                                <div class="sem-imagem">
+
+                                    <span>🛒</span>
+
+                                    Sem imagem
+
+                                </div>
+                            }
+
+                        </div>
+
+                        <div class="produto-conteudo">
+
+                            <div class="categoria">
+                                @produto.Categoria.Nome
+                            </div>
+
+                            <h2 class="produto-nome">
+                                @produto.Nome
+                            </h2>
+
+                            <p class="produto-descricao">
+
+                                @(
+                                    string.IsNullOrWhiteSpace(
+                                        produto.Descricao)
+                                        ? "Produto disponível para pedido."
+                                        : produto.Descricao
+                                )
+
+                            </p>
+
+                            <div class="produto-rodape">
+
+                                <span class="preco">
+                                    @produto.Preco.ToString("C2")
+                                </span>
+
+                                @if (permitirNovosPedidos)
+                                {
+                                    <form asp-controller="Carrinho"
+                                          asp-action="Adicionar"
+                                          method="post">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <input type="hidden"
+                                               name="produtoId"
+                                               value="@produto.Id" />
+
+                                        <button type="submit"
+                                                class="btn-adicionar">
+                                            Adicionar ao pedido
+                                        </button>
+
+                                    </form>
+                                }
+                                else
+                                {
+                                    <button type="button"
+                                            class="btn-adicionar"
+                                            disabled>
+                                        Pedido indisponível
+                                    </button>
+                                }
+
+                            </div>
+
+                        </div>
+
+                    </article>
+                }
+
+            </section>
+
+            <!-- PAGINAÇÃO -->
+            @if (totalPaginas > 1)
+            {
+                <nav class="paginacao">
+
+                    @if (paginaAtual > 1)
+                    {
+                        <a asp-controller="Cliente"
+                           asp-action="Produtos"
+                           asp-route-pagina="@(paginaAtual - 1)"
+                           asp-route-busca="@busca"
+                           asp-route-categoriaId="@categoriaId">
+                            ‹
+                        </a>
+                    }
+
+                    @for (int i = 1;
+                         i <= totalPaginas;
+                         i++)
+                    {
+                        if (i == paginaAtual)
+                        {
+                            <span class="pagina-ativa">
+                                @i
+                            </span>
+                        }
+                        else
+                        {
+                            <a asp-controller="Cliente"
+                               asp-action="Produtos"
+                               asp-route-pagina="@i"
+                               asp-route-busca="@busca"
+                               asp-route-categoriaId="@categoriaId">
+                                @i
+                            </a>
+                        }
+                    }
+
+                    @if (paginaAtual < totalPaginas)
+                    {
+                        <a asp-controller="Cliente"
+                           asp-action="Produtos"
+                           asp-route-pagina="@(paginaAtual + 1)"
+                           asp-route-busca="@busca"
+                           asp-route-categoriaId="@categoriaId">
+                            ›
+                        </a>
+                    }
+
+                </nav>
+            }
+        }
+        else
+        {
+            <div class="vazio">
+
+                <strong>
+                    Nenhum produto encontrado.
+                </strong>
+
+                Tente alterar a busca ou selecionar outra categoria.
+
+            </div>
+        }
+
+    </main>
+
+    <footer>
+        Desenvolvido por
+        <strong>WLC Sistemas</strong>
+    </footer>
+
+</body>
+</html>

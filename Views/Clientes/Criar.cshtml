@@ -1,0 +1,835 @@
+﻿@using WlcSistemaPedidos.ViewModels
+@model ClienteCriarViewModel
+
+@{
+ViewData["Title"] = "Novo Cliente";
+Layout = null;
+
+string nomeEstabelecimento =
+    ViewBag.NomeEstabelecimento
+    ?? "Sistema de Pedidos";
+
+string logoEstabelecimento =
+    ViewBag.LogoEstabelecimento
+    ?? "/images/logo-wlc.png";
+}
+
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<title>Novo Cliente - Sistema de Pedidos</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        min-height: 100vh;
+        font-family: Arial, Helvetica, sans-serif;
+        background: #f6f7f9;
+        color: #262626;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .topo {
+        background: #ffffff;
+        border-bottom: 1px solid #e8e8e8;
+        min-height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 5%;
+    }
+
+    .marca {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .logo-wlc {
+        width: 95px;
+        height: 48px;
+        object-fit: contain;
+    }
+
+    .nome-sistema {
+        border-left: 1px solid #dddddd;
+        padding-left: 14px;
+    }
+
+    .nome-sistema strong {
+        display: block;
+        font-size: 15px;
+    }
+
+    .nome-sistema span {
+        font-size: 12px;
+        color: #888888;
+    }
+
+    .menu {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        flex-wrap: wrap;
+    }
+
+    .menu a,
+    .btn-sair {
+        border: none;
+        background: transparent;
+        color: #444444;
+        text-decoration: none;
+        padding: 10px 13px;
+        border-radius: 8px;
+        font-size: 14px;
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    .menu a:hover,
+    .btn-sair:hover {
+        background: #fff3e6;
+        color: #f57c00;
+    }
+
+    .menu .ativo {
+        background: #f57c00;
+        color: #ffffff;
+    }
+
+    .conteudo {
+        width: 90%;
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 35px 0;
+        flex: 1;
+    }
+
+    .cabecalho {
+        margin-bottom: 24px;
+    }
+
+    .cabecalho h1 {
+        font-size: 27px;
+        margin-bottom: 6px;
+    }
+
+    .cabecalho p {
+        color: #777777;
+        font-size: 14px;
+    }
+
+    .card {
+        background: #ffffff;
+        border: 1px solid #eeeeee;
+        border-radius: 14px;
+        padding: 25px;
+    }
+
+    .secao {
+        margin-bottom: 28px;
+    }
+
+    .secao:last-child {
+        margin-bottom: 0;
+    }
+
+    .secao h2 {
+        font-size: 17px;
+        margin-bottom: 17px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eeeeee;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 17px;
+    }
+
+    .grid-3 {
+        display: grid;
+        grid-template-columns: 1fr 160px 1fr;
+        gap: 17px;
+    }
+
+    .grupo {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .grupo-total {
+        grid-column: 1 / -1;
+    }
+
+    label {
+        font-size: 13px;
+        font-weight: bold;
+        color: #444444;
+    }
+
+    .campo {
+        width: 100%;
+        min-height: 44px;
+        border: 1px solid #dddddd;
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 14px;
+        outline: none;
+        background: #ffffff;
+    }
+
+    .campo:focus {
+        border-color: #f57c00;
+        box-shadow: 0 0 0 3px rgba(245, 124, 0, .10);
+    }
+
+    .erro {
+        color: #b42318;
+        font-size: 12px;
+    }
+
+    .validacao {
+        background: #fff0f0;
+        border: 1px solid #f1b8b8;
+        color: #b42318;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 13px;
+    }
+
+    .validacao:empty {
+        display: none;
+    }
+
+    .opcoes {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+
+    .opcao {
+        border: 1px solid #eeeeee;
+        border-radius: 10px;
+        padding: 15px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        background: #fafafa;
+        cursor: pointer;
+    }
+
+    .opcao input {
+        margin-top: 3px;
+        width: 17px;
+        height: 17px;
+        accent-color: #f57c00;
+    }
+
+    .opcao strong {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+
+    .opcao span {
+        color: #777777;
+        font-size: 12px;
+    }
+
+    .acesso-box {
+        margin-top: 16px;
+        padding: 20px;
+        background: #fffaf5;
+        border: 1px solid #ffe0bf;
+        border-radius: 11px;
+    }
+
+    .acesso-titulo {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .acesso-info {
+        color: #777777;
+        font-size: 12px;
+        margin-bottom: 17px;
+    }
+
+    .senha-info {
+        color: #888888;
+        font-size: 11px;
+    }
+
+    .acoes {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 25px;
+    }
+
+    .btn {
+        border: none;
+        border-radius: 8px;
+        padding: 12px 18px;
+        font-size: 14px;
+        cursor: pointer;
+        text-decoration: none;
+        font-family: inherit;
+    }
+
+    .btn-voltar {
+        background: #ffffff;
+        border: 1px solid #dddddd;
+        color: #555555;
+    }
+
+    .btn-salvar {
+        background: #f57c00;
+        color: #ffffff;
+        font-weight: bold;
+    }
+
+    .btn-salvar:hover {
+        background: #e66f00;
+    }
+
+    .rodape {
+        background: #ffffff;
+        border-top: 1px solid #e8e8e8;
+        text-align: center;
+        padding: 18px;
+        color: #777777;
+        font-size: 12px;
+    }
+
+    .rodape strong {
+        color: #f57c00;
+    }
+
+    @@media (max-width: 750px) {
+        .topo {
+            flex-direction: column;
+            gap: 10px;
+            padding: 12px 4%;
+        }
+
+        .menu {
+            justify-content: center;
+        }
+
+        .grid,
+        .grid-3,
+        .opcoes {
+            grid-template-columns: 1fr;
+        }
+
+        .grupo-total {
+            grid-column: auto;
+        }
+    }
+
+    @@media (max-width: 550px) {
+        .conteudo {
+            width: 92%;
+        }
+
+        .card {
+            padding: 18px;
+        }
+
+        .marca {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .nome-sistema {
+            display: none;
+        }
+
+        .menu {
+            gap: 2px;
+        }
+
+        .menu a,
+        .btn-sair {
+            padding: 8px;
+            font-size: 13px;
+        }
+
+        .acoes {
+            flex-direction: column-reverse;
+        }
+
+        .btn {
+            width: 100%;
+            text-align: center;
+        }
+    }
+</style>
+
+</head>
+
+<body>
+
+<header class="topo">
+
+<div class="marca">
+
+    <img src="@logoEstabelecimento"
+         alt="@nomeEstabelecimento"
+         class="logo-wlc" />
+
+    <div class="nome-sistema">
+        <strong>@nomeEstabelecimento</strong>
+        <span>Painel Administrativo</span>
+    </div>
+
+</div>
+
+<nav class="menu">
+
+    <a asp-controller="Admin"
+       asp-action="Index">
+        Início
+    </a>
+
+    <a asp-controller="Produtos"
+       asp-action="Index">
+        Produtos
+    </a>
+
+    <a asp-controller="Categorias"
+       asp-action="Index">
+        Categorias
+    </a>
+
+    <a asp-controller="Clientes"
+       asp-action="Index"
+       class="ativo">
+        Clientes
+    </a>
+
+    <a href="#">NF</a>
+
+    <a href="#">Configurações</a>
+
+    <form asp-controller="Conta"
+          asp-action="Sair"
+          method="post">
+
+        @Html.AntiForgeryToken()
+
+        <button type="submit"
+                class="btn-sair">
+            Sair
+        </button>
+
+    </form>
+
+</nav>
+
+</header>
+
+<main class="conteudo">
+
+<div class="cabecalho">
+    <h1>Novo Cliente</h1>
+
+    <p>
+        Cadastre os dados e, se desejar, crie o acesso do cliente ao sistema.
+    </p>
+</div>
+
+<div class="card">
+
+    <form asp-controller="Clientes"
+          asp-action="Criar"
+          method="post">
+
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly"
+             class="validacao">
+        </div>
+
+        <div class="secao">
+
+            <h2>Dados do cliente</h2>
+
+            <div class="grid">
+
+                <div class="grupo grupo-total">
+
+                    <label asp-for="Nome">
+                        Nome *
+                    </label>
+
+                    <input asp-for="Nome"
+                           class="campo"
+                           maxlength="150"
+                           placeholder="Nome do cliente" />
+
+                    <span asp-validation-for="Nome"
+                          class="erro"></span>
+
+                </div>
+
+                <div class="grupo">
+
+                    <label asp-for="CpfCnpj">
+                        CPF / CNPJ
+                    </label>
+
+                    <input asp-for="CpfCnpj"
+                           class="campo"
+                           maxlength="20"
+                           placeholder="CPF ou CNPJ" />
+
+                    <span asp-validation-for="CpfCnpj"
+                          class="erro"></span>
+
+                </div>
+
+                <div class="grupo">
+
+                    <label asp-for="Telefone">
+                        Telefone / WhatsApp
+                    </label>
+
+                    <input asp-for="Telefone"
+                           class="campo"
+                           maxlength="20"
+                           placeholder="(27) 99999-9999" />
+
+                    <span asp-validation-for="Telefone"
+                          class="erro"></span>
+
+                </div>
+
+                <div class="grupo grupo-total">
+
+                    <label asp-for="Email">
+                        E-mail
+                    </label>
+
+                    <input asp-for="Email"
+                           type="email"
+                           class="campo"
+                           maxlength="150"
+                           placeholder="cliente@email.com" />
+
+                    <span asp-validation-for="Email"
+                          class="erro"></span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="secao">
+
+            <h2>Endereço</h2>
+
+            <div class="grid">
+
+                <div class="grupo grupo-total">
+
+                    <label asp-for="Endereco">
+                        Endereço
+                    </label>
+
+                    <input asp-for="Endereco"
+                           class="campo"
+                           maxlength="250"
+                           placeholder="Rua, avenida..." />
+
+                    <span asp-validation-for="Endereco"
+                          class="erro"></span>
+
+                </div>
+
+                <div class="grupo">
+
+                    <label asp-for="Bairro">
+                        Bairro
+                    </label>
+
+                    <input asp-for="Bairro"
+                           class="campo"
+                           maxlength="100" />
+
+                    <span asp-validation-for="Bairro"
+                          class="erro"></span>
+
+                </div>
+
+                <div class="grupo">
+
+                    <label asp-for="Cidade">
+                        Cidade
+                    </label>
+
+                    <input asp-for="Cidade"
+                           class="campo"
+                           maxlength="100" />
+
+                    <span asp-validation-for="Cidade"
+                          class="erro"></span>
+
+                </div>
+
+            </div>
+
+            <div class="grid-3"
+                 style="margin-top:17px;">
+
+                <div class="grupo">
+
+                    <label asp-for="Cep">
+                        CEP
+                    </label>
+
+                    <input asp-for="Cep"
+                           class="campo"
+                           maxlength="10"
+                           placeholder="00000-000" />
+
+                    <span asp-validation-for="Cep"
+                          class="erro"></span>
+
+                </div>
+
+                <div class="grupo">
+
+                    <label asp-for="Numero">
+                        Número
+                    </label>
+
+                    <input asp-for="Numero"
+                           class="campo"
+                           maxlength="10" />
+
+                    <span asp-validation-for="Numero"
+                          class="erro"></span>
+
+                </div>
+
+                <div class="grupo">
+
+                    <label asp-for="Complemento">
+                        Complemento
+                    </label>
+
+                    <input asp-for="Complemento"
+                           class="campo"
+                           maxlength="250"
+                           placeholder="Apto, casa, referência..." />
+
+                    <span asp-validation-for="Complemento"
+                          class="erro"></span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="secao">
+
+            <h2>Controle</h2>
+
+            <div class="opcoes">
+
+                <label class="opcao">
+
+                    <input asp-for="Ativo"
+                           type="checkbox" />
+
+                    <span>
+                        <strong>Cliente ativo</strong>
+
+                        <span>
+                            Permite manter o cadastro e o acesso ativos.
+                        </span>
+                    </span>
+
+                </label>
+
+                <label class="opcao">
+
+                    <input asp-for="PermitirNovosPedidos"
+                           type="checkbox" />
+
+                    <span>
+                        <strong>Permitir novos pedidos</strong>
+
+                        <span>
+                            Pode ser bloqueado sem excluir o cliente.
+                        </span>
+                    </span>
+
+                </label>
+
+            </div>
+
+        </div>
+
+        <div class="secao">
+
+            <h2>Acesso ao sistema</h2>
+
+            <label class="opcao">
+
+                <input asp-for="CriarAcesso"
+                       type="checkbox"
+                       id="criarAcesso"
+                       onchange="atualizarAcesso()" />
+
+                <span>
+                    <strong>Criar acesso para este cliente</strong>
+
+                    <span>
+                        O cliente poderá entrar no sistema para acompanhar
+                        pedidos e sua situação.
+                    </span>
+                </span>
+
+            </label>
+
+            <div class="acesso-box"
+                 id="dadosAcesso">
+
+                <div class="acesso-titulo">
+                    Login do cliente
+                </div>
+
+                <div class="acesso-info">
+                    Defina um login simples e uma senha de exatamente 6 números.
+                </div>
+
+                <div class="grid">
+
+                    <div class="grupo grupo-total">
+
+                        <label asp-for="Login">
+                            Login *
+                        </label>
+
+                        <input asp-for="Login"
+                               class="campo"
+                               maxlength="50"
+                               autocomplete="off"
+                               placeholder="Ex.: joao" />
+
+                        <span asp-validation-for="Login"
+                              class="erro"></span>
+
+                    </div>
+
+                    <div class="grupo">
+
+                        <label asp-for="Senha">
+                            Senha *
+                        </label>
+
+                        <input asp-for="Senha"
+                               type="password"
+                               class="campo"
+                               inputmode="numeric"
+                               maxlength="6"
+                               autocomplete="new-password"
+                               placeholder="6 números" />
+
+                        <span asp-validation-for="Senha"
+                              class="erro"></span>
+
+                        <span class="senha-info">
+                            Exemplo: 123456
+                        </span>
+
+                    </div>
+
+                    <div class="grupo">
+
+                        <label asp-for="ConfirmarSenha">
+                            Confirmar senha *
+                        </label>
+
+                        <input asp-for="ConfirmarSenha"
+                               type="password"
+                               class="campo"
+                               inputmode="numeric"
+                               maxlength="6"
+                               autocomplete="new-password"
+                               placeholder="Repita a senha" />
+
+                        <span asp-validation-for="ConfirmarSenha"
+                              class="erro"></span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="acoes">
+
+            <a asp-controller="Clientes"
+               asp-action="Index"
+               class="btn btn-voltar">
+                Cancelar
+            </a>
+
+            <button type="submit"
+                    class="btn btn-salvar">
+                Salvar Cliente
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+</main>
+
+<footer class="rodape">
+    Desenvolvido por <strong>WLC Sistemas</strong>
+</footer>
+
+<script>
+    function atualizarAcesso() {
+        const checkbox = document.getElementById("criarAcesso");
+        const dados = document.getElementById("dadosAcesso");
+
+        if (checkbox.checked) {
+            dados.style.display = "block";
+        } else {
+            dados.style.display = "none";
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        atualizarAcesso();
+    });
+</script>
+
+</body>
+</html>

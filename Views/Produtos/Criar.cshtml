@@ -1,0 +1,898 @@
+﻿@using WlcSistemaPedidos.Models
+@model Produto
+
+@{
+    ViewData["Title"] = "Novo Produto";
+    Layout = null;
+
+    var categorias = ViewBag.Categorias as IEnumerable<Categoria>
+        ?? Enumerable.Empty<Categoria>();
+
+    string nomeEstabelecimento =
+        ViewBag.NomeEstabelecimento
+        ?? "Sistema de Pedidos";
+
+    string logoEstabelecimento =
+        ViewBag.LogoEstabelecimento
+        ?? "/images/logo-wlc.png";
+}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Novo Produto - Sistema de Pedidos</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f6f7f9;
+            color: #262626;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topo {
+            background: #ffffff;
+            border-bottom: 1px solid #e8e8e8;
+            min-height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 5%;
+        }
+
+        .marca {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-wlc {
+            width: 95px;
+            height: 48px;
+            object-fit: contain;
+        }
+
+        .nome-sistema {
+            border-left: 1px solid #dddddd;
+            padding-left: 14px;
+        }
+
+        .nome-sistema strong {
+            display: block;
+            font-size: 15px;
+        }
+
+        .nome-sistema span {
+            font-size: 12px;
+            color: #888888;
+        }
+
+        .menu {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .menu a,
+        .btn-sair {
+            border: none;
+            background: transparent;
+            color: #444444;
+            text-decoration: none;
+            padding: 10px 13px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .menu a:hover,
+        .btn-sair:hover {
+            background: #fff3e6;
+            color: #f57c00;
+        }
+
+        .menu .ativo {
+            background: #f57c00;
+            color: #ffffff;
+        }
+
+        .conteudo {
+            width: 90%;
+            max-width: 950px;
+            margin: 0 auto;
+            padding: 35px 0;
+            flex: 1;
+        }
+
+        .cabecalho {
+            margin-bottom: 24px;
+        }
+
+        .cabecalho h1 {
+            font-size: 27px;
+            margin-bottom: 6px;
+        }
+
+        .cabecalho p {
+            color: #777777;
+            font-size: 14px;
+        }
+
+        .form-card {
+            background: #ffffff;
+            border: 1px solid #eeeeee;
+            border-radius: 14px;
+            padding: 28px;
+            box-shadow: 0 5px 18px rgba(0, 0, 0, 0.04);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .grupo {
+            margin-bottom: 20px;
+        }
+
+        .grupo-completo {
+            grid-column: 1 / -1;
+        }
+
+        .grupo label {
+            display: block;
+            margin-bottom: 7px;
+            color: #333333;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .obrigatorio {
+            color: #f57c00;
+        }
+
+        .campo {
+            width: 100%;
+            height: 47px;
+            border: 1px solid #dddddd;
+            border-radius: 9px;
+            padding: 0 13px;
+            font-size: 15px;
+            outline: none;
+            background: #ffffff;
+        }
+
+        textarea.campo {
+            height: 105px;
+            padding-top: 12px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .campo:focus {
+            border-color: #f57c00;
+            box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.10);
+        }
+
+        .texto-ajuda {
+            display: block;
+            color: #888888;
+            font-size: 11px;
+            margin-top: 6px;
+        }
+
+        .erro {
+            display: block;
+            color: #b42318;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .validacao-geral {
+            background: #fff1f0;
+            color: #b42318;
+            border: 1px solid #fecdca;
+            border-radius: 9px;
+            padding: 12px 14px;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+
+        .validacao-geral:empty {
+            display: none;
+        }
+
+        /* UPLOAD */
+
+        .upload-box {
+            border: 2px dashed #f57c00;
+            border-radius: 12px;
+            background: #fffaf5;
+            padding: 28px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .upload-box:hover {
+            background: #fff3e6;
+        }
+
+        .upload-icon {
+            font-size: 42px;
+            margin-bottom: 10px;
+        }
+
+        .upload-titulo {
+            display: block;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .upload-subtitulo {
+            display: block;
+            color: #666666;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .upload-formatos {
+            display: block;
+            color: #888888;
+            font-size: 11px;
+        }
+
+        .input-imagem {
+            display: none;
+        }
+
+        .preview-container {
+            display: none;
+            margin-top: 12px;
+            border: 1px solid #eeeeee;
+            border-radius: 10px;
+            padding: 12px;
+            align-items: center;
+            gap: 14px;
+            background: #ffffff;
+        }
+
+        .preview-imagem {
+            width: 85px;
+            height: 70px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid #eeeeee;
+        }
+
+        .preview-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .preview-info strong {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 5px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .preview-info span {
+            color: #207a3c;
+            font-size: 12px;
+        }
+
+        .btn-remover-imagem {
+            border: 1px solid #f2b8b5;
+            background: #ffffff;
+            color: #b42318;
+            border-radius: 8px;
+            padding: 9px 12px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-remover-imagem:hover {
+            background: #fff0f0;
+        }
+
+        .opcoes {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            padding: 5px 0;
+        }
+
+        .check {
+            display: flex !important;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: normal !important;
+        }
+
+        .check input {
+            width: 18px;
+            height: 18px;
+            accent-color: #f57c00;
+        }
+
+        .aviso-categoria {
+            background: #fff8ed;
+            border: 1px solid #ffd7a8;
+            color: #8a4b00;
+            padding: 14px;
+            border-radius: 9px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .aviso-categoria a {
+            color: #8a4b00;
+            font-weight: bold;
+        }
+
+        .acoes {
+            border-top: 1px solid #eeeeee;
+            margin-top: 5px;
+            padding-top: 22px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn-cancelar {
+            text-decoration: none;
+            color: #555555;
+            background: #ffffff;
+            border: 1px solid #dddddd;
+            border-radius: 9px;
+            padding: 12px 18px;
+            font-size: 14px;
+        }
+
+        .btn-salvar {
+            border: none;
+            background: #f57c00;
+            color: #ffffff;
+            border-radius: 9px;
+            padding: 12px 22px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-salvar:hover {
+            background: #e66f00;
+        }
+
+        .btn-salvar:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .rodape {
+            background: #ffffff;
+            border-top: 1px solid #e8e8e8;
+            text-align: center;
+            padding: 18px;
+            color: #777777;
+            font-size: 12px;
+        }
+
+        .rodape strong {
+            color: #f57c00;
+        }
+
+        @@media (max-width: 700px) {
+            .topo {
+                flex-direction: column;
+                gap: 10px;
+                padding: 12px 4%;
+            }
+
+            .menu {
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .grupo-completo {
+                grid-column: auto;
+            }
+
+            .conteudo {
+                width: 92%;
+            }
+
+            .form-card {
+                padding: 20px;
+            }
+
+            .nome-sistema {
+                display: none;
+            }
+
+            .marca {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .acoes {
+                flex-direction: column-reverse;
+            }
+
+            .btn-cancelar,
+            .btn-salvar {
+                width: 100%;
+                text-align: center;
+            }
+
+            .preview-container {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .preview-imagem {
+                width: 120px;
+                height: 100px;
+            }
+
+            .btn-remover-imagem {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="topo">
+
+        <div class="marca">
+
+            <img src="@logoEstabelecimento"
+                 alt="@nomeEstabelecimento"
+                 class="logo-wlc" />
+
+            <div class="nome-sistema">
+                <strong>@nomeEstabelecimento</strong>
+                <span>Painel Administrativo</span>
+            </div>
+
+        </div>
+
+        <nav class="menu">
+
+            <a asp-controller="Admin"
+               asp-action="Index">
+                Início
+            </a>
+
+            <a asp-controller="Produtos"
+               asp-action="Index"
+               class="ativo">
+                Produtos
+            </a>
+
+            <a asp-controller="Categorias"
+               asp-action="Index">
+                Categorias
+            </a>
+
+            <a href="#">
+                NF
+            </a>
+
+            <a href="#">
+                Configurações
+            </a>
+
+            <form asp-controller="Conta"
+                  asp-action="Sair"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <button type="submit"
+                        class="btn-sair">
+                    Sair
+                </button>
+
+            </form>
+
+        </nav>
+
+    </header>
+
+    <main class="conteudo">
+
+        <div class="cabecalho">
+
+            <h1>Novo Produto</h1>
+
+            <p>
+                Cadastre um novo produto para o estabelecimento.
+            </p>
+
+        </div>
+
+        <div class="form-card">
+
+            @if (!categorias.Any())
+            {
+                <div class="aviso-categoria">
+
+                    <strong>Nenhuma categoria ativa cadastrada.</strong>
+
+                    <br />
+
+                    Cadastre uma categoria antes de adicionar produtos.
+
+                    <a asp-controller="Categorias"
+                       asp-action="Criar">
+                        Cadastrar categoria
+                    </a>
+
+                </div>
+            }
+
+            <form asp-controller="Produtos"
+                  asp-action="Criar"
+                  method="post"
+                  enctype="multipart/form-data">
+
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly"
+                     class="validacao-geral">
+                </div>
+
+                <div class="form-grid">
+
+                    <div class="grupo grupo-completo">
+
+                        <label asp-for="Nome">
+                            Nome do produto
+                            <span class="obrigatorio">*</span>
+                        </label>
+
+                        <input asp-for="Nome"
+                               class="campo"
+                               maxlength="150"
+                               placeholder="Ex.: Pão francês" />
+
+                        <span asp-validation-for="Nome"
+                              class="erro">
+                        </span>
+
+                    </div>
+
+                    <div class="grupo grupo-completo">
+
+                        <label asp-for="Descricao">
+                            Descrição
+                        </label>
+
+                        <textarea asp-for="Descricao"
+                                  class="campo"
+                                  maxlength="500"
+                                  placeholder="Descrição do produto..."></textarea>
+
+                        <span asp-validation-for="Descricao"
+                              class="erro">
+                        </span>
+
+                    </div>
+
+                    <div class="grupo">
+
+                        <label asp-for="CategoriaId">
+                            Categoria
+                            <span class="obrigatorio">*</span>
+                        </label>
+
+                        <select asp-for="CategoriaId"
+                                class="campo">
+
+                            <option value="0">
+                                Selecione uma categoria
+                            </option>
+
+                            @foreach (var categoria in categorias)
+                            {
+                                <option value="@categoria.Id">
+                                    @categoria.Nome
+                                </option>
+                            }
+
+                        </select>
+
+                        <span asp-validation-for="CategoriaId"
+                              class="erro">
+                        </span>
+
+                    </div>
+
+                    <div class="grupo">
+
+                        <label asp-for="Preco">
+                            Preço
+                            <span class="obrigatorio">*</span>
+                        </label>
+
+                        <input asp-for="Preco"
+                               class="campo"
+                               type="number"
+                               step="0.01"
+                               min="0"
+                               inputmode="decimal"
+                               placeholder="0,00" />
+
+                        <span asp-validation-for="Preco"
+                              class="erro">
+                        </span>
+
+                    </div>
+
+                    <div class="grupo grupo-completo">
+
+                        <label>
+                            Imagem do produto
+                        </label>
+
+                        <label for="imagemProduto"
+                               class="upload-box">
+
+                            <span class="upload-icon">
+                                📷
+                            </span>
+
+                            <span class="upload-titulo">
+                                Clique para selecionar uma imagem
+                            </span>
+
+                            <span class="upload-subtitulo">
+                                Escolha uma foto do celular ou computador
+                            </span>
+
+                            <span class="upload-formatos">
+                                JPG, JPEG, PNG ou WEBP • Máximo 5 MB
+                            </span>
+
+                        </label>
+
+                        <input type="file"
+                               id="imagemProduto"
+                               name="imagemProduto"
+                               class="input-imagem"
+                               accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
+
+                        <span class="erro"
+                              id="erroImagem">
+                        </span>
+
+                        <div id="previewContainer"
+                             class="preview-container">
+
+                            <img id="previewImagem"
+                                 class="preview-imagem"
+                                 alt="Pré-visualização" />
+
+                            <div class="preview-info">
+
+                                <strong id="nomeImagem">
+                                    Imagem selecionada
+                                </strong>
+
+                                <span>
+                                    ✓ Imagem pronta para envio
+                                </span>
+
+                            </div>
+
+                            <button type="button"
+                                    id="removerImagem"
+                                    class="btn-remover-imagem">
+                                Remover imagem
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                    <div class="grupo">
+
+                        <label asp-for="OrdemExibicao">
+                            Ordem de exibição
+                        </label>
+
+                        <input asp-for="OrdemExibicao"
+                               class="campo"
+                               type="number"
+                               min="0" />
+
+                        <span class="texto-ajuda">
+                            Produtos com número menor aparecem primeiro.
+                        </span>
+
+                    </div>
+
+                    <div class="grupo">
+
+                        <label>
+                            Situação
+                        </label>
+
+                        <div class="opcoes">
+
+                            <label class="check">
+                                <input asp-for="Ativo" />
+                                Produto ativo
+                            </label>
+
+                            <label class="check">
+                                <input asp-for="Disponivel" />
+                                Disponível
+                            </label>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="acoes">
+
+                    <a asp-controller="Produtos"
+                       asp-action="Index"
+                       class="btn-cancelar">
+                        Cancelar
+                    </a>
+
+                    <button type="submit"
+                            class="btn-salvar"
+                            disabled="@(!categorias.Any())">
+                        Salvar Produto
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </main>
+
+    <footer class="rodape">
+        Desenvolvido por <strong>WLC Sistemas</strong>
+    </footer>
+
+    <script>
+        const inputImagem =
+            document.getElementById('imagemProduto');
+
+        const previewContainer =
+            document.getElementById('previewContainer');
+
+        const previewImagem =
+            document.getElementById('previewImagem');
+
+        const nomeImagem =
+            document.getElementById('nomeImagem');
+
+        const removerImagem =
+            document.getElementById('removerImagem');
+
+        const erroImagem =
+            document.getElementById('erroImagem');
+
+        inputImagem.addEventListener('change', function () {
+
+            erroImagem.textContent = '';
+
+            const arquivo = this.files[0];
+
+            if (!arquivo) {
+                esconderPreview();
+                return;
+            }
+
+            const tamanhoMaximo =
+                5 * 1024 * 1024;
+
+            const tiposPermitidos = [
+                'image/jpeg',
+                'image/png',
+                'image/webp'
+            ];
+
+            if (!tiposPermitidos.includes(arquivo.type)) {
+
+                erroImagem.textContent =
+                    'Selecione uma imagem JPG, JPEG, PNG ou WEBP.';
+
+                inputImagem.value = '';
+
+                esconderPreview();
+
+                return;
+            }
+
+            if (arquivo.size > tamanhoMaximo) {
+
+                erroImagem.textContent =
+                    'A imagem deve ter no máximo 5 MB.';
+
+                inputImagem.value = '';
+
+                esconderPreview();
+
+                return;
+            }
+
+            nomeImagem.textContent =
+                arquivo.name;
+
+            const leitor =
+                new FileReader();
+
+            leitor.onload = function (evento) {
+
+                previewImagem.src =
+                    evento.target.result;
+
+                previewContainer.style.display =
+                    'flex';
+            };
+
+            leitor.readAsDataURL(arquivo);
+        });
+
+        removerImagem.addEventListener(
+            'click',
+            function () {
+
+                inputImagem.value = '';
+
+                erroImagem.textContent = '';
+
+                esconderPreview();
+            });
+
+        function esconderPreview() {
+
+            previewContainer.style.display =
+                'none';
+
+            previewImagem.src = '';
+
+            nomeImagem.textContent =
+                'Imagem selecionada';
+        }
+    </script>
+
+</body>
+</html>

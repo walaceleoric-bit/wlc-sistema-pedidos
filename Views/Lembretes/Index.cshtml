@@ -1,0 +1,395 @@
+﻿@model IEnumerable<WlcSistemaPedidos.Models.LembretePedido>
+
+@{
+    Layout = null;
+    ViewData["Title"] = "Lembretes";
+
+    string nomeEstabelecimento =
+        ViewBag.NomeEstabelecimento
+        ?? "Sistema de Pedidos";
+
+    string logoEstabelecimento =
+        ViewBag.LogoEstabelecimento
+        ?? "/images/logo-wlc.png";
+}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>Lembretes - @nomeEstabelecimento</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f6f7f9;
+            color: #292929;
+        }
+
+        .topo {
+            background: #fff;
+            border-bottom: 3px solid #f58220;
+            padding: 12px 5%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .marca {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .marca img {
+            width: 70px;
+            height: 50px;
+            object-fit: contain;
+        }
+
+        .marca strong {
+            display: block;
+        }
+
+        .marca span {
+            color: #777;
+            font-size: 12px;
+        }
+
+        .menu {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .menu a {
+            text-decoration: none;
+            color: #444;
+            padding: 9px 12px;
+            border-radius: 8px;
+        }
+
+        .menu a:hover {
+            background: #fff3e6;
+            color: #f58220;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1150px;
+            margin: 35px auto;
+        }
+
+        .cabecalho {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 27px;
+        }
+
+        .btn-novo {
+            background: #f58220;
+            color: #fff;
+            text-decoration: none;
+            padding: 12px 18px;
+            border-radius: 9px;
+            font-weight: bold;
+        }
+
+        .mensagem {
+            padding: 13px;
+            border-radius: 8px;
+            margin-bottom: 18px;
+        }
+
+        .sucesso {
+            background: #eaf8ef;
+            color: #246b3b;
+        }
+
+        .erro {
+            background: #fdecec;
+            color: #9b2525;
+        }
+
+        .tabela-box {
+            background: #fff;
+            border: 1px solid #e7e7e7;
+            border-radius: 12px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 14px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        th {
+            background: #fafafa;
+            color: #555;
+        }
+
+        .status {
+            font-weight: bold;
+        }
+
+        .agendado {
+            color: #d56b00;
+        }
+
+        .enviado {
+            color: #23803d;
+        }
+
+        .cancelado {
+            color: #9b2525;
+        }
+
+        .btn-cancelar {
+            border: 1px solid #c93030;
+            color: #c93030;
+            background: #fff;
+            border-radius: 7px;
+            padding: 7px 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .vazio {
+            padding: 35px;
+            text-align: center;
+            color: #777;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #777;
+            font-size: 12px;
+        }
+
+        footer strong {
+            color: #f58220;
+        }
+
+        @@media (max-width: 650px) {
+            .topo {
+                justify-content: center;
+            }
+
+            .cabecalho {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .btn-novo {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="topo">
+
+        <div class="marca">
+            <img src="@logoEstabelecimento"
+                 alt="@nomeEstabelecimento" />
+
+            <div>
+                <strong>@nomeEstabelecimento</strong>
+                <span>Painel Administrativo</span>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <a asp-controller="Admin"
+               asp-action="Index">
+                Início
+            </a>
+
+            <a asp-controller="Pedidos"
+               asp-action="Index">
+                Pedidos
+            </a>
+
+            <a asp-controller="Clientes"
+               asp-action="Index">
+                Clientes
+            </a>
+
+            <a asp-controller="Lembretes"
+               asp-action="Index">
+                Lembretes
+            </a>
+        </nav>
+
+    </header>
+
+    <main class="container">
+
+        <div class="cabecalho">
+            <div>
+                <h1>Lembretes de pedidos</h1>
+                <p>
+                    Agende lembretes para seus clientes.
+                </p>
+            </div>
+
+            <a asp-controller="Lembretes"
+               asp-action="Criar"
+               class="btn-novo">
+                + Novo lembrete
+            </a>
+        </div>
+
+        @if (TempData["Sucesso"] != null)
+        {
+            <div class="mensagem sucesso">
+                @TempData["Sucesso"]
+            </div>
+        }
+
+        @if (TempData["Erro"] != null)
+        {
+            <div class="mensagem erro">
+                @TempData["Erro"]
+            </div>
+        }
+
+        <div class="tabela-box">
+
+            @if (!Model.Any())
+            {
+                <div class="vazio">
+                    Nenhum lembrete cadastrado.
+                </div>
+            }
+            else
+            {
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Telefone</th>
+                            <th>Agendado para</th>
+                            <th>Status</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var lembrete in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>
+                                        @lembrete.NomeCliente
+                                    </strong>
+                                </td>
+
+                                <td>
+                                    @lembrete.Telefone
+                                </td>
+
+                                <td>
+                                    @(lembrete.DataHoraAgendada
+                                        .ToString("dd/MM/yyyy HH:mm"))
+                                </td>
+
+                                <td>
+
+                                    @if (lembrete.Enviado)
+                                    {
+                                        <span class="status enviado">
+                                            Enviado
+                                        </span>
+                                    }
+                                    else if (!lembrete.Ativo)
+                                    {
+                                        <span class="status cancelado">
+                                            Cancelado
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status agendado">
+                                            Agendado
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td>
+
+                                    @if (!lembrete.Enviado &&
+                                         lembrete.Ativo)
+                                    {
+                                        <form asp-controller="Lembretes"
+                                              asp-action="Cancelar"
+                                              method="post"
+                                              onsubmit="return confirm('Deseja realmente cancelar este lembrete?');">
+
+                                            @Html.AntiForgeryToken()
+
+                                            <input type="hidden"
+                                                   name="id"
+                                                   value="@lembrete.Id" />
+
+                                            <button type="submit"
+                                                    class="btn-cancelar">
+                                                Cancelar
+                                            </button>
+
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span>-</span>
+                                    }
+
+                                </td>
+                            </tr>
+                        }
+
+                    </tbody>
+                </table>
+            }
+
+        </div>
+
+    </main>
+
+    <footer>
+        Desenvolvido por <strong>WLC Sistemas</strong>
+    </footer>
+
+</body>
+</html>

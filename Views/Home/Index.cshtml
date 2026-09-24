@@ -1,0 +1,534 @@
+﻿@{
+    ViewData["Title"] = "Início";
+    Layout = null;
+
+    string nomeEstabelecimento =
+        ViewBag.NomeEstabelecimento
+        ?? "Sistema de Pedidos";
+
+    string logoEstabelecimento =
+        ViewBag.LogoEstabelecimento
+        ?? "/images/logo-wlc.png";
+}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>@nomeEstabelecimento - Sistema de Pedidos</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f7f8fa;
+            color: #252525;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* =========================
+           TOPO
+        ========================= */
+
+        .topo {
+            background: #ffffff;
+            border-bottom: 2px solid #f57c00;
+            min-height: 76px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 6%;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,.04);
+        }
+
+        .marca {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo {
+            width: 100px;
+            height: 52px;
+            object-fit: contain;
+        }
+
+        .marca-texto {
+            border-left: 1px solid #dddddd;
+            padding-left: 14px;
+        }
+
+        .marca-texto strong {
+            display: block;
+            font-size: 16px;
+            color: #333333;
+        }
+
+        .marca-texto span {
+            display: block;
+            margin-top: 3px;
+            font-size: 12px;
+            color: #888888;
+        }
+
+        .menu {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .menu a {
+            text-decoration: none;
+            color: #444444;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 11px 15px;
+            border-radius: 8px;
+            transition: .2s;
+        }
+
+        .menu a:hover {
+            color: #f57c00;
+            background: #fff3e6;
+        }
+
+        .menu .ativo {
+            color: #f57c00;
+        }
+
+        .menu .entrar {
+            background: #f57c00;
+            color: #ffffff;
+            padding-left: 22px;
+            padding-right: 22px;
+        }
+
+        .menu .entrar:hover {
+            background: #df7000;
+            color: #ffffff;
+        }
+
+        /* =========================
+           PRINCIPAL
+        ========================= */
+
+        .principal {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        .principal-conteudo {
+            width: 88%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 65px 0;
+            display: grid;
+            grid-template-columns: 1.1fr .9fr;
+            gap: 70px;
+            align-items: center;
+        }
+
+        .destaque {
+            display: inline-block;
+            color: #f57c00;
+            background: #fff0e1;
+            border-radius: 20px;
+            padding: 8px 14px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .principal h1 {
+            max-width: 650px;
+            font-size: 48px;
+            line-height: 1.08;
+            color: #222222;
+            margin-bottom: 20px;
+        }
+
+        .principal h1 span {
+            color: #f57c00;
+        }
+
+        .descricao {
+            max-width: 590px;
+            color: #6f6f6f;
+            font-size: 17px;
+            line-height: 1.65;
+            margin-bottom: 30px;
+        }
+
+        .acoes {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 48px;
+            padding: 0 23px;
+            border-radius: 9px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
+            transition: .2s;
+        }
+
+        .btn-principal {
+            background: #f57c00;
+            color: #ffffff;
+        }
+
+        .btn-principal:hover {
+            background: #df7000;
+            transform: translateY(-1px);
+        }
+
+        .btn-secundario {
+            background: #ffffff;
+            color: #333333;
+            border: 1px solid #dddddd;
+        }
+
+        .btn-secundario:hover {
+            border-color: #f57c00;
+            color: #f57c00;
+        }
+
+        /* =========================
+           CARD LATERAL
+        ========================= */
+
+        .painel {
+            background: #ffffff;
+            border-radius: 22px;
+            border: 1px solid #eeeeee;
+            box-shadow: 0 18px 50px rgba(0,0,0,.08);
+            padding: 34px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .painel::before {
+            content: "";
+            position: absolute;
+            width: 170px;
+            height: 170px;
+            background: #fff0e1;
+            border-radius: 50%;
+            right: -65px;
+            top: -70px;
+        }
+
+        .painel-titulo {
+            position: relative;
+            font-size: 22px;
+            margin-bottom: 7px;
+        }
+
+        .painel-subtitulo {
+            position: relative;
+            color: #888888;
+            font-size: 13px;
+            margin-bottom: 27px;
+        }
+
+        .vantagem {
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            gap: 13px;
+            padding: 15px 0;
+            border-bottom: 1px solid #eeeeee;
+        }
+
+        .vantagem:last-child {
+            border-bottom: none;
+        }
+
+        .icone {
+            min-width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: #fff0e1;
+            color: #f57c00;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 17px;
+        }
+
+        .vantagem strong {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .vantagem span {
+            color: #888888;
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        /* =========================
+           RODAPÉ
+        ========================= */
+
+        .rodape {
+            background: #ffffff;
+            border-top: 1px solid #e7e7e7;
+            text-align: center;
+            padding: 18px;
+            color: #777777;
+            font-size: 12px;
+        }
+
+        .rodape strong {
+            color: #f57c00;
+        }
+
+        /* =========================
+           RESPONSIVO
+        ========================= */
+
+        @@media (max-width: 850px) {
+            .principal-conteudo {
+                grid-template-columns: 1fr;
+                gap: 40px;
+                padding: 45px 0;
+            }
+
+            .principal h1 {
+                font-size: 38px;
+            }
+
+            .topo {
+                flex-direction: column;
+                gap: 10px;
+                padding: 12px 4%;
+            }
+        }
+
+        @@media (max-width: 550px) {
+            .marca-texto {
+                display: none;
+            }
+
+            .topo {
+                align-items: center;
+            }
+
+            .menu a {
+                padding: 9px 11px;
+                font-size: 13px;
+            }
+
+            .menu .entrar {
+                padding-left: 15px;
+                padding-right: 15px;
+            }
+
+            .principal-conteudo {
+                width: 92%;
+                padding: 35px 0;
+            }
+
+            .principal h1 {
+                font-size: 32px;
+            }
+
+            .descricao {
+                font-size: 15px;
+            }
+
+            .acoes {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .painel {
+                padding: 25px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- TOPO -->
+    <header class="topo">
+
+        <div class="marca">
+
+            <img src="@logoEstabelecimento"
+                 alt="@nomeEstabelecimento"
+                 class="logo" />
+
+            <div class="marca-texto">
+                <strong>@nomeEstabelecimento</strong>
+                <span>Pedidos rápidos e organizados</span>
+            </div>
+
+        </div>
+
+        <nav class="menu">
+
+            <a asp-controller="Home"
+               asp-action="Index"
+               class="ativo">
+                Início
+            </a>
+
+            <!--
+                Sem login, Produtos leva primeiro
+                para a autenticação.
+            -->
+            <a asp-controller="Conta"
+               asp-action="Login"
+               asp-route-returnUrl="/Cliente/Produtos">
+                Produtos
+            </a>
+
+            <a asp-controller="Conta"
+               asp-action="Login"
+               class="entrar">
+                Entrar
+            </a>
+
+        </nav>
+
+    </header>
+
+    <!-- CONTEÚDO -->
+    <main class="principal">
+
+        <div class="principal-conteudo">
+
+            <section>
+
+                <span class="destaque">
+                    SISTEMA DE PEDIDOS
+                </span>
+
+                <h1>
+                    Faça seus pedidos de forma
+                    <span>rápida e simples.</span>
+                </h1>
+
+                <p class="descricao">
+                    Entre na sua conta para visualizar os produtos
+                    disponíveis, acompanhar seu histórico e realizar
+                    seus pedidos com praticidade.
+                </p>
+
+                <div class="acoes">
+
+                    <a asp-controller="Conta"
+                       asp-action="Login"
+                       asp-route-returnUrl="/Cliente/Produtos"
+                       class="btn btn-principal">
+                        Ver produtos
+                    </a>
+
+                    <a asp-controller="Conta"
+                       asp-action="Login"
+                       class="btn btn-secundario">
+                        Entrar na minha conta
+                    </a>
+
+                </div>
+
+            </section>
+
+            <section class="painel">
+
+                <h2 class="painel-titulo">
+                    Tudo em um só lugar
+                </h2>
+
+                <p class="painel-subtitulo">
+                    Mais facilidade para fazer e acompanhar seus pedidos.
+                </p>
+
+                <div class="vantagem">
+
+                    <div class="icone">
+                        01
+                    </div>
+
+                    <div>
+                        <strong>Produtos organizados</strong>
+                        <span>
+                            Consulte os produtos disponíveis,
+                            categorias e preços atualizados.
+                        </span>
+                    </div>
+
+                </div>
+
+                <div class="vantagem">
+
+                    <div class="icone">
+                        02
+                    </div>
+
+                    <div>
+                        <strong>Histórico de pedidos</strong>
+                        <span>
+                            Acompanhe suas compras e consulte
+                            seus pedidos anteriores.
+                        </span>
+                    </div>
+
+                </div>
+
+                <div class="vantagem">
+
+                    <div class="icone">
+                        03
+                    </div>
+
+                    <div>
+                        <strong>Situação financeira</strong>
+                        <span>
+                            Consulte seu saldo e acompanhe
+                            as atualizações realizadas pelo estabelecimento.
+                        </span>
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </main>
+
+    <footer class="rodape">
+        Desenvolvido por <strong>WLC Sistemas</strong>
+    </footer>
+
+</body>
+</html>

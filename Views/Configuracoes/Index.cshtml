@@ -1,0 +1,1272 @@
+﻿@using WlcSistemaPedidos.ViewModels
+@model ConfiguracaoViewModel
+
+@{
+    ViewData["Title"] = "Configurações";
+    Layout = null;
+
+    string nomeEstabelecimento =
+        string.IsNullOrWhiteSpace(Model.NomeEstabelecimento)
+            ? "Sistema de Pedidos"
+            : Model.NomeEstabelecimento;
+
+    string logoEstabelecimento =
+        string.IsNullOrWhiteSpace(Model.LogoUrlAtual)
+            ? "/images/logo-wlc.png"
+            : Model.LogoUrlAtual;
+}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>Configurações - Sistema de Pedidos</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f6f7f9;
+            color: #262626;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ==========================================
+           TOPO
+        ========================================== */
+
+        .topo {
+            background: #ffffff;
+            border-bottom: 1px solid #e8e8e8;
+            min-height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 5%;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .marca {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-wlc {
+            width: 95px;
+            height: 48px;
+            object-fit: contain;
+        }
+
+        .nome-sistema {
+            border-left: 1px solid #dddddd;
+            padding-left: 14px;
+        }
+
+        .nome-sistema strong {
+            display: block;
+            font-size: 15px;
+            color: #333333;
+        }
+
+        .nome-sistema span {
+            font-size: 12px;
+            color: #888888;
+        }
+
+        /* ==========================================
+           MENU
+        ========================================== */
+
+        .menu {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            flex-wrap: wrap;
+        }
+
+        .menu a,
+        .btn-sair {
+            border: none;
+            background: transparent;
+            color: #444444;
+            text-decoration: none;
+            padding: 10px 13px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .menu a:hover,
+        .btn-sair:hover {
+            background: #fff3e6;
+            color: #f57c00;
+        }
+
+        .menu .ativo {
+            background: #f57c00;
+            color: #ffffff;
+        }
+
+        .menu .futuro {
+            color: #999999;
+            cursor: default;
+        }
+
+        .menu .futuro:hover {
+            background: transparent;
+            color: #999999;
+        }
+
+        .menu form {
+            margin: 0;
+        }
+
+        /* ==========================================
+           CONTEÚDO
+        ========================================== */
+
+        .conteudo {
+            width: 90%;
+            max-width: 1150px;
+            margin: 0 auto;
+            padding: 35px 0 45px;
+            flex: 1;
+        }
+
+        .cabecalho {
+            margin-bottom: 25px;
+        }
+
+        .cabecalho h1 {
+            font-size: 27px;
+            margin-bottom: 7px;
+        }
+
+        .cabecalho p {
+            color: #777777;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* ==========================================
+           MENSAGENS
+        ========================================== */
+
+        .mensagem {
+            padding: 13px 15px;
+            border-radius: 9px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .mensagem-sucesso {
+            background: #eaf8ef;
+            border: 1px solid #b7e4c7;
+            color: #207a3c;
+        }
+
+        .mensagem-erro {
+            background: #fff0f0;
+            border: 1px solid #f0b8b8;
+            color: #b42318;
+        }
+
+        /* ==========================================
+           CARDS
+        ========================================== */
+
+        .card {
+            background: #ffffff;
+            border: 1px solid #eeeeee;
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .card-cabecalho {
+            margin-bottom: 22px;
+        }
+
+        .card-cabecalho h2 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .card-cabecalho p {
+            color: #777777;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        /* ==========================================
+           FORMULÁRIO
+        ========================================== */
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 18px;
+        }
+
+        .grupo {
+            margin-bottom: 18px;
+        }
+
+        .grupo.sem-margem {
+            margin-bottom: 0;
+        }
+
+        .grupo label {
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            color: #444444;
+            margin-bottom: 7px;
+        }
+
+        .campo {
+            width: 100%;
+            min-height: 44px;
+            border: 1px solid #dddddd;
+            border-radius: 8px;
+            padding: 11px 12px;
+            outline: none;
+            background: #ffffff;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .campo:focus {
+            border-color: #f57c00;
+            box-shadow: 0 0 0 3px rgba(245, 124, 0, .10);
+        }
+
+        textarea.campo {
+            min-height: 105px;
+            resize: vertical;
+        }
+
+        .ajuda {
+            display: block;
+            margin-top: 6px;
+            color: #888888;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .validacao {
+            display: block;
+            margin-top: 5px;
+            color: #b42318;
+            font-size: 12px;
+        }
+
+        /* ==========================================
+           WHATSAPP
+        ========================================== */
+
+        .whatsapp-box {
+            background: #f7fcf8;
+            border: 1px solid #cce8d3;
+            border-radius: 10px;
+            padding: 16px;
+        }
+
+        .whatsapp-box label {
+            color: #207a3c;
+        }
+
+        /* ==========================================
+           PEDIDOS
+        ========================================== */
+
+        .switch-box {
+            border: 1px solid #eeeeee;
+            border-radius: 10px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            min-height: 65px;
+        }
+
+        .switch-box input {
+            width: 19px;
+            height: 19px;
+            accent-color: #f57c00;
+            cursor: pointer;
+        }
+
+        .switch-texto strong {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 3px;
+        }
+
+        .switch-texto span {
+            color: #888888;
+            font-size: 11px;
+        }
+
+        /* ==========================================
+           LOGO ESTABELECIMENTO
+        ========================================== */
+
+        .logo-config {
+            display: grid;
+            grid-template-columns: 180px 1fr;
+            gap: 25px;
+            align-items: center;
+        }
+
+        .logo-preview {
+            width: 180px;
+            height: 130px;
+            border: 1px dashed #cccccc;
+            border-radius: 12px;
+            background: #fafafa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            padding: 10px;
+        }
+
+        .logo-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .logo-sem-imagem {
+            color: #999999;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .logo-acoes {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .campo-arquivo {
+            display: block;
+            width: 100%;
+            border: 1px solid #dddddd;
+            border-radius: 8px;
+            padding: 10px;
+            background: #ffffff;
+            font-size: 13px;
+        }
+
+        /* ==========================================
+           ACESSO ADMINISTRATIVO
+        ========================================== */
+
+        .acesso-atual {
+            background: #fafafa;
+            border: 1px solid #eeeeee;
+            border-radius: 10px;
+            padding: 18px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .acesso-item small {
+            display: block;
+            color: #888888;
+            font-size: 11px;
+            margin-bottom: 5px;
+        }
+
+        .acesso-item strong {
+            font-size: 14px;
+        }
+
+        .seguranca-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
+
+        .seguranca-box {
+            border: 1px solid #eeeeee;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .seguranca-box h3 {
+            font-size: 15px;
+            margin-bottom: 5px;
+        }
+
+        .seguranca-box > p {
+            color: #888888;
+            font-size: 12px;
+            line-height: 1.5;
+            margin-bottom: 17px;
+        }
+
+        /* ==========================================
+           BOTÕES
+        ========================================== */
+
+        .acoes {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 22px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 8px;
+            padding: 12px 18px;
+            min-height: 44px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-secundario {
+            background: #ffffff;
+            color: #555555;
+            border: 1px solid #dddddd;
+        }
+
+        .btn-secundario:hover {
+            border-color: #f57c00;
+            color: #f57c00;
+        }
+
+        .btn-principal {
+            background: #f57c00;
+            color: #ffffff;
+        }
+
+        .btn-principal:hover {
+            background: #e66f00;
+        }
+
+        .btn-perigo {
+            background: #ffffff;
+            color: #b42318;
+            border: 1px solid #e8b4b4;
+        }
+
+        .btn-perigo:hover {
+            background: #fff3f3;
+        }
+
+        /* ==========================================
+           RODAPÉ
+        ========================================== */
+
+        .rodape {
+            background: #ffffff;
+            border-top: 1px solid #e8e8e8;
+            text-align: center;
+            padding: 18px;
+            color: #777777;
+            font-size: 12px;
+        }
+
+        .rodape strong {
+            color: #f57c00;
+        }
+
+        /* ==========================================
+           RESPONSIVO
+        ========================================== */
+
+        @@media (max-width: 850px) {
+            .topo {
+                flex-direction: column;
+                gap: 10px;
+                padding: 12px 4%;
+            }
+
+            .menu {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .grid,
+            .grid-3,
+            .seguranca-grid,
+            .acesso-atual {
+                grid-template-columns: 1fr;
+            }
+
+            .logo-config {
+                grid-template-columns: 1fr;
+            }
+
+            .logo-preview {
+                width: 100%;
+                max-width: 250px;
+            }
+        }
+
+        @@media (max-width: 550px) {
+            .conteudo {
+                width: 92%;
+            }
+
+            .marca {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .nome-sistema {
+                display: none;
+            }
+
+            .menu {
+                gap: 2px;
+            }
+
+            .menu a,
+            .btn-sair {
+                padding: 8px;
+                font-size: 13px;
+            }
+
+            .card {
+                padding: 18px;
+            }
+
+            .acoes,
+            .logo-acoes {
+                flex-direction: column-reverse;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="topo">
+
+    <div class="marca">
+
+        <img src="@logoEstabelecimento"
+             alt="@nomeEstabelecimento"
+             class="logo-wlc" />
+
+        <div class="nome-sistema">
+            <strong>@nomeEstabelecimento</strong>
+            <span>Painel Administrativo</span>
+        </div>
+
+    </div>
+
+    <nav class="menu">
+
+        <a asp-controller="Admin"
+           asp-action="Index">
+            Início
+        </a>
+
+        <a href="#"
+           class="futuro">
+            Histórico
+        </a>
+
+        <a asp-controller="Produtos"
+           asp-action="Index">
+            Produtos
+        </a>
+
+        <a asp-controller="Clientes"
+           asp-action="Index">
+            Clientes
+        </a>
+
+        <a href="#"
+           class="futuro">
+            NF
+        </a>
+
+        <a asp-controller="Configuracoes"
+           asp-action="Index"
+           class="ativo">
+            Configurações
+        </a>
+
+        <form asp-controller="Conta"
+              asp-action="Sair"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
+            <button type="submit"
+                    class="btn-sair">
+                Sair
+            </button>
+
+        </form>
+
+    </nav>
+
+</header>
+
+<main class="conteudo">
+
+    <div class="cabecalho">
+        <h1>Configurações</h1>
+
+        <p>
+            Gerencie o estabelecimento, pedidos,
+            identidade visual e segurança do acesso administrativo.
+        </p>
+    </div>
+
+    @if (TempData["Sucesso"] != null)
+    {
+        <div class="mensagem mensagem-sucesso">
+            @TempData["Sucesso"]
+        </div>
+    }
+
+    @if (TempData["Erro"] != null)
+    {
+        <div class="mensagem mensagem-erro">
+            @TempData["Erro"]
+        </div>
+    }
+
+    <!-- ==========================================
+         DADOS DO ESTABELECIMENTO
+    =========================================== -->
+
+    <form asp-controller="Configuracoes"
+          asp-action="Index"
+          method="post">
+
+        @Html.AntiForgeryToken()
+
+        <input type="hidden"
+               asp-for="Id" />
+
+        <div asp-validation-summary="ModelOnly"
+             class="validacao">
+        </div>
+
+        <section class="card">
+
+            <div class="card-cabecalho">
+                <h2>Estabelecimento</h2>
+                <p>
+                    Informações principais da empresa que utiliza o sistema.
+                </p>
+            </div>
+
+            <div class="grid">
+
+                <div class="grupo">
+                    <label asp-for="NomeEstabelecimento"></label>
+
+                    <input asp-for="NomeEstabelecimento"
+                           class="campo"
+                           placeholder="Nome do estabelecimento" />
+
+                    <span asp-validation-for="NomeEstabelecimento"
+                          class="validacao"></span>
+                </div>
+
+                <div class="grupo">
+                    <label asp-for="RazaoSocial"></label>
+
+                    <input asp-for="RazaoSocial"
+                           class="campo"
+                           placeholder="Razão social" />
+                </div>
+
+                <div class="grupo">
+                    <label asp-for="CpfCnpj"></label>
+
+                    <input asp-for="CpfCnpj"
+                           class="campo"
+                           placeholder="CPF ou CNPJ" />
+                </div>
+
+                <div class="grupo">
+                    <label asp-for="Email"></label>
+
+                    <input asp-for="Email"
+                           class="campo"
+                           placeholder="contato@empresa.com.br" />
+
+                    <span asp-validation-for="Email"
+                          class="validacao"></span>
+                </div>
+
+                <div class="grupo">
+                    <label asp-for="Telefone"></label>
+
+                    <input asp-for="Telefone"
+                           class="campo"
+                           placeholder="(27) 3333-3333" />
+                </div>
+
+                <div class="grupo whatsapp-box">
+
+                    <label asp-for="WhatsAppPedidos"></label>
+
+                    <input asp-for="WhatsAppPedidos"
+                           class="campo whatsapp"
+                           inputmode="numeric"
+                           autocomplete="tel"
+                           placeholder="(27) 98843-3016" />
+
+                    <span asp-validation-for="WhatsAppPedidos"
+                          class="validacao"></span>
+
+                    <small class="ajuda">
+                        Este será o WhatsApp que receberá
+                        os pedidos finalizados pelos clientes.
+                    </small>
+
+                </div>
+
+                <div class="grupo">
+
+                    <label asp-for="UrlSistema"></label>
+
+                    <input asp-for="UrlSistema"
+                           class="campo"
+                           type="url"
+                           placeholder="https://seu-sistema.up.railway.app" />
+
+                    <span asp-validation-for="UrlSistema"
+                          class="validacao"></span>
+
+                    <small class="ajuda">
+                        Endereço público do sistema que será enviado
+                        aos clientes nos lembretes de pedido.
+                    </small>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ENDEREÇO -->
+
+        <section class="card">
+
+            <div class="card-cabecalho">
+                <h2>Endereço</h2>
+                <p>
+                    Dados de localização do estabelecimento.
+                </p>
+            </div>
+
+            <div class="grid-3">
+
+                <div class="grupo">
+                    <label asp-for="Cep"></label>
+
+                    <input asp-for="Cep"
+                           class="campo cep"
+                           inputmode="numeric"
+                           placeholder="00000-000" />
+
+                    <span asp-validation-for="Cep"
+                          class="validacao"></span>
+                </div>
+
+                <div class="grupo">
+                    <label asp-for="Endereco"></label>
+
+                    <input asp-for="Endereco"
+                           class="campo"
+                           placeholder="Rua, avenida..." />
+                </div>
+
+                <div class="grupo">
+                    <label asp-for="Estado"></label>
+
+                    <input asp-for="Estado"
+                           class="campo"
+                           maxlength="2"
+                           placeholder="ES" />
+
+                    <span asp-validation-for="Estado"
+                          class="validacao"></span>
+                </div>
+
+            </div>
+
+            <div class="grid">
+
+                <div class="grupo sem-margem">
+                    <label asp-for="Bairro"></label>
+
+                    <input asp-for="Bairro"
+                           class="campo"
+                           placeholder="Bairro" />
+                </div>
+
+                <div class="grupo sem-margem">
+                    <label asp-for="Cidade"></label>
+
+                    <input asp-for="Cidade"
+                           class="campo"
+                           placeholder="Cidade" />
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- PEDIDOS -->
+
+        <section class="card">
+
+            <div class="card-cabecalho">
+                <h2>Pedidos e entrega</h2>
+                <p>
+                    Configure como o estabelecimento
+                    receberá novos pedidos.
+                </p>
+            </div>
+
+            <div class="grid">
+
+                <div class="grupo">
+                    <label asp-for="TaxaEntregaPadrao"></label>
+
+                    <input asp-for="TaxaEntregaPadrao"
+                           class="campo"
+                           type="number"
+                           min="0"
+                           step="0.01" />
+
+                    <span asp-validation-for="TaxaEntregaPadrao"
+                          class="validacao"></span>
+                </div>
+
+                <div class="switch-box">
+
+                    <input asp-for="AceitarPedidos"
+                           type="checkbox" />
+
+                    <div class="switch-texto">
+                        <strong>Aceitar novos pedidos</strong>
+
+                        <span>
+                            Desmarque para suspender
+                            temporariamente novos pedidos.
+                        </span>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="grupo sem-margem">
+
+                <label asp-for="MensagemInicial"></label>
+
+                <textarea asp-for="MensagemInicial"
+                          class="campo"
+                          maxlength="1000"
+                          placeholder="Mensagem apresentada aos clientes."></textarea>
+
+                <span asp-validation-for="MensagemInicial"
+                      class="validacao"></span>
+
+            </div>
+
+        </section>
+
+        <div class="acoes">
+
+            <a asp-controller="Admin"
+               asp-action="Index"
+               class="btn btn-secundario">
+                Voltar
+            </a>
+
+            <button type="submit"
+                    class="btn btn-principal">
+                Salvar configurações
+            </button>
+
+        </div>
+
+    </form>
+
+    <!-- ==========================================
+         LOGO DO ESTABELECIMENTO
+    =========================================== -->
+
+    <section class="card">
+
+        <div class="card-cabecalho">
+            <h2>Logo do estabelecimento</h2>
+
+            <p>
+                O estabelecimento pode utilizar sua própria logo
+                dentro do sistema. A identidade WLC da tela de
+                login permanece fixa.
+            </p>
+        </div>
+
+        <div class="logo-config">
+
+            <div class="logo-preview">
+
+                @if (!string.IsNullOrWhiteSpace(Model.LogoUrlAtual))
+                {
+                    <img src="@Model.LogoUrlAtual"
+                         alt="Logo do estabelecimento" />
+                }
+                else
+                {
+                    <div class="logo-sem-imagem">
+                        Nenhuma logo cadastrada
+                    </div>
+                }
+
+            </div>
+
+            <div>
+
+                <form asp-controller="Configuracoes"
+                      asp-action="AlterarLogo"
+                      method="post"
+                      enctype="multipart/form-data">
+
+                    @Html.AntiForgeryToken()
+
+                    <div class="grupo">
+                        <label for="logoArquivo">
+                            Escolher nova logo
+                        </label>
+
+                        <input type="file"
+                               id="logoArquivo"
+                               name="logoArquivo"
+                               class="campo-arquivo"
+                               accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
+
+                        <small class="ajuda">
+                            Formatos permitidos: JPG, JPEG, PNG ou WEBP.
+                            Tamanho máximo: 5 MB.
+                        </small>
+                    </div>
+
+                    <div class="logo-acoes">
+
+                        <button type="submit"
+                                class="btn btn-principal">
+                            Alterar logo
+                        </button>
+
+                    </div>
+
+                </form>
+
+                @if (!string.IsNullOrWhiteSpace(Model.LogoUrlAtual))
+                {
+                    <form asp-controller="Configuracoes"
+                          asp-action="AlterarLogo"
+                          method="post"
+                          onsubmit="return confirm('Deseja realmente remover a logo do estabelecimento?');">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               name="removerLogo"
+                               value="true" />
+
+                        <div class="logo-acoes">
+                            <button type="submit"
+                                    class="btn btn-perigo">
+                                Remover logo
+                            </button>
+                        </div>
+
+                    </form>
+                }
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- ==========================================
+         ACESSO ADMINISTRATIVO
+    =========================================== -->
+
+    <section class="card">
+
+        <div class="card-cabecalho">
+            <h2>Acesso administrativo</h2>
+
+            <p>
+                Altere o login ou a senha utilizados
+                para acessar o painel administrativo.
+            </p>
+        </div>
+
+        <div class="acesso-atual">
+
+            <div class="acesso-item">
+                <small>Administrador</small>
+                <strong>@ViewBag.NomeAdministrador</strong>
+            </div>
+
+            <div class="acesso-item">
+                <small>Login atual</small>
+                <strong>@ViewBag.LoginAdministrador</strong>
+            </div>
+
+        </div>
+
+        <div class="seguranca-grid">
+
+            <!-- ALTERAR LOGIN -->
+
+            <div class="seguranca-box">
+
+                <h3>Alterar login</h3>
+
+                <p>
+                    Escolha o login que será utilizado
+                    para entrar como administrador.
+                </p>
+
+                <form asp-controller="Configuracoes"
+                      asp-action="AlterarLogin"
+                      method="post">
+
+                    @Html.AntiForgeryToken()
+
+                    <div class="grupo">
+                        <label for="novoLoginAdministrador">
+                            Novo login
+                        </label>
+
+                        <input type="text"
+                               id="novoLoginAdministrador"
+                               name="novoLoginAdministrador"
+                               class="campo"
+                               maxlength="50"
+                               autocomplete="username"
+                               value="@ViewBag.LoginAdministrador"
+                               placeholder="Novo login" />
+
+                        <small class="ajuda">
+                            O login deve possuir entre
+                            3 e 50 caracteres.
+                        </small>
+                    </div>
+
+                    <button type="submit"
+                            class="btn btn-principal">
+                        Alterar login
+                    </button>
+
+                </form>
+
+            </div>
+
+            <!-- ALTERAR SENHA -->
+
+            <div class="seguranca-box">
+
+                <h3>Alterar senha</h3>
+
+                <p>
+                    Por segurança, informe a senha atual
+                    antes de definir uma nova senha.
+                </p>
+
+                <form asp-controller="Configuracoes"
+                      asp-action="AlterarSenha"
+                      method="post">
+
+                    @Html.AntiForgeryToken()
+
+                    <div class="grupo">
+                        <label for="senhaAtual">
+                            Senha atual
+                        </label>
+
+                        <input type="password"
+                               id="senhaAtual"
+                               name="senhaAtual"
+                               class="campo senha-numerica"
+                               inputmode="numeric"
+                               maxlength="6"
+                               autocomplete="current-password"
+                               placeholder="••••••" />
+                    </div>
+
+                    <div class="grupo">
+                        <label for="novaSenha">
+                            Nova senha
+                        </label>
+
+                        <input type="password"
+                               id="novaSenha"
+                               name="novaSenha"
+                               class="campo senha-numerica"
+                               inputmode="numeric"
+                               maxlength="6"
+                               autocomplete="new-password"
+                               placeholder="6 números" />
+                    </div>
+
+                    <div class="grupo">
+                        <label for="confirmarNovaSenha">
+                            Confirmar nova senha
+                        </label>
+
+                        <input type="password"
+                               id="confirmarNovaSenha"
+                               name="confirmarNovaSenha"
+                               class="campo senha-numerica"
+                               inputmode="numeric"
+                               maxlength="6"
+                               autocomplete="new-password"
+                               placeholder="Repita os 6 números" />
+
+                        <small class="ajuda">
+                            A senha deve conter exatamente
+                            6 números.
+                        </small>
+                    </div>
+
+                    <button type="submit"
+                            class="btn btn-principal">
+                        Alterar senha
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+<footer class="rodape">
+    Desenvolvido por <strong>WLC Sistemas</strong>
+</footer>
+
+<script>
+    function somenteNumeros(valor) {
+        return valor.replace(/\D/g, "");
+    }
+
+    function mascaraWhatsApp(valor) {
+        valor = somenteNumeros(valor).substring(0, 11);
+
+        if (valor.length > 10) {
+            return valor
+                .replace(/^(\d{2})(\d)/g, "($1) $2")
+                .replace(/(\d{5})(\d)/, "$1-$2");
+        }
+
+        return valor
+            .replace(/^(\d{2})(\d)/g, "($1) $2")
+            .replace(/(\d{4})(\d)/, "$1-$2");
+    }
+
+    function mascaraCep(valor) {
+        valor = somenteNumeros(valor).substring(0, 8);
+
+        return valor.replace(
+            /^(\d{5})(\d)/,
+            "$1-$2");
+    }
+
+    document.querySelectorAll(".whatsapp")
+        .forEach(function (campo) {
+
+            campo.value =
+                mascaraWhatsApp(campo.value);
+
+            campo.addEventListener(
+                "input",
+                function () {
+
+                    this.value =
+                        mascaraWhatsApp(this.value);
+                });
+        });
+
+    document.querySelectorAll(".cep")
+        .forEach(function (campo) {
+
+            campo.value =
+                mascaraCep(campo.value);
+
+            campo.addEventListener(
+                "input",
+                function () {
+
+                    this.value =
+                        mascaraCep(this.value);
+                });
+        });
+
+    document.querySelectorAll(".senha-numerica")
+        .forEach(function (campo) {
+
+            campo.addEventListener(
+                "input",
+                function () {
+
+                    this.value =
+                        somenteNumeros(this.value)
+                            .substring(0, 6);
+                });
+        });
+</script>
+
+</body>
+</html>

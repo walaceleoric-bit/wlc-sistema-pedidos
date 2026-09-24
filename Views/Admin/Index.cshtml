@@ -1,0 +1,652 @@
+﻿@{
+    ViewData["Title"] = "Painel Administrativo";
+    Layout = null;
+
+    var cultura =
+        new System.Globalization.CultureInfo("pt-BR");
+
+    int pedidosHoje =
+        ViewBag.PedidosHoje ?? 0;
+
+    decimal faturamentoRegistrado =
+        ViewBag.FaturamentoRegistrado ?? 0m;
+
+    int clientesComSaldoDevedor =
+        ViewBag.ClientesComSaldoDevedor ?? 0;
+
+    decimal totalAReceber =
+        ViewBag.TotalAReceber ?? 0m;
+
+    string nomeEstabelecimento =
+        ViewBag.NomeEstabelecimento
+        ?? "Sistema de Pedidos";
+
+    string logoEstabelecimento =
+        ViewBag.LogoEstabelecimento
+        ?? "/images/logo-wlc.png";
+}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>Painel Administrativo - Sistema de Pedidos</title>
+
+    <style>
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                min-height: 100vh;
+                font-family: Arial, Helvetica, sans-serif;
+                background: #f6f7f9;
+                color: #262626;
+                display: flex;
+                flex-direction: column;
+            }
+
+            /* =========================
+                       TOPO
+                    ========================= */
+
+            .topo {
+                background: #ffffff;
+                border-bottom: 1px solid #e8e8e8;
+                min-height: 72px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 10px 5%;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+            }
+
+            .marca {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+            }
+
+            .logo-estabelecimento {
+                width: 95px;
+                height: 48px;
+                object-fit: contain;
+            }
+
+            .nome-sistema {
+                border-left: 1px solid #dddddd;
+                padding-left: 14px;
+            }
+
+                .nome-sistema strong {
+                    display: block;
+                    font-size: 15px;
+                    color: #333333;
+                }
+
+                .nome-sistema span {
+                    font-size: 12px;
+                    color: #888888;
+                }
+
+            /* =========================
+                       MENU
+                    ========================= */
+
+            .menu {
+                display: flex;
+                align-items: center;
+                gap: 7px;
+                flex-wrap: wrap;
+            }
+
+                .menu a,
+                .btn-sair {
+                    border: none;
+                    background: transparent;
+                    color: #444444;
+                    text-decoration: none;
+                    padding: 10px 13px;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    cursor: pointer;
+                    font-family: inherit;
+                }
+
+                    .menu a:hover,
+                    .btn-sair:hover {
+                        background: #fff3e6;
+                        color: #f57c00;
+                    }
+
+                .menu .ativo {
+                    background: #f57c00;
+                    color: #ffffff;
+                }
+
+                    .menu .ativo:hover {
+                        background: #e66f00;
+                        color: #ffffff;
+                    }
+
+                .menu .futuro {
+                    color: #999999;
+                    cursor: default;
+                }
+
+                    .menu .futuro:hover {
+                        background: transparent;
+                        color: #999999;
+                    }
+
+            .form-sair {
+                margin: 0;
+            }
+
+            /* =========================
+                       CONTEÚDO
+                    ========================= */
+
+            .conteudo {
+                width: 90%;
+                max-width: 1250px;
+                margin: 0 auto;
+                padding: 40px 0;
+                flex: 1;
+            }
+
+            .boas-vindas {
+                margin-bottom: 30px;
+            }
+
+                .boas-vindas h1 {
+                    font-size: 28px;
+                    margin-bottom: 8px;
+                }
+
+                    .boas-vindas h1 span {
+                        color: #f57c00;
+                    }
+
+                .boas-vindas p {
+                    color: #777777;
+                    font-size: 15px;
+                }
+
+            /* =========================
+                       INDICADORES
+                    ========================= */
+
+            .cards {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 18px;
+                margin-bottom: 32px;
+            }
+
+            .card {
+                background: #ffffff;
+                border-radius: 14px;
+                padding: 22px;
+                border: 1px solid #eeeeee;
+                box-shadow: 0 5px 18px rgba(0, 0, 0, 0.04);
+            }
+
+            .card-titulo {
+                color: #777777;
+                font-size: 13px;
+                margin-bottom: 10px;
+            }
+
+            .card-valor {
+                color: #222222;
+                font-size: 27px;
+                font-weight: bold;
+            }
+
+                .card-valor.devedor {
+                    color: #b42318;
+                }
+
+                .card-valor.recebido {
+                    color: #207a3c;
+                }
+
+            .card-detalhe {
+                margin-top: 8px;
+                color: #999999;
+                font-size: 12px;
+            }
+
+            /* =========================
+                       ACESSO RÁPIDO
+                    ========================= */
+
+            .atalhos-titulo {
+                font-size: 19px;
+                margin-bottom: 16px;
+            }
+
+            .atalhos {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 18px;
+            }
+
+            .atalho {
+                background: #ffffff;
+                border: 1px solid #eeeeee;
+                border-radius: 14px;
+                padding: 24px 20px;
+                text-decoration: none;
+                color: #333333;
+                transition: .2s;
+                min-height: 140px;
+            }
+
+                .atalho:hover {
+                    transform: translateY(-3px);
+                    border-color: #f57c00;
+                    box-shadow: 0 8px 22px rgba(245, 124, 0, 0.10);
+                }
+
+                .atalho.desabilitado {
+                    opacity: .60;
+                    cursor: default;
+                }
+
+                    .atalho.desabilitado:hover {
+                        transform: none;
+                        border-color: #eeeeee;
+                        box-shadow: none;
+                    }
+
+            .atalho-icone {
+                width: 43px;
+                height: 43px;
+                background: #fff3e6;
+                color: #f57c00;
+                border-radius: 11px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 21px;
+                margin-bottom: 14px;
+            }
+
+            .atalho strong {
+                display: block;
+                margin-bottom: 6px;
+                font-size: 15px;
+            }
+
+            .atalho span {
+                color: #888888;
+                font-size: 12px;
+                line-height: 1.4;
+            }
+
+            /* =========================
+                       RODAPÉ
+                    ========================= */
+
+            .rodape {
+                background: #ffffff;
+                border-top: 1px solid #e8e8e8;
+                text-align: center;
+                padding: 18px;
+                color: #777777;
+                font-size: 12px;
+            }
+
+                .rodape strong {
+                    color: #f57c00;
+                }
+
+            /* =========================
+                       RESPONSIVO
+                    ========================= */
+
+            @@media (max-width: 950px) {
+                .cards,
+                .atalhos {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+
+                .topo {
+                    flex-direction: column;
+                    gap: 10px;
+                    padding: 12px 4%;
+                }
+
+                .menu {
+                    width: 100%;
+                    justify-content: center;
+                    flex-wrap: wrap;
+                }
+            }
+
+            @@media (max-width: 550px) {
+                .conteudo {
+                    width: 92%;
+                    padding: 28px 0;
+                }
+
+                .cards,
+                .atalhos {
+                    grid-template-columns: 1fr;
+                }
+
+                .marca {
+                    width: 100%;
+                    justify-content: center;
+                }
+
+                .nome-sistema {
+                    display: none;
+                }
+
+                .menu {
+                    gap: 3px;
+                }
+
+                    .menu a,
+                    .btn-sair {
+                        padding: 8px 9px;
+                        font-size: 13px;
+                    }
+
+                .boas-vindas h1 {
+                    font-size: 23px;
+                }
+            }
+    </style>
+</head>
+
+<body>
+
+    <header class="topo">
+
+        <div class="marca">
+
+            <img src="@logoEstabelecimento"
+                 alt="@nomeEstabelecimento"
+                 class="logo-estabelecimento" />
+
+            <div class="nome-sistema">
+                <strong>@nomeEstabelecimento</strong>
+                <span>Painel Administrativo</span>
+            </div>
+
+        </div>
+
+        <nav class="menu">
+
+            <a asp-controller="Admin"
+               asp-action="Index"
+               class="ativo">
+                Início
+            </a>
+
+            <a asp-controller="Pedidos"
+               asp-action="Historico">
+                Histórico
+            </a>
+
+            <a asp-controller="Produtos"
+               asp-action="Index">
+                Produtos
+            </a>
+
+            <a asp-controller="Clientes"
+               asp-action="Index">
+                Clientes
+            </a>
+
+            <a asp-controller="Lembretes"
+               asp-action="Index">
+                Lembretes
+            </a>
+
+            <a href="#"
+               class="futuro"
+               title="Módulo fiscal será implementado posteriormente">
+                NF
+            </a>
+
+            <a asp-controller="Configuracoes"
+               asp-action="Index">
+                Configurações
+            </a>
+
+            <form asp-controller="Conta"
+                  asp-action="Sair"
+                  method="post"
+                  class="form-sair">
+
+                @Html.AntiForgeryToken()
+
+                <button type="submit"
+                        class="btn-sair">
+                    Sair
+                </button>
+
+            </form>
+
+        </nav>
+
+    </header>
+
+    <main class="conteudo">
+
+        <section class="boas-vindas">
+
+            <h1>
+                Olá, <span>@ViewBag.NomeUsuario</span>
+            </h1>
+
+            <p>
+                Acompanhe e gerencie o estabelecimento por aqui.
+            </p>
+
+        </section>
+
+        <section class="cards">
+
+            <div class="card">
+
+                <div class="card-titulo">
+                    Pedidos hoje
+                </div>
+
+                <div class="card-valor">
+                    @pedidosHoje
+                </div>
+
+                <div class="card-detalhe">
+                    Pedidos registrados hoje
+                </div>
+
+            </div>
+
+            <div class="card">
+
+                <div class="card-titulo">
+                    Recebimentos registrados
+                </div>
+
+                <div class="card-valor recebido">
+                    @faturamentoRegistrado.ToString("C2", cultura)
+                </div>
+
+                <div class="card-detalhe">
+                    Pagamentos registrados no financeiro
+                </div>
+
+            </div>
+
+            <div class="card">
+
+                <div class="card-titulo">
+                    Clientes com saldo devedor
+                </div>
+
+                <div class="card-valor @(clientesComSaldoDevedor > 0 ? "devedor" : "")">
+                    @clientesComSaldoDevedor
+                </div>
+
+                <div class="card-detalhe">
+                    Clientes com valores pendentes
+                </div>
+
+            </div>
+
+            <div class="card">
+
+                <div class="card-titulo">
+                    Total a receber
+                </div>
+
+                <div class="card-valor @(totalAReceber > 0 ? "devedor" : "")">
+                    @totalAReceber.ToString("C2", cultura)
+                </div>
+
+                <div class="card-detalhe">
+                    Saldo devedor atual dos clientes
+                </div>
+
+            </div>
+
+        </section>
+
+        <h2 class="atalhos-titulo">
+            Acesso rápido
+        </h2>
+
+        <section class="atalhos">
+
+            <a asp-controller="Produtos"
+               asp-action="Index"
+               class="atalho">
+
+                <div class="atalho-icone">
+                    ▣
+                </div>
+
+                <strong>
+                    Produtos
+                </strong>
+
+                <span>
+                    Cadastre produtos, preços, imagens e categorias.
+                </span>
+
+            </a>
+
+            <a asp-controller="Clientes"
+               asp-action="Index"
+               class="atalho">
+
+                <div class="atalho-icone">
+                    👤
+                </div>
+
+                <strong>
+                    Clientes
+                </strong>
+
+                <span>
+                    Cadastre clientes, gerencie acessos e consulte saldos.
+                </span>
+
+            </a>
+
+            <a asp-controller="Pedidos"
+               asp-action="Index"
+               class="atalho">
+
+                <div class="atalho-icone">
+                    ☷
+                </div>
+
+                <strong>
+                    Pedidos
+                </strong>
+
+                <span>
+                    Consulte e acompanhe os pedidos recebidos.
+                </span>
+
+            </a>
+
+            <a asp-controller="Clientes"
+               asp-action="Index"
+               class="atalho">
+
+                <div class="atalho-icone">
+                    R$
+                </div>
+
+                <strong>
+                    Financeiro
+                </strong>
+
+                <span>
+                    Controle pagamentos e valores devidos pelos clientes.
+                </span>
+
+            </a>
+
+            <a asp-controller="Lembretes"
+               asp-action="Index"
+               class="atalho">
+
+                <div class="atalho-icone">
+                    ⏰
+                </div>
+
+                <strong>
+                    Lembretes
+                </strong>
+
+                <span>
+                    Agende lembretes de pedidos para seus clientes.
+                </span>
+
+            </a>
+
+            <div class="atalho desabilitado">
+
+                <div class="atalho-icone">
+                    NF
+                </div>
+
+                <strong>
+                    Nota Fiscal
+                </strong>
+
+                <span>
+                    Área preparada para emissão e consulta fiscal.
+                </span>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer class="rodape">
+        Desenvolvido por
+        <strong>WLC Sistemas</strong>
+    </footer>
+
+</body>
+</html>

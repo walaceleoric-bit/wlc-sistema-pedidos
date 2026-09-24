@@ -1,0 +1,343 @@
+﻿@model WlcSistemaPedidos.ViewModels.FinalizarPedidoViewModel
+
+@{
+    Layout = null;
+    ViewData["Title"] = "Finalizar Pedido";
+
+    string nomeEstabelecimento =
+        ViewBag.NomeEstabelecimento
+        ?? "Sistema de Pedidos";
+
+    string logoEstabelecimento =
+        ViewBag.LogoEstabelecimento
+        ?? "/images/logo-wlc.png";
+}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Finalizar Pedido - @nomeEstabelecimento</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f5f5;
+            color: #292929;
+        }
+
+        .topo {
+            background: #fff;
+            border-bottom: 3px solid #f58220;
+            box-shadow: 0 2px 12px rgba(0,0,0,.08);
+        }
+
+        .topo-conteudo {
+            max-width: 1050px;
+            min-height: 78px;
+            margin: auto;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .marca {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .marca img {
+            width: 58px;
+            height: 58px;
+            object-fit: contain;
+        }
+
+        .marca strong {
+            display: block;
+            font-size: 17px;
+        }
+
+        .marca span {
+            display: block;
+            margin-top: 3px;
+            font-size: 12px;
+            color: #777;
+        }
+
+        .voltar {
+            color: #e96e00;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: auto;
+            padding: 30px 20px 45px;
+        }
+
+        h1 {
+            margin: 0 0 6px;
+            font-size: 28px;
+        }
+
+        .subtitulo {
+            margin: 0 0 22px;
+            color: #777;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid #e5e5e5;
+            border-radius: 14px;
+            padding: 22px;
+            margin-bottom: 18px;
+        }
+
+        .card h2 {
+            margin: 0 0 18px;
+            font-size: 19px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 180px;
+            gap: 14px;
+        }
+
+        .campo-grupo {
+            margin-bottom: 14px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px 13px;
+            border: 1px solid #d8d8d8;
+            border-radius: 8px;
+            font: inherit;
+            outline: none;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #f58220;
+            box-shadow: 0 0 0 3px rgba(245,130,32,.12);
+        }
+
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        .erro {
+            color: #c62828;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .validacao {
+            color: #c62828;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+
+        .linha-total {
+            display: flex;
+            justify-content: space-between;
+            padding: 9px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .linha-total.total {
+            border-bottom: 0;
+            padding-top: 15px;
+            font-size: 21px;
+            font-weight: 900;
+        }
+
+        .acoes {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            min-height: 46px;
+            padding: 0 20px;
+            border-radius: 9px;
+            border: 0;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-voltar {
+            background: #fff;
+            border: 1px solid #f58220;
+            color: #e96e00;
+        }
+
+        .btn-finalizar {
+            background: #f58220;
+            color: #fff;
+        }
+
+        .btn-finalizar:hover {
+            background: #df6d0c;
+        }
+
+        footer {
+            background: #fff;
+            border-top: 1px solid #e5e5e5;
+            padding: 22px 20px;
+            text-align: center;
+            color: #777;
+            font-size: 12px;
+        }
+
+        footer strong { color: #f58220; }
+
+        @@media (max-width: 650px) {
+            .grid { grid-template-columns: 1fr; }
+            .acoes { flex-direction: column; }
+            .btn { width: 100%; }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="topo">
+    <div class="topo-conteudo">
+        <div class="marca">
+            <img src="@logoEstabelecimento" alt="@nomeEstabelecimento" />
+            <div>
+                <strong>@nomeEstabelecimento</strong>
+                <span>Sistema de Pedidos</span>
+            </div>
+        </div>
+
+        <a asp-controller="Carrinho"
+           asp-action="Index"
+           class="voltar">
+            Voltar ao carrinho
+        </a>
+    </div>
+</header>
+
+<main class="container">
+
+    <h1>Finalizar pedido</h1>
+    <p class="subtitulo">Confirme os dados para entrega.</p>
+
+    <form asp-controller="Carrinho"
+          asp-action="Finalizar"
+          method="post">
+
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly"
+             class="validacao"></div>
+
+        <section class="card">
+            <h2>Endereço de entrega</h2>
+
+            <div class="campo-grupo">
+                <label asp-for="EnderecoEntrega">Endereço</label>
+                <input asp-for="EnderecoEntrega" />
+                <span asp-validation-for="EnderecoEntrega"
+                      class="erro"></span>
+            </div>
+
+            <div class="grid">
+                <div class="campo-grupo">
+                    <label asp-for="BairroEntrega">Bairro</label>
+                    <input asp-for="BairroEntrega" />
+                    <span asp-validation-for="BairroEntrega"
+                          class="erro"></span>
+                </div>
+
+                <div class="campo-grupo">
+                    <label asp-for="NumeroEntrega">Número</label>
+                    <input asp-for="NumeroEntrega" />
+                    <span asp-validation-for="NumeroEntrega"
+                          class="erro"></span>
+                </div>
+            </div>
+
+            <div class="campo-grupo">
+                <label asp-for="ComplementoEntrega">Complemento</label>
+                <input asp-for="ComplementoEntrega" />
+                <span asp-validation-for="ComplementoEntrega"
+                      class="erro"></span>
+            </div>
+
+            <div class="campo-grupo">
+                <label asp-for="Observacao">Observação do pedido</label>
+                <textarea asp-for="Observacao"
+                          placeholder="Ex.: entregar após as 14h, referência do endereço..."></textarea>
+                <span asp-validation-for="Observacao"
+                      class="erro"></span>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Resumo</h2>
+
+            <div class="linha-total">
+                <span>Subtotal</span>
+                <strong>@Model.Subtotal.ToString("C2")</strong>
+            </div>
+
+            <div class="linha-total">
+                <span>Taxa de entrega</span>
+                <strong>@Model.TaxaEntrega.ToString("C2")</strong>
+            </div>
+
+            <div class="linha-total total">
+                <span>Total</span>
+                <span>@Model.Total.ToString("C2")</span>
+            </div>
+        </section>
+
+        <div class="acoes">
+            <a asp-controller="Carrinho"
+               asp-action="Index"
+               class="btn btn-voltar">
+                Voltar
+            </a>
+
+            <button type="submit"
+                    class="btn btn-finalizar">
+                Confirmar pedido
+            </button>
+        </div>
+
+    </form>
+
+</main>
+
+<footer>
+    Desenvolvido por <strong>WLC Sistemas</strong>
+</footer>
+
+</body>
+</html>

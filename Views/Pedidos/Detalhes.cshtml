@@ -1,0 +1,127 @@
+﻿@using WlcSistemaPedidos.Models
+@model Pedido
+
+@{
+    Layout = null;
+    ViewData["Title"] = $"Pedido #{Model.Id}";
+
+    string nomeEstabelecimento = ViewBag.NomeEstabelecimento ?? "Sistema de Pedidos";
+    string logoEstabelecimento = ViewBag.LogoEstabelecimento ?? "/images/logo-wlc.png";
+}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pedido #@Model.Id - @nomeEstabelecimento</title>
+    <style>
+        * { box-sizing:border-box; }
+        body { margin:0; font-family:Arial,Helvetica,sans-serif; background:#f5f5f5; color:#292929; }
+        .topo { background:#fff; border-bottom:3px solid #f58220; padding:12px 20px; }
+        .marca { max-width:900px; margin:auto; display:flex; align-items:center; gap:12px; }
+        .marca img { width:58px; height:58px; object-fit:contain; }
+        .marca strong { display:block; }
+        .marca span { display:block; color:#777; font-size:12px; margin-top:3px; }
+        .container { max-width:900px; margin:auto; padding:30px 20px 45px; }
+        .voltar { color:#e96e00; font-weight:700; text-decoration:none; display:inline-block; margin-bottom:18px; }
+        .card { background:#fff; border:1px solid #e5e5e5; border-radius:14px; padding:22px; margin-bottom:18px; }
+        h1 { margin:0 0 20px; }
+        h2 { font-size:18px; margin:0 0 15px; }
+        .linha { display:flex; justify-content:space-between; gap:20px; padding:10px 0; border-bottom:1px solid #eee; }
+        .linha:last-child { border-bottom:0; }
+        .total { font-size:20px; font-weight:900; }
+        .status { color:#e96e00; font-weight:900; }
+        select { width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; margin-bottom:12px; background:#fff; }
+        .btn { border:0; border-radius:8px; padding:12px 18px; font-weight:700; cursor:pointer; background:#f58220; color:#fff; }
+        .mensagem { padding:13px; border-radius:8px; margin-bottom:15px; background:#eef9f0; color:#218838; font-weight:700; }
+        .erro { padding:13px; border-radius:8px; margin-bottom:15px; background:#fff3f3; color:#c62828; font-weight:700; }
+        footer { text-align:center; padding:25px; color:#777; font-size:12px; }
+        footer strong { color:#f58220; }
+        @@media(max-width:550px){.linha{flex-direction:column;gap:4px}}
+    </style>
+</head>
+<body>
+<header class="topo">
+    <div class="marca">
+        <img src="@logoEstabelecimento" alt="@nomeEstabelecimento" />
+        <div><strong>@nomeEstabelecimento</strong><span>Painel Administrativo</span></div>
+    </div>
+</header>
+
+<main class="container">
+    <a asp-controller="Pedidos" asp-action="Index" class="voltar">← Voltar para pedidos</a>
+
+    @if (TempData["Sucesso"] != null)
+    {
+        <div class="mensagem">@TempData["Sucesso"]</div>
+    }
+
+    @if (TempData["Erro"] != null)
+    {
+        <div class="erro">@TempData["Erro"]</div>
+    }
+
+    <section class="card">
+        <h1>Pedido #@Model.Id</h1>
+        <div class="linha"><span>Cliente</span><strong>@Model.NomeCliente</strong></div>
+        <div class="linha"><span>Telefone</span><strong>@(Model.TelefoneCliente ?? "-")</strong></div>
+        <div class="linha"><span>Data</span><strong>@Model.DataPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</strong></div>
+        <div class="linha"><span>Status</span><strong class="status">@Model.Status</strong></div>
+    </section>
+
+    <section class="card">
+        <h2>Entrega</h2>
+        <div class="linha"><span>Endereço</span><strong>@Model.EnderecoEntrega, @Model.NumeroEntrega</strong></div>
+        <div class="linha"><span>Bairro</span><strong>@Model.BairroEntrega</strong></div>
+        <div class="linha"><span>Complemento</span><strong>@(Model.ComplementoEntrega ?? "-")</strong></div>
+        <div class="linha"><span>Observação</span><strong>@(Model.Observacao ?? "-")</strong></div>
+    </section>
+
+    <section class="card">
+        <h2>Itens</h2>
+        @foreach (var item in Model.Itens)
+        {
+            <div class="linha">
+                <span>@item.Quantidade x @item.NomeProduto</span>
+                <strong>@item.Subtotal.ToString("C2")</strong>
+            </div>
+        }
+
+        <div class="linha"><span>Subtotal</span><strong>@Model.Subtotal.ToString("C2")</strong></div>
+        <div class="linha"><span>Taxa de entrega</span><strong>@Model.TaxaEntrega.ToString("C2")</strong></div>
+        <div class="linha total"><span>Total</span><span>@Model.Total.ToString("C2")</span></div>
+    </section>
+
+    <section class="card">
+        <h2>Alterar status</h2>
+
+        <form asp-controller="Pedidos"
+              asp-action="AlterarStatus"
+              method="post">
+            @Html.AntiForgeryToken()
+
+            <input type="hidden" name="id" value="@Model.Id" />
+
+            <select name="status">
+                @foreach (StatusPedido status in Enum.GetValues(typeof(StatusPedido)))
+                {
+                    if (Model.Status == status)
+                    {
+                        <option value="@((int)status)" selected>@status</option>
+                    }
+                    else
+                    {
+                        <option value="@((int)status)">@status</option>
+                    }
+                }
+            </select>
+
+            <button type="submit" class="btn">Salvar status</button>
+        </form>
+    </section>
+</main>
+
+<footer>Desenvolvido por <strong>WLC Sistemas</strong></footer>
+</body>
+</html>

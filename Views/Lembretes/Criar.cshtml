@@ -1,0 +1,304 @@
+﻿@model WlcSistemaPedidos.Models.LembretePedido
+
+@{
+    Layout = null;
+    ViewData["Title"] = "Novo lembrete";
+
+    string nomeEstabelecimento =
+        ViewBag.NomeEstabelecimento
+        ?? "Sistema de Pedidos";
+
+    string logoEstabelecimento =
+        ViewBag.LogoEstabelecimento
+        ?? "/images/logo-wlc.png";
+
+    var clientes =
+        ViewBag.Clientes as
+        IEnumerable<WlcSistemaPedidos.Models.Cliente>
+        ?? Enumerable.Empty<WlcSistemaPedidos.Models.Cliente>();
+}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>Novo lembrete - @nomeEstabelecimento</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f6f7f9;
+            color: #292929;
+        }
+
+        .topo {
+            background: #fff;
+            border-bottom: 3px solid #f58220;
+            padding: 12px 5%;
+        }
+
+        .marca {
+            max-width: 850px;
+            margin: auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .marca img {
+            width: 70px;
+            height: 50px;
+            object-fit: contain;
+        }
+
+        .marca strong {
+            display: block;
+        }
+
+        .marca span {
+            color: #777;
+            font-size: 12px;
+        }
+
+        .container {
+            max-width: 720px;
+            margin: 35px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid #e7e7e7;
+            border-radius: 14px;
+            padding: 28px;
+        }
+
+        h1 {
+            margin-top: 0;
+            margin-bottom: 6px;
+        }
+
+        .descricao {
+            color: #777;
+            margin-bottom: 25px;
+        }
+
+        .campo {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        select,
+        input,
+        textarea {
+            width: 100%;
+            border: 1px solid #d7d7d7;
+            border-radius: 8px;
+            padding: 11px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        textarea {
+            min-height: 130px;
+            resize: vertical;
+        }
+
+        .erro {
+            color: #b42318;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        .acoes {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            min-height: 44px;
+            padding: 0 18px;
+            border-radius: 8px;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .btn-salvar {
+            border: 0;
+            background: #f58220;
+            color: #fff;
+        }
+
+        .btn-voltar {
+            border: 1px solid #f58220;
+            background: #fff;
+            color: #e96e00;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #777;
+            font-size: 12px;
+        }
+
+        footer strong {
+            color: #f58220;
+        }
+
+        @@media (max-width: 550px) {
+            .acoes {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="topo">
+
+    <div class="marca">
+
+        <img src="@logoEstabelecimento"
+             alt="@nomeEstabelecimento" />
+
+        <div>
+            <strong>@nomeEstabelecimento</strong>
+            <span>Painel Administrativo</span>
+        </div>
+
+    </div>
+
+</header>
+
+<main class="container">
+
+    <div class="card">
+
+        <h1>Novo lembrete</h1>
+
+        <div class="descricao">
+            Escolha o cliente, a data e o horário do lembrete.
+        </div>
+
+        <form asp-controller="Lembretes"
+              asp-action="Criar"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="ModelOnly"
+                 class="erro">
+            </div>
+
+            <div class="campo">
+
+                <label asp-for="ClienteId">
+                    Cliente
+                </label>
+
+                <select asp-for="ClienteId">
+
+                    <option value="">
+                        Selecione o cliente
+                    </option>
+
+                    @foreach (var cliente in clientes)
+                    {
+                        <option value="@cliente.Id">
+                            @cliente.Nome - @cliente.Telefone
+                        </option>
+                    }
+
+                </select>
+
+                <span asp-validation-for="ClienteId"
+                      class="erro">
+                </span>
+
+            </div>
+
+            <div class="campo">
+
+                <label asp-for="DataHoraAgendada">
+                    Data e horário
+                </label>
+
+                <input asp-for="DataHoraAgendada"
+                       type="datetime-local"
+                       asp-format="{0:yyyy-MM-ddTHH:mm}" />
+
+                <span asp-validation-for="DataHoraAgendada"
+                      class="erro">
+                </span>
+
+            </div>
+
+            <div class="campo">
+
+                <label asp-for="Mensagem">
+                    Mensagem
+                </label>
+
+                <textarea asp-for="Mensagem"
+                          maxlength="1000"></textarea>
+
+                <span asp-validation-for="Mensagem"
+                      class="erro">
+                </span>
+
+            </div>
+
+            <div class="acoes">
+
+                <button type="submit"
+                        class="btn btn-salvar">
+                    Agendar lembrete
+                </button>
+
+                <a asp-controller="Lembretes"
+                   asp-action="Index"
+                   class="btn btn-voltar">
+                    Voltar
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</main>
+
+<footer>
+    Desenvolvido por <strong>WLC Sistemas</strong>
+</footer>
+
+</body>
+</html>

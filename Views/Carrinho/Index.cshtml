@@ -1,0 +1,477 @@
+﻿@model List<WlcSistemaPedidos.ViewModels.ItemCarrinhoViewModel>
+
+@{
+    ViewData["Title"] = "Meu Pedido";
+
+    string nomeEstabelecimento =
+        ViewBag.NomeEstabelecimento
+        ?? "Sistema de Pedidos";
+
+    string logoEstabelecimento =
+        ViewBag.LogoEstabelecimento
+        ?? "/images/logo-wlc.png";
+
+    decimal total = ViewBag.TotalCarrinho ?? 0m;
+}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meu Pedido - @nomeEstabelecimento</title>
+
+    <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                font-family: Arial, Helvetica, sans-serif;
+                background: #f7f7f7;
+                color: #2d2d2d;
+            }
+
+            .topo {
+                background: #ffffff;
+                border-bottom: 1px solid #e6e6e6;
+                padding: 14px 22px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 20px;
+            }
+
+            .marca {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+                .marca img {
+                    width: 52px;
+                    height: 52px;
+                    object-fit: contain;
+                    border-radius: 8px;
+                }
+
+                .marca strong {
+                    display: block;
+                    font-size: 18px;
+                }
+
+                .marca span {
+                    display: block;
+                    color: #777;
+                    font-size: 13px;
+                    margin-top: 3px;
+                }
+
+            .voltar {
+                text-decoration: none;
+                color: #e87516;
+                font-weight: 700;
+            }
+
+            .conteudo {
+                width: min(1050px, calc(100% - 30px));
+                margin: 30px auto;
+            }
+
+            .titulo {
+                margin-bottom: 22px;
+            }
+
+                .titulo h1 {
+                    margin: 0 0 6px;
+                    font-size: 28px;
+                }
+
+                .titulo p {
+                    margin: 0;
+                    color: #777;
+                }
+
+            .carrinho-vazio {
+                background: #fff;
+                border-radius: 12px;
+                padding: 45px 25px;
+                text-align: center;
+                box-shadow: 0 2px 10px rgba(0,0,0,.05);
+            }
+
+                .carrinho-vazio h2 {
+                    margin-top: 0;
+                }
+
+            .itens {
+                display: grid;
+                gap: 14px;
+            }
+
+            .item {
+                background: #fff;
+                border-radius: 12px;
+                padding: 16px;
+                display: grid;
+                grid-template-columns: 80px 1fr auto;
+                gap: 16px;
+                align-items: center;
+                box-shadow: 0 2px 10px rgba(0,0,0,.05);
+            }
+
+                .item img,
+                .sem-imagem {
+                    width: 80px;
+                    height: 80px;
+                    border-radius: 10px;
+                    object-fit: cover;
+                    background: #f0f0f0;
+                }
+
+            .sem-imagem {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #999;
+                font-size: 12px;
+                text-align: center;
+            }
+
+            .item-info h3 {
+                margin: 0 0 8px;
+                font-size: 17px;
+            }
+
+            .preco {
+                color: #777;
+                font-size: 14px;
+            }
+
+            .acoes-item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+                justify-content: flex-end;
+            }
+
+                .acoes-item form {
+                    margin: 0;
+                }
+
+            .btn-quantidade {
+                width: 36px;
+                height: 36px;
+                border: 1px solid #ddd;
+                background: #fff;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 20px;
+                font-weight: 700;
+            }
+
+            .quantidade {
+                min-width: 30px;
+                text-align: center;
+                font-weight: 700;
+            }
+
+            .subtotal {
+                min-width: 95px;
+                text-align: right;
+                font-weight: 700;
+            }
+
+            .btn-remover {
+                border: 0;
+                background: transparent;
+                color: #c62828;
+                font-weight: 700;
+                cursor: pointer;
+                padding: 8px;
+            }
+
+            .resumo {
+                background: #fff;
+                border-radius: 12px;
+                padding: 20px;
+                margin-top: 20px;
+                box-shadow: 0 2px 10px rgba(0,0,0,.05);
+            }
+
+            .total {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-size: 22px;
+                font-weight: 700;
+                padding-bottom: 18px;
+                border-bottom: 1px solid #eee;
+            }
+
+            .botoes {
+                display: flex;
+                gap: 10px;
+                justify-content: space-between;
+                margin-top: 18px;
+                flex-wrap: wrap;
+            }
+
+            .grupo-botoes {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+
+            .btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 44px;
+                padding: 0 18px;
+                border-radius: 9px;
+                text-decoration: none;
+                font-weight: 700;
+                border: 0;
+                cursor: pointer;
+                font-size: 14px;
+            }
+
+            .btn-voltar {
+                background: #fff;
+                border: 1px solid #e87516;
+                color: #e87516;
+            }
+
+            .btn-limpar {
+                background: #eeeeee;
+                color: #555;
+            }
+
+            .btn-finalizar {
+                background: #e87516;
+                color: #fff;
+            }
+
+            .rodape {
+                text-align: center;
+                padding: 30px 15px;
+                color: #777;
+                font-size: 13px;
+            }
+
+            @@media (max-width: 700px) {
+                .topo {
+                    padding: 12px 15px;
+                }
+
+                .item {
+                    grid-template-columns: 65px 1fr;
+                }
+
+                    .item img,
+                    .sem-imagem {
+                        width: 65px;
+                        height: 65px;
+                    }
+
+                .acoes-item {
+                    grid-column: 1 / -1;
+                    justify-content: space-between;
+                    border-top: 1px solid #eee;
+                    padding-top: 12px;
+                }
+
+                .botoes,
+                .grupo-botoes {
+                    width: 100%;
+                }
+
+                .btn {
+                    flex: 1;
+                }
+            }
+    </style>
+</head>
+
+<body>
+
+    <header class="topo">
+        <div class="marca">
+            <img src="@logoEstabelecimento"
+                 alt="@nomeEstabelecimento" />
+
+            <div>
+                <strong>@nomeEstabelecimento</strong>
+                <span>Sistema de Pedidos</span>
+            </div>
+        </div>
+
+        <a asp-controller="Cliente"
+           asp-action="Produtos"
+           class="voltar">
+            Produtos
+        </a>
+    </header>
+
+    <main class="conteudo">
+
+        <div class="titulo">
+            <h1>Meu pedido</h1>
+            <p>Confira os produtos antes de finalizar.</p>
+        </div>
+
+        @if (Model == null || Model.Count == 0)
+        {
+            <div class="carrinho-vazio">
+                <h2>Seu pedido está vazio</h2>
+                <p>Adicione produtos para continuar.</p>
+
+                <a asp-controller="Cliente"
+                   asp-action="Produtos"
+                   class="btn btn-finalizar">
+                    Ver produtos
+                </a>
+            </div>
+        }
+        else
+        {
+            <section class="itens">
+
+                @foreach (var item in Model)
+                {
+                    <article class="item">
+
+                        @if (!string.IsNullOrWhiteSpace(item.ImagemUrl))
+                        {
+                            <img src="@item.ImagemUrl"
+                                 alt="@item.NomeProduto" />
+                        }
+                        else
+                        {
+                            <div class="sem-imagem">
+                                Sem imagem
+                            </div>
+                        }
+
+                        <div class="item-info">
+                            <h3>@item.NomeProduto</h3>
+
+                            <div class="preco">
+                                @item.PrecoUnitario.ToString("C2")
+                                cada
+                            </div>
+                        </div>
+
+                        <div class="acoes-item">
+
+                            <form asp-controller="Carrinho"
+                                  asp-action="Diminuir"
+                                  method="post">
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden"
+                                       name="produtoId"
+                                       value="@item.ProdutoId" />
+
+                                <button type="submit"
+                                        class="btn-quantidade">
+                                    −
+                                </button>
+                            </form>
+
+                            <span class="quantidade">
+                                @item.Quantidade
+                            </span>
+
+                            <form asp-controller="Carrinho"
+                                  asp-action="Aumentar"
+                                  method="post">
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden"
+                                       name="produtoId"
+                                       value="@item.ProdutoId" />
+
+                                <button type="submit"
+                                        class="btn-quantidade">
+                                    +
+                                </button>
+                            </form>
+
+                            <span class="subtotal">
+                                @item.Subtotal.ToString("C2")
+                            </span>
+
+                            <form asp-controller="Carrinho"
+                                  asp-action="Remover"
+                                  method="post">
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden"
+                                       name="produtoId"
+                                       value="@item.ProdutoId" />
+
+                                <button type="submit"
+                                        class="btn-remover">
+                                    Remover
+                                </button>
+                            </form>
+
+                        </div>
+
+                    </article>
+                }
+
+            </section>
+
+            <section class="resumo">
+
+                <div class="total">
+                    <span>Total</span>
+                    <span>@total.ToString("C2")</span>
+                </div>
+
+                <div class="botoes">
+
+                    <div class="grupo-botoes">
+                        <a asp-controller="Cliente"
+                           asp-action="Produtos"
+                           class="btn btn-voltar">
+                            Continuar comprando
+                        </a>
+
+                        <form asp-controller="Carrinho"
+                              asp-action="Limpar"
+                              method="post">
+                            @Html.AntiForgeryToken()
+
+                            <button type="submit"
+                                    class="btn btn-limpar"
+                                    onclick="return confirm('Deseja realmente limpar o pedido?');">
+                                Limpar
+                            </button>
+                        </form>
+                    </div>
+
+                    <a asp-controller="Carrinho"
+                       asp-action="Finalizar"
+                       class="btn btn-finalizar">
+                        Finalizar pedido
+                    </a>
+
+                </div>
+
+            </section>
+        }
+
+    </main>
+
+    <footer class="rodape">
+        Desenvolvido por WLC Sistemas
+    </footer>
+
+</body>
+</html>

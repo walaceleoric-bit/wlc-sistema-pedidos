@@ -1,0 +1,469 @@
+﻿@using WlcSistemaPedidos.Models
+@model Categoria
+
+@{
+    ViewData["Title"] = "Nova Categoria";
+    Layout = null;
+
+    string nomeEstabelecimento =
+        ViewBag.NomeEstabelecimento
+        ?? "Sistema de Pedidos";
+
+    string logoEstabelecimento =
+        ViewBag.LogoEstabelecimento
+        ?? "/images/logo-wlc.png";
+}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Nova Categoria - Sistema de Pedidos</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f6f7f9;
+            color: #262626;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topo {
+            background: #ffffff;
+            border-bottom: 1px solid #e8e8e8;
+            min-height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 5%;
+        }
+
+        .marca {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-wlc {
+            width: 95px;
+            height: 48px;
+            object-fit: contain;
+        }
+
+        .nome-sistema {
+            border-left: 1px solid #dddddd;
+            padding-left: 14px;
+        }
+
+        .nome-sistema strong {
+            display: block;
+            font-size: 15px;
+        }
+
+        .nome-sistema span {
+            font-size: 12px;
+            color: #888888;
+        }
+
+        .menu {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .menu a,
+        .btn-sair {
+            border: none;
+            background: transparent;
+            color: #444444;
+            text-decoration: none;
+            padding: 10px 13px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .menu a:hover,
+        .btn-sair:hover {
+            background: #fff3e6;
+            color: #f57c00;
+        }
+
+        .menu .ativo {
+            background: #f57c00;
+            color: #ffffff;
+        }
+
+        .conteudo {
+            width: 90%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 35px 0;
+            flex: 1;
+        }
+
+        .cabecalho {
+            margin-bottom: 24px;
+        }
+
+        .cabecalho h1 {
+            font-size: 27px;
+            margin-bottom: 6px;
+        }
+
+        .cabecalho p {
+            color: #777777;
+            font-size: 14px;
+        }
+
+        .form-card {
+            background: #ffffff;
+            border: 1px solid #eeeeee;
+            border-radius: 14px;
+            padding: 28px;
+            box-shadow: 0 5px 18px rgba(0, 0, 0, 0.04);
+        }
+
+        .grupo {
+            margin-bottom: 20px;
+        }
+
+        .grupo label {
+            display: block;
+            margin-bottom: 7px;
+            color: #333333;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .obrigatorio {
+            color: #f57c00;
+        }
+
+        .campo {
+            width: 100%;
+            height: 47px;
+            border: 1px solid #dddddd;
+            border-radius: 9px;
+            padding: 0 13px;
+            font-size: 15px;
+            outline: none;
+            background: #ffffff;
+        }
+
+        textarea.campo {
+            height: 110px;
+            padding-top: 12px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .campo:focus {
+            border-color: #f57c00;
+            box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.10);
+        }
+
+        .erro {
+            display: block;
+            color: #b42318;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .texto-ajuda {
+            display: block;
+            color: #999999;
+            font-size: 11px;
+            margin-top: 6px;
+        }
+
+        .situacao {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .situacao input {
+            width: 18px;
+            height: 18px;
+            accent-color: #f57c00;
+        }
+
+        .acoes {
+            border-top: 1px solid #eeeeee;
+            padding-top: 22px;
+            margin-top: 5px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn-cancelar {
+            text-decoration: none;
+            color: #555555;
+            background: #ffffff;
+            border: 1px solid #dddddd;
+            border-radius: 9px;
+            padding: 12px 18px;
+            font-size: 14px;
+        }
+
+        .btn-salvar {
+            border: none;
+            background: #f57c00;
+            color: #ffffff;
+            border-radius: 9px;
+            padding: 12px 22px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-salvar:hover {
+            background: #e66f00;
+        }
+
+        .rodape {
+            background: #ffffff;
+            border-top: 1px solid #e8e8e8;
+            text-align: center;
+            padding: 18px;
+            color: #777777;
+            font-size: 12px;
+        }
+
+        .rodape strong {
+            color: #f57c00;
+        }
+
+        @@media (max-width: 700px) {
+            .topo {
+                flex-direction: column;
+                gap: 10px;
+                padding: 12px 4%;
+            }
+
+            .menu {
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .conteudo {
+                width: 92%;
+            }
+
+            .form-card {
+                padding: 20px;
+            }
+
+            .nome-sistema {
+                display: none;
+            }
+
+            .marca {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .acoes {
+                flex-direction: column-reverse;
+            }
+
+            .btn-cancelar,
+            .btn-salvar {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="topo">
+
+        <div class="marca">
+
+            <img src="@logoEstabelecimento"
+                 alt="@nomeEstabelecimento"
+                 class="logo-wlc" />
+
+            <div class="nome-sistema">
+                <strong>@nomeEstabelecimento</strong>
+                <span>Painel Administrativo</span>
+            </div>
+
+        </div>
+
+        <nav class="menu">
+
+            <a asp-controller="Admin"
+               asp-action="Index">
+                Início
+            </a>
+
+            <a asp-controller="Produtos"
+               asp-action="Index">
+                Produtos
+            </a>
+
+            <a asp-controller="Categorias"
+               asp-action="Index"
+               class="ativo">
+                Categorias
+            </a>
+
+            <a href="#">NF</a>
+
+            <a href="#">Configurações</a>
+
+            <form asp-controller="Conta"
+                  asp-action="Sair"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <button type="submit"
+                        class="btn-sair">
+                    Sair
+                </button>
+
+            </form>
+
+        </nav>
+
+    </header>
+
+    <main class="conteudo">
+
+        <div class="cabecalho">
+
+            <h1>Nova Categoria</h1>
+
+            <p>
+                Crie uma categoria para organizar os produtos do estabelecimento.
+            </p>
+
+        </div>
+
+        <div class="form-card">
+
+            <form asp-controller="Categorias"
+                  asp-action="Criar"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <div class="grupo">
+
+                    <label asp-for="Nome">
+                        Nome da categoria
+                        <span class="obrigatorio">*</span>
+                    </label>
+
+                    <input asp-for="Nome"
+                           class="campo"
+                           maxlength="100"
+                           placeholder="Ex.: Pães" />
+
+                    <span asp-validation-for="Nome"
+                          class="erro">
+                    </span>
+
+                </div>
+
+                <div class="grupo">
+
+                    <label asp-for="Descricao">
+                        Descrição
+                    </label>
+
+                    <textarea asp-for="Descricao"
+                              class="campo"
+                              maxlength="300"
+                              placeholder="Ex.: Pães tradicionais e especiais"></textarea>
+
+                    <span asp-validation-for="Descricao"
+                          class="erro">
+                    </span>
+
+                </div>
+
+                <div class="grupo">
+
+                    <label asp-for="OrdemExibicao">
+                        Ordem de exibição
+                    </label>
+
+                    <input asp-for="OrdemExibicao"
+                           type="number"
+                           min="0"
+                           class="campo" />
+
+                    <span class="texto-ajuda">
+                        Exemplo: 1 aparece antes de 2. Você poderá alterar depois.
+                    </span>
+
+                </div>
+
+                <div class="grupo">
+
+                    <label>
+                        Situação
+                    </label>
+
+                    <label class="situacao">
+
+                        <input asp-for="Ativa" />
+
+                        Categoria ativa
+
+                    </label>
+
+                    <span class="texto-ajuda">
+                        Categorias inativas poderão ser ocultadas do cardápio.
+                    </span>
+
+                </div>
+
+                <div class="acoes">
+
+                    <a asp-controller="Categorias"
+                       asp-action="Index"
+                       class="btn-cancelar">
+                        Cancelar
+                    </a>
+
+                    <button type="submit"
+                            class="btn-salvar">
+                        Salvar Categoria
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </main>
+
+    <footer class="rodape">
+        Desenvolvido por <strong>WLC Sistemas</strong>
+    </footer>
+
+</body>
+</html>
