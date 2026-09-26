@@ -1,0 +1,430 @@
+﻿@{
+    string nomeEstabelecimento =
+        ViewBag.NomeEstabelecimento
+        ?? "Sistema de Pedidos";
+
+    string logoEstabelecimento =
+        ViewBag.LogoEstabelecimento
+        ?? "/images/logo-wlc.png";
+
+    string controllerAtual =
+        ViewContext.RouteData.Values["controller"]?
+            .ToString()
+        ?? "";
+
+    string actionAtual =
+        ViewContext.RouteData.Values["action"]?
+            .ToString()
+        ?? "";
+
+    string ClasseAtiva(
+        string controller,
+        string? action = null)
+    {
+        bool controllerIgual =
+            controllerAtual.Equals(
+                controller,
+                StringComparison.OrdinalIgnoreCase);
+
+        bool actionIgual =
+            string.IsNullOrWhiteSpace(action) ||
+            actionAtual.Equals(
+                action,
+                StringComparison.OrdinalIgnoreCase);
+
+        return controllerIgual && actionIgual
+            ? "ativo"
+            : "";
+    }
+}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>
+        @ViewData["Title"] - @nomeEstabelecimento
+    </title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f6f7f9;
+            color: #262626;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ==========================================
+           TOPO
+           ========================================== */
+
+        .admin-topo {
+            background: #ffffff;
+            border-bottom: 1px solid #e8e8e8;
+            min-height: 72px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 20px;
+
+            padding: 10px 4%;
+
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        /* ==========================================
+           MARCA
+           ========================================== */
+
+        .admin-marca {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+
+            flex-shrink: 0;
+
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .admin-logo {
+            width: 95px;
+            height: 48px;
+
+            object-fit: contain;
+        }
+
+        .admin-nome-sistema {
+            border-left: 1px solid #dddddd;
+            padding-left: 14px;
+
+            white-space: nowrap;
+        }
+
+        .admin-nome-sistema strong {
+            display: block;
+
+            font-size: 15px;
+            color: #333333;
+        }
+
+        .admin-nome-sistema span {
+            display: block;
+
+            margin-top: 3px;
+
+            font-size: 12px;
+            color: #888888;
+        }
+
+        /* ==========================================
+           MENU
+           ========================================== */
+
+        .admin-menu {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+
+            gap: 4px;
+
+            flex-wrap: wrap;
+        }
+
+        .admin-menu a,
+        .admin-btn-sair {
+            border: none;
+            background: transparent;
+
+            color: #444444;
+
+            text-decoration: none;
+
+            padding: 9px 10px;
+
+            border-radius: 8px;
+
+            font-size: 13px;
+            font-weight: 600;
+
+            cursor: pointer;
+
+            font-family: inherit;
+
+            white-space: nowrap;
+
+            transition:
+                background-color .15s,
+                color .15s;
+        }
+
+        .admin-menu a:hover,
+        .admin-btn-sair:hover {
+            background: #fff3e6;
+            color: #f57c00;
+        }
+
+        .admin-menu a.ativo {
+            background: #f57c00;
+            color: #ffffff;
+        }
+
+        .admin-menu a.ativo:hover {
+            background: #e66f00;
+            color: #ffffff;
+        }
+
+        .admin-form-sair {
+            margin: 0;
+            padding: 0;
+        }
+
+        /* ==========================================
+           CONTEÚDO DAS TELAS
+           ========================================== */
+
+        .admin-conteudo {
+            flex: 1;
+            width: 100%;
+        }
+
+        /* ==========================================
+           RODAPÉ
+           ========================================== */
+
+        .admin-rodape {
+            background: #ffffff;
+
+            border-top: 1px solid #e8e8e8;
+
+            text-align: center;
+
+            padding: 15px 18px;
+
+            color: #777777;
+
+            font-size: 12px;
+        }
+
+        .admin-rodape strong {
+            color: #f57c00;
+        }
+
+        .admin-contato {
+            margin-top: 5px;
+
+            font-size: 11px;
+            font-weight: normal;
+
+            color: #999999;
+
+            letter-spacing: 0.1px;
+        }
+
+        /* ==========================================
+           RESPONSIVO
+           ========================================== */
+
+        @@media (max-width: 1180px) {
+
+            .admin-topo {
+                flex-direction: column;
+                gap: 10px;
+
+                padding: 12px 4%;
+            }
+
+            .admin-menu {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @@media (max-width: 650px) {
+
+            .admin-marca {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .admin-nome-sistema {
+                display: none;
+            }
+
+            .admin-menu {
+                gap: 3px;
+            }
+
+            .admin-menu a,
+            .admin-btn-sair {
+                padding: 8px;
+                font-size: 12px;
+            }
+        }
+
+    </style>
+
+    @await RenderSectionAsync(
+        "Styles",
+        required: false)
+
+</head>
+
+<body>
+
+    <!-- ==========================================
+         CABEÇALHO PADRÃO DO ADMINISTRADOR
+         ========================================== -->
+
+    <header class="admin-topo">
+
+        <a asp-controller="Admin"
+           asp-action="Index"
+           class="admin-marca">
+
+            <img src="@logoEstabelecimento"
+                 alt="@nomeEstabelecimento"
+                 class="admin-logo" />
+
+            <div class="admin-nome-sistema">
+
+                <strong>
+                    @nomeEstabelecimento
+                </strong>
+
+                <span>
+                    Painel Administrativo
+                </span>
+
+            </div>
+
+        </a>
+
+        <!-- ======================================
+             MENU ÚNICO DO ADMINISTRADOR
+             ====================================== -->
+
+        <nav class="admin-menu">
+
+            <a asp-controller="Admin"
+               asp-action="Index"
+               class="@ClasseAtiva("Admin")">
+                Início
+            </a>
+
+            <a asp-controller="Pedidos"
+               asp-action="Historico"
+               class="@ClasseAtiva("Pedidos", "Historico")">
+                Histórico
+            </a>
+
+            <a asp-controller="Produtos"
+               asp-action="Index"
+               class="@ClasseAtiva("Produtos")">
+                Produtos
+            </a>
+
+            <a asp-controller="Categorias"
+               asp-action="Index"
+               class="@ClasseAtiva("Categorias")">
+                Categorias
+            </a>
+
+            <a asp-controller="Clientes"
+               asp-action="Index"
+               class="@ClasseAtiva("Clientes")">
+                Clientes
+            </a>
+
+            <a asp-controller="Lembretes"
+               asp-action="Index"
+               class="@ClasseAtiva("Lembretes")">
+                Lembretes
+            </a>
+
+            <a asp-controller="NotasFiscais"
+               asp-action="Index"
+               class="@ClasseAtiva("NotasFiscais")">
+                NF
+            </a>
+
+            <a asp-controller="Configuracoes"
+               asp-action="Index"
+               class="@ClasseAtiva("Configuracoes")">
+                Configurações
+            </a>
+
+            <form asp-controller="Conta"
+                  asp-action="Sair"
+                  method="post"
+                  class="admin-form-sair">
+
+                @Html.AntiForgeryToken()
+
+                <button type="submit"
+                        class="admin-btn-sair">
+                    Sair
+                </button>
+
+            </form>
+
+        </nav>
+
+    </header>
+
+    <!-- ==========================================
+         CONTEÚDO DA PÁGINA ATUAL
+         ========================================== -->
+
+    <main class="admin-conteudo">
+
+        @RenderBody()
+
+    </main>
+
+    <!-- ==========================================
+         RODAPÉ PADRÃO
+         ========================================== -->
+
+    <footer class="admin-rodape">
+
+        <div>
+            Desenvolvido por
+            <strong>WLC Sistemas</strong>
+        </div>
+
+        <div class="admin-contato">
+            Whatsapp: (27) 98843-3016
+        </div>
+
+    </footer>
+
+    @await RenderSectionAsync(
+        "Scripts",
+        required: false)
+
+</body>
+
+</html>

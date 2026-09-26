@@ -3,121 +3,28 @@
 
 @{
     ViewData["Title"] = "Clientes";
-    Layout = null;
+    Layout = "_AdminLayout";
 
     int paginaAtual = ViewBag.PaginaAtual ?? 1;
     int totalPaginas = ViewBag.TotalPaginas ?? 0;
     int totalClientes = ViewBag.TotalClientes ?? 0;
     string busca = ViewBag.Busca as string ?? "";
-
-    string nomeEstabelecimento =
-        ViewBag.NomeEstabelecimento
-        ?? "Sistema de Pedidos";
-
-    string logoEstabelecimento =
-        ViewBag.LogoEstabelecimento
-        ?? "/images/logo-wlc.png";
 }
 
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <title>Clientes - Sistema de Pedidos</title>
+@section Styles {
 
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
 
-        body {
-            min-height: 100vh;
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f6f7f9;
-            color: #262626;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .topo {
-            background: #ffffff;
-            border-bottom: 1px solid #e8e8e8;
-            min-height: 72px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 5%;
-        }
-
-        .marca {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .logo-wlc {
-            width: 95px;
-            height: 48px;
-            object-fit: contain;
-        }
-
-        .nome-sistema {
-            border-left: 1px solid #dddddd;
-            padding-left: 14px;
-        }
-
-        .nome-sistema strong {
-            display: block;
-            font-size: 15px;
-        }
-
-        .nome-sistema span {
-            font-size: 12px;
-            color: #888888;
-        }
-
-        .menu {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            flex-wrap: wrap;
-        }
-
-        .menu a,
-        .btn-sair {
-            border: none;
-            background: transparent;
-            color: #444444;
-            text-decoration: none;
-            padding: 10px 13px;
-            border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
-            font-family: inherit;
-        }
-
-        .menu a:hover,
-        .btn-sair:hover {
-            background: #fff3e6;
-            color: #f57c00;
-        }
-
-        .menu .ativo {
-            background: #f57c00;
-            color: #ffffff;
-        }
-
-        .conteudo {
+        .clientes-conteudo {
             width: 90%;
             max-width: 1250px;
             margin: 0 auto;
             padding: 35px 0;
-            flex: 1;
         }
+
+        /* =========================
+           CABEÇALHO
+           ========================= */
 
         .cabecalho {
             display: flex;
@@ -129,12 +36,13 @@
 
         .cabecalho h1 {
             font-size: 27px;
-            margin-bottom: 6px;
+            margin: 0 0 6px 0;
         }
 
         .cabecalho p {
             color: #777777;
             font-size: 14px;
+            margin: 0;
         }
 
         .btn-novo {
@@ -150,7 +58,12 @@
 
         .btn-novo:hover {
             background: #e66f00;
+            color: #ffffff;
         }
+
+        /* =========================
+           MENSAGENS
+           ========================= */
 
         .mensagem {
             padding: 13px 15px;
@@ -170,6 +83,10 @@
             border: 1px solid #f1b8b8;
             color: #b42318;
         }
+
+        /* =========================
+           FILTROS
+           ========================= */
 
         .filtros {
             background: #ffffff;
@@ -223,11 +140,24 @@
             background: #ffffff;
         }
 
+        .btn-limpar:hover {
+            border-color: #f57c00;
+            color: #f57c00;
+        }
+
+        /* =========================
+           RESUMO
+           ========================= */
+
         .resumo {
             margin-bottom: 12px;
             color: #777777;
             font-size: 13px;
         }
+
+        /* =========================
+           TABELA
+           ========================= */
 
         .tabela-container {
             background: #ffffff;
@@ -239,7 +169,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1050px;
+            min-width: 1150px;
         }
 
         th {
@@ -271,6 +201,10 @@
             color: #888888;
         }
 
+        /* =========================
+           SALDO
+           ========================= */
+
         .saldo {
             font-weight: bold;
         }
@@ -282,6 +216,10 @@
         .saldo-devedor {
             color: #b42318;
         }
+
+        /* =========================
+           STATUS
+           ========================= */
 
         .status {
             display: inline-block;
@@ -300,6 +238,10 @@
             background: #fff0f0;
             color: #b42318;
         }
+
+        /* =========================
+           AÇÕES
+           ========================= */
 
         .acoes {
             display: flex;
@@ -342,6 +284,10 @@
             color: #ffffff;
         }
 
+        /* =========================
+           SEM CLIENTES
+           ========================= */
+
         .vazio {
             text-align: center;
             padding: 55px 20px;
@@ -354,6 +300,10 @@
             margin-bottom: 7px;
             font-size: 17px;
         }
+
+        /* =========================
+           PAGINAÇÃO
+           ========================= */
 
         .paginacao {
             display: flex;
@@ -390,30 +340,11 @@
             color: #ffffff;
         }
 
-        .rodape {
-            background: #ffffff;
-            border-top: 1px solid #e8e8e8;
-            text-align: center;
-            padding: 18px;
-            color: #777777;
-            font-size: 12px;
-        }
-
-        .rodape strong {
-            color: #f57c00;
-        }
+        /* =========================
+           RESPONSIVO
+           ========================= */
 
         @@media (max-width: 850px) {
-            .topo {
-                flex-direction: column;
-                gap: 10px;
-                padding: 12px 4%;
-            }
-
-            .menu {
-                width: 100%;
-                justify-content: center;
-            }
 
             .filtros form {
                 grid-template-columns: 1fr;
@@ -421,7 +352,8 @@
         }
 
         @@media (max-width: 550px) {
-            .conteudo {
+
+            .clientes-conteudo {
                 width: 92%;
             }
 
@@ -429,91 +361,12 @@
                 align-items: flex-start;
                 flex-direction: column;
             }
-
-            .marca {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .nome-sistema {
-                display: none;
-            }
-
-            .menu {
-                gap: 2px;
-            }
-
-            .menu a,
-            .btn-sair {
-                padding: 8px;
-                font-size: 13px;
-            }
         }
+
     </style>
-</head>
+}
 
-<body>
-
-<header class="topo">
-
-    <div class="marca">
-
-        <img src="@logoEstabelecimento"
-             alt="@nomeEstabelecimento"
-             class="logo-wlc" />
-
-        <div class="nome-sistema">
-            <strong>@nomeEstabelecimento</strong>
-            <span>Painel Administrativo</span>
-        </div>
-
-    </div>
-
-    <nav class="menu">
-
-        <a asp-controller="Admin"
-           asp-action="Index">
-            Início
-        </a>
-
-        <a asp-controller="Produtos"
-           asp-action="Index">
-            Produtos
-        </a>
-
-        <a asp-controller="Categorias"
-           asp-action="Index">
-            Categorias
-        </a>
-
-        <a asp-controller="Clientes"
-           asp-action="Index"
-           class="ativo">
-            Clientes
-        </a>
-
-        <a href="#">NF</a>
-
-        <a href="#">Configurações</a>
-
-        <form asp-controller="Conta"
-              asp-action="Sair"
-              method="post">
-
-            @Html.AntiForgeryToken()
-
-            <button type="submit"
-                    class="btn-sair">
-                Sair
-            </button>
-
-        </form>
-
-    </nav>
-
-</header>
-
-<main class="conteudo">
+<div class="clientes-conteudo">
 
     @if (TempData["Sucesso"] != null)
     {
@@ -590,6 +443,7 @@
                     <tr>
                         <th>Cliente</th>
                         <th>Telefone</th>
+                        <th>Bairro</th>
                         <th>Cidade</th>
                         <th>Saldo</th>
                         <th>Ativo</th>
@@ -600,141 +454,147 @@
 
                 <tbody>
 
-                @foreach (var cliente in Model)
-                {
-                    <tr>
+                    @foreach (var cliente in Model)
+                    {
+                        <tr>
 
-                        <td>
+                            <td>
 
-                            <div class="cliente-nome">
+                                <div class="cliente-nome">
 
-                                <strong>
-                                    @cliente.Nome
-                                </strong>
+                                    <strong>
+                                        @cliente.Nome
+                                    </strong>
 
-                                @if (!string.IsNullOrWhiteSpace(cliente.CpfCnpj))
+                                    @if (!string.IsNullOrWhiteSpace(cliente.CpfCnpj))
+                                    {
+                                        <small>
+                                            @cliente.CpfCnpj
+                                        </small>
+                                    }
+                                    else
+                                    {
+                                        <small>
+                                            CPF/CNPJ não informado
+                                        </small>
+                                    }
+
+                                </div>
+
+                            </td>
+
+                            <td>
+                                @(string.IsNullOrWhiteSpace(cliente.Telefone)
+                                    ? "-"
+                                    : cliente.Telefone)
+                            </td>
+
+                            <td>
+                                @(string.IsNullOrWhiteSpace(cliente.Bairro)
+                                    ? "-"
+                                    : cliente.Bairro)
+                            </td>
+
+                            <td>
+                                @(string.IsNullOrWhiteSpace(cliente.Cidade)
+                                    ? "-"
+                                    : cliente.Cidade)
+                            </td>
+
+                            <td>
+
+                                @if (cliente.SaldoDevedor > 0)
                                 {
-                                    <small>
-                                        @cliente.CpfCnpj
-                                    </small>
+                                    <span class="saldo saldo-devedor">
+
+                                        @cliente.SaldoDevedor.ToString(
+                                            "C2",
+                                            new System.Globalization.CultureInfo("pt-BR"))
+
+                                    </span>
                                 }
                                 else
                                 {
-                                    <small>
-                                        CPF/CNPJ não informado
-                                    </small>
+                                    <span class="saldo saldo-ok">
+                                        Em dia
+                                    </span>
                                 }
 
-                            </div>
+                            </td>
 
-                        </td>
+                            <td>
 
-                        <td>
-                            @(string.IsNullOrWhiteSpace(cliente.Telefone)
-                                ? "-"
-                                : cliente.Telefone)
-                        </td>
+                                @if (cliente.Ativo)
+                                {
+                                    <span class="status status-ok">
+                                        Ativo
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="status status-nao">
+                                        Inativo
+                                    </span>
+                                }
 
-                        <td>
-                            @(string.IsNullOrWhiteSpace(cliente.Cidade)
-                                ? "-"
-                                : cliente.Cidade)
-                        </td>
+                            </td>
 
-                        <td>
+                            <td>
 
-                            @if (cliente.SaldoDevedor > 0)
-                            {
-                                <span class="saldo saldo-devedor">
+                                @if (cliente.PermitirNovosPedidos)
+                                {
+                                    <span class="status status-ok">
+                                        Liberado
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="status status-nao">
+                                        Bloqueado
+                                    </span>
+                                }
 
-                                    @cliente.SaldoDevedor.ToString(
-                                        "C2",
-                                        new System.Globalization.CultureInfo("pt-BR"))
+                            </td>
 
-                                </span>
-                            }
-                            else
-                            {
-                                <span class="saldo saldo-ok">
-                                    Em dia
-                                </span>
-                            }
+                            <td>
 
-                        </td>
+                                <div class="acoes">
 
-                        <td>
+                                    <a asp-controller="Clientes"
+                                       asp-action="Financeiro"
+                                       asp-route-id="@cliente.Id"
+                                       class="acao acao-financeiro">
+                                        Financeiro
+                                    </a>
 
-                            @if (cliente.Ativo)
-                            {
-                                <span class="status status-ok">
-                                    Ativo
-                                </span>
-                            }
-                            else
-                            {
-                                <span class="status status-nao">
-                                    Inativo
-                                </span>
-                            }
+                                    <a asp-controller="Clientes"
+                                       asp-action="Editar"
+                                       asp-route-id="@cliente.Id"
+                                       class="acao">
+                                        Editar
+                                    </a>
 
-                        </td>
+                                    <form asp-controller="Clientes"
+                                          asp-action="Excluir"
+                                          asp-route-id="@cliente.Id"
+                                          method="post"
+                                          onsubmit="return confirm('Tem certeza que deseja excluir o cliente @cliente.Nome?');">
 
-                        <td>
+                                        @Html.AntiForgeryToken()
 
-                            @if (cliente.PermitirNovosPedidos)
-                            {
-                                <span class="status status-ok">
-                                    Liberado
-                                </span>
-                            }
-                            else
-                            {
-                                <span class="status status-nao">
-                                    Bloqueado
-                                </span>
-                            }
+                                        <button type="submit"
+                                                class="acao">
+                                            Excluir
+                                        </button>
 
-                        </td>
+                                    </form>
 
-                        <td>
+                                </div>
 
-                            <div class="acoes">
+                            </td>
 
-                                <a asp-controller="Clientes"
-                                   asp-action="Financeiro"
-                                   asp-route-id="@cliente.Id"
-                                   class="acao acao-financeiro">
-                                    Financeiro
-                                </a>
-
-                                <a asp-controller="Clientes"
-                                   asp-action="Editar"
-                                   asp-route-id="@cliente.Id"
-                                   class="acao">
-                                    Editar
-                                </a>
-
-                                <form asp-controller="Clientes"
-                                      asp-action="Excluir"
-                                      asp-route-id="@cliente.Id"
-                                      method="post"
-                                      onsubmit="return confirm('Tem certeza que deseja excluir o cliente @cliente.Nome?');">
-
-                                    @Html.AntiForgeryToken()
-
-                                    <button type="submit"
-                                            class="acao">
-                                        Excluir
-                                    </button>
-
-                                </form>
-
-                            </div>
-
-                        </td>
-
-                    </tr>
-                }
+                        </tr>
+                    }
 
                 </tbody>
 
@@ -795,11 +655,4 @@
         </div>
     }
 
-</main>
-
-<footer class="rodape">
-    Desenvolvido por <strong>WLC Sistemas</strong>
-</footer>
-
-</body>
-</html>
+</div>

@@ -53,11 +53,16 @@ namespace WlcSistemaPedidos.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Produto -> Itens de pedidos antigos
+            //
+            // Se o produto for excluído, o ProdutoId do item
+            // ficará nulo. Os dados históricos do pedido
+            // continuarão preservados em NomeProduto,
+            // PrecoUnitario, Quantidade e Subtotal.
             builder.Entity<ItemPedido>()
                 .HasOne(i => i.Produto)
                 .WithMany()
                 .HasForeignKey(i => i.ProdutoId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.SetNull);
 
             // Cliente -> Movimentações financeiras
             builder.Entity<MovimentacaoFinanceira>()

@@ -3,30 +3,13 @@
 
 @{
     ViewData["Title"] = "Configurações";
-    Layout = null;
-
-    string nomeEstabelecimento =
-        string.IsNullOrWhiteSpace(Model.NomeEstabelecimento)
-            ? "Sistema de Pedidos"
-            : Model.NomeEstabelecimento;
-
-    string logoEstabelecimento =
-        string.IsNullOrWhiteSpace(Model.LogoUrlAtual)
-            ? "/images/logo-wlc.png"
-            : Model.LogoUrlAtual;
+    Layout = "_AdminLayout";
 }
 
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="utf-8" />
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0" />
-
-    <title>Configurações - Sistema de Pedidos</title>
+@section Styles {
 
     <style>
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -575,82 +558,11 @@
                 width: 100%;
             }
         }
+    
     </style>
-</head>
+}
 
-<body>
-
-<header class="topo">
-
-    <div class="marca">
-
-        <img src="@logoEstabelecimento"
-             alt="@nomeEstabelecimento"
-             class="logo-wlc" />
-
-        <div class="nome-sistema">
-            <strong>@nomeEstabelecimento</strong>
-            <span>Painel Administrativo</span>
-        </div>
-
-    </div>
-
-    <nav class="menu">
-
-        <a asp-controller="Admin"
-           asp-action="Index">
-            Início
-        </a>
-
-        <a asp-controller="Pedidos"
-           asp-action="Historico">
-            Histórico
-        </a>
-
-        <a asp-controller="Produtos"
-           asp-action="Index">
-            Produtos
-        </a>
-
-        <a asp-controller="Clientes"
-           asp-action="Index">
-            Clientes
-        </a>
-
-        <a asp-controller="Lembretes"
-           asp-action="Index">
-            Lembretes
-        </a>
-
-        <a asp-controller="NotasFiscais"
-           asp-action="Index">
-            NF
-        </a>
-
-        <a asp-controller="Configuracoes"
-           asp-action="Index"
-           class="ativo">
-            Configurações
-        </a>
-
-        <form asp-controller="Conta"
-              asp-action="Sair"
-              method="post">
-
-            @Html.AntiForgeryToken()
-
-            <button type="submit"
-                    class="btn-sair">
-                Sair
-            </button>
-
-        </form>
-
-    </nav>
-
-</header>
-
-<main class="conteudo">
+<div class="conteudo">
 
     <div class="cabecalho">
         <h1>Configurações</h1>
@@ -1269,12 +1181,10 @@
 
     </section>
 
-</main>
 
-<footer class="rodape">
-    Desenvolvido por <strong>WLC Sistemas</strong>
-</footer>
+</div>
 
+@section Scripts {
 <script>
     function somenteNumeros(valor) {
         return valor.replace(/\D/g, "");
@@ -1345,6 +1255,4 @@
                 });
         });
 </script>
-
-</body>
-</html>
+}

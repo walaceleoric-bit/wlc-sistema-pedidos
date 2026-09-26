@@ -284,6 +284,7 @@ namespace WlcSistemaPedidos.Controllers
             }
 
             produto.Id = 0;
+
             produto.DataCadastro =
                 DateTime.UtcNow;
 
@@ -519,6 +520,14 @@ namespace WlcSistemaPedidos.Controllers
         // =========================================================
         // EXCLUIR - POST
         // =========================================================
+        // O produto poderá ser excluído mesmo que tenha participado
+        // de pedidos antigos.
+        //
+        // A relação ItemPedido -> Produto utiliza SetNull.
+        // Portanto, ao excluir o produto, ProdutoId ficará nulo nos
+        // itens históricos, preservando NomeProduto, PrecoUnitario,
+        // Quantidade, Subtotal e Observacao.
+        // =========================================================
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -540,20 +549,6 @@ namespace WlcSistemaPedidos.Controllers
             if (produto == null)
             {
                 return NotFound();
-            }
-
-            var possuiPedidos =
-                await _context.ItensPedido
-                    .AnyAsync(i =>
-                        i.ProdutoId == id);
-
-            if (possuiPedidos)
-            {
-                TempData["Erro"] =
-                    "Este produto já possui histórico de pedidos e não pode ser excluído. Desative o produto para que ele deixe de aparecer para novos pedidos.";
-
-                return RedirectToAction(
-                    nameof(Index));
             }
 
             var imagemProduto =

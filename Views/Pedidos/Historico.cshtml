@@ -2,19 +2,11 @@
 @model IEnumerable<Pedido>
 
 @{
-    Layout = null;
+    Layout = "_AdminLayout";
     ViewData["Title"] = "Histórico de Pedidos";
 
     var cultura =
         new System.Globalization.CultureInfo("pt-BR");
-
-    string nomeEstabelecimento =
-        ViewBag.NomeEstabelecimento
-        ?? "Sistema de Pedidos";
-
-    string logoEstabelecimento =
-        ViewBag.LogoEstabelecimento
-        ?? "/images/logo-wlc.png";
 
     int paginaAtual =
         ViewBag.PaginaAtual ?? 1;
@@ -32,114 +24,9 @@
         ViewBag.StatusSelecionado as StatusPedido?;
 }
 
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0" />
-
-    <title>Histórico - @nomeEstabelecimento</title>
-
-    <style>
-            * {
-                box-sizing: border-box;
-                margin: 0;
-                padding: 0;
-            }
-
-            body {
-                min-height: 100vh;
-                font-family: Arial, Helvetica, sans-serif;
-                background: #f6f7f9;
-                color: #262626;
-                display: flex;
-                flex-direction: column;
-            }
-
-            .topo {
-                background: #ffffff;
-                border-bottom: 1px solid #e8e8e8;
-                min-height: 72px;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 10px 5%;
-            }
-
-            .marca {
-                display: flex;
-                align-items: center;
-                gap: 14px;
-            }
-
-            .logo-estabelecimento {
-                width: 95px;
-                height: 48px;
-                object-fit: contain;
-            }
-
-            .nome-sistema {
-                border-left: 1px solid #dddddd;
-                padding-left: 14px;
-            }
-
-                .nome-sistema strong {
-                    display: block;
-                    font-size: 15px;
-                }
-
-                .nome-sistema span {
-                    font-size: 12px;
-                    color: #888888;
-                }
-
-            .menu {
-                display: flex;
-                align-items: center;
-                gap: 7px;
-                flex-wrap: wrap;
-            }
-
-                .menu a,
-                .btn-sair {
-                    border: none;
-                    background: transparent;
-                    color: #444444;
-                    text-decoration: none;
-                    padding: 10px 13px;
-                    border-radius: 8px;
-                    font-size: 14px;
-                    cursor: pointer;
-                    font-family: inherit;
-                }
-
-                    .menu a:hover,
-                    .btn-sair:hover {
-                        background: #fff3e6;
-                        color: #f57c00;
-                    }
-
-                .menu .ativo {
-                    background: #f57c00;
-                    color: #ffffff;
-                }
-
-                .menu .futuro {
-                    color: #aaaaaa;
-                    cursor: default;
-                }
-
-                    .menu .futuro:hover {
-                        background: transparent;
-                        color: #aaaaaa;
-                    }
-
-            .form-sair {
-                margin: 0;
-            }
-
-            .conteudo {
+@section Styles {
+<style>
+.historico-conteudo {
                 width: 90%;
                 max-width: 1200px;
                 margin: 0 auto;
@@ -349,141 +236,19 @@
                     color: #ffffff;
                 }
 
-            .rodape {
-                background: #ffffff;
-                border-top: 1px solid #e8e8e8;
-                text-align: center;
-                padding: 18px;
-                color: #777777;
-                font-size: 12px;
-            }
-
-                .rodape strong {
-                    color: #f57c00;
-                }
-
+            
             @@media (max-width: 800px) {
-                .topo {
-                    flex-direction: column;
-                    gap: 10px;
-                }
-
-                .menu {
-                    justify-content: center;
-                }
-
-                .filtros-form {
-                    grid-template-columns: 1fr;
-                }
+                .filtros-form { grid-template-columns: 1fr; }
             }
-
             @@media (max-width: 550px) {
-                .conteudo {
-                    width: 92%;
-                }
-
-                .nome-sistema {
-                    display: none;
-                }
-
-                .marca {
-                    justify-content: center;
-                }
-
-                .menu {
-                    gap: 3px;
-                }
-
-                    .menu a,
-                    .btn-sair {
-                        padding: 8px 9px;
-                        font-size: 13px;
-                    }
+                .historico-conteudo { width: 92%; }
             }
-    </style>
-</head>
 
-<body>
+</style>
+}
 
-    <header class="topo">
-
-        <div class="marca">
-
-            <img src="@logoEstabelecimento"
-                 alt="@nomeEstabelecimento"
-                 class="logo-estabelecimento" />
-
-            <div class="nome-sistema">
-                <strong>@nomeEstabelecimento</strong>
-                <span>Painel Administrativo</span>
-            </div>
-
-        </div>
-
-        <nav class="menu">
-
-            <a asp-controller="Admin"
-               asp-action="Index">
-                Início
-            </a>
-
-            <a asp-controller="Pedidos"
-               asp-action="Index">
-                Pedidos
-            </a>
-
-            <a asp-controller="Pedidos"
-               asp-action="Historico"
-               class="ativo">
-                Histórico
-            </a>
-
-            <a asp-controller="Produtos"
-               asp-action="Index">
-                Produtos
-            </a>
-
-            <a asp-controller="Clientes"
-               asp-action="Index">
-                Clientes
-            </a>
-
-            <a asp-controller="Lembretes"
-               asp-action="Index">
-                Lembretes
-            </a>
-
-            <a asp-controller="NotasFiscais"
-               asp-action="Index">
-                NF
-            </a>
-
-            <a asp-controller="Configuracoes"
-               asp-action="Index">
-                Configurações
-            </a>
-
-            <form asp-controller="Conta"
-                  asp-action="Sair"
-                  method="post"
-                  class="form-sair">
-
-                @Html.AntiForgeryToken()
-
-                <button type="submit"
-                        class="btn-sair">
-                    Sair
-                </button>
-
-            </form>
-
-        </nav>
-
-    </header>
-
-    <main class="conteudo">
-
-        <section class="cabecalho">
+<div class="historico-conteudo">
+<section class="cabecalho">
             <h1>Histórico de pedidos</h1>
             <p>
                 Consulte pedidos finalizados e cancelados.
@@ -685,13 +450,4 @@
                 Tente alterar a busca ou o filtro de status.
             </section>
         }
-
-    </main>
-
-    <footer class="rodape">
-        Desenvolvido por
-        <strong>WLC Sistemas</strong>
-    </footer>
-
-</body>
-</html>
+</div>

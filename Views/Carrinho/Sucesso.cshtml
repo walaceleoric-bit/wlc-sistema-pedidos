@@ -24,172 +24,172 @@
     <title>Pedido realizado - @nomeEstabelecimento</title>
 
     <style>
-            * {
-                box-sizing: border-box;
-            }
+        * {
+            box-sizing: border-box;
+        }
 
-            body {
-                margin: 0;
-                font-family: Arial, Helvetica, sans-serif;
-                background: #f5f5f5;
-                color: #292929;
-            }
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f5f5;
+            color: #292929;
+        }
 
-            .topo {
-                background: #fff;
-                border-bottom: 3px solid #f58220;
-                padding: 12px 20px;
-            }
+        .topo {
+            background: #fff;
+            border-bottom: 3px solid #f58220;
+            padding: 12px 20px;
+        }
 
-            .marca {
-                max-width: 900px;
-                margin: auto;
-                display: flex;
-                align-items: center;
-                gap: 12px;
-            }
+        .marca {
+            max-width: 900px;
+            margin: auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-                .marca img {
-                    width: 58px;
-                    height: 58px;
-                    object-fit: contain;
-                }
+        .marca img {
+            width: 58px;
+            height: 58px;
+            object-fit: contain;
+        }
 
-                .marca strong {
-                    display: block;
-                    font-size: 17px;
-                }
+        .marca strong {
+            display: block;
+            font-size: 17px;
+        }
 
-                .marca span {
-                    display: block;
-                    color: #777;
-                    font-size: 12px;
-                    margin-top: 3px;
-                }
+        .marca span {
+            display: block;
+            color: #777;
+            font-size: 12px;
+            margin-top: 3px;
+        }
 
-            .container {
-                max-width: 760px;
-                margin: 35px auto;
-                padding: 0 20px;
-            }
+        .container {
+            max-width: 760px;
+            margin: 35px auto;
+            padding: 0 20px;
+        }
 
-            .sucesso {
-                background: #fff;
-                border-radius: 14px;
-                border: 1px solid #e5e5e5;
-                padding: 28px;
-            }
+        .sucesso {
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid #e5e5e5;
+            padding: 28px;
+        }
 
-            .icone {
-                font-size: 45px;
-                margin-bottom: 10px;
-            }
+        .icone {
+            font-size: 45px;
+            margin-bottom: 10px;
+        }
 
-            h1 {
-                margin: 0 0 8px;
-                font-size: 27px;
-            }
+        h1 {
+            margin: 0 0 8px;
+            font-size: 27px;
+        }
 
-            .numero {
-                color: #f58220;
-                font-weight: 900;
-                margin-bottom: 25px;
-            }
+        .numero {
+            color: #f58220;
+            font-weight: 900;
+            margin-bottom: 25px;
+        }
 
+        .linha {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .linha.total {
+            border-bottom: 0;
+            font-size: 20px;
+            font-weight: 900;
+            padding-top: 16px;
+        }
+
+        .itens {
+            margin-top: 24px;
+        }
+
+        .itens h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .acoes {
+            margin-top: 25px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            min-height: 44px;
+            padding: 0 18px;
+            border-radius: 9px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .btn-whatsapp {
+            background: #25D366;
+            color: #fff;
+        }
+
+        .btn-principal {
+            background: #f58220;
+            color: #fff;
+        }
+
+        .btn-secundario {
+            border: 1px solid #f58220;
+            color: #e96e00;
+            background: #fff;
+        }
+
+        .aviso-whatsapp {
+            margin-top: 20px;
+            padding: 14px;
+            border-radius: 9px;
+            background: #f4fff7;
+            border: 1px solid #ccefd5;
+            color: #286238;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px 15px;
+            color: #777;
+            font-size: 12px;
+        }
+
+        footer strong {
+            color: #f58220;
+        }
+
+        @@media (max-width: 550px) {
             .linha {
-                display: flex;
-                justify-content: space-between;
-                gap: 20px;
-                padding: 10px 0;
-                border-bottom: 1px solid #eee;
+                flex-direction: column;
+                gap: 4px;
             }
-
-                .linha.total {
-                    border-bottom: 0;
-                    font-size: 20px;
-                    font-weight: 900;
-                    padding-top: 16px;
-                }
-
-            .itens {
-                margin-top: 24px;
-            }
-
-                .itens h2 {
-                    font-size: 18px;
-                    margin-bottom: 10px;
-                }
 
             .acoes {
-                margin-top: 25px;
-                display: flex;
-                gap: 10px;
-                flex-wrap: wrap;
+                flex-direction: column;
             }
 
             .btn {
-                min-height: 44px;
-                padding: 0 18px;
-                border-radius: 9px;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                text-decoration: none;
-                font-weight: 700;
+                width: 100%;
             }
-
-            .btn-whatsapp {
-                background: #25D366;
-                color: #fff;
-            }
-
-            .btn-principal {
-                background: #f58220;
-                color: #fff;
-            }
-
-            .btn-secundario {
-                border: 1px solid #f58220;
-                color: #e96e00;
-                background: #fff;
-            }
-
-            .aviso-whatsapp {
-                margin-top: 20px;
-                padding: 14px;
-                border-radius: 9px;
-                background: #f4fff7;
-                border: 1px solid #ccefd5;
-                color: #286238;
-                font-size: 14px;
-                line-height: 1.5;
-            }
-
-            footer {
-                text-align: center;
-                padding: 25px 15px;
-                color: #777;
-                font-size: 12px;
-            }
-
-                footer strong {
-                    color: #f58220;
-                }
-
-            @@media (max-width: 550px) {
-                .linha {
-                    flex-direction: column;
-                    gap: 4px;
-                }
-
-                .acoes {
-                    flex-direction: column;
-                }
-
-                .btn {
-                    width: 100%;
-                }
-            }
+        }
     </style>
 </head>
 
@@ -197,6 +197,7 @@
 
     <header class="topo">
         <div class="marca">
+
             <img src="@logoEstabelecimento"
                  alt="@nomeEstabelecimento" />
 
@@ -204,6 +205,7 @@
                 <strong>@nomeEstabelecimento</strong>
                 <span>Sistema de Pedidos</span>
             </div>
+
         </div>
     </header>
 
@@ -221,7 +223,7 @@
 
             <div class="linha">
                 <span>Status</span>
-                <strong>Novo</strong>
+                <strong>@Model.Status</strong>
             </div>
 
             <div class="linha">
@@ -240,11 +242,13 @@
             </div>
 
             <div class="itens">
+
                 <h2>Itens do pedido</h2>
 
                 @foreach (var item in Model.Itens)
                 {
                     <div class="linha">
+
                         <span>
                             @item.Quantidade x @item.NomeProduto
                         </span>
@@ -252,15 +256,19 @@
                         <strong>
                             @item.Subtotal.ToString("C2")
                         </strong>
+
                     </div>
                 }
+
             </div>
 
             @if (!string.IsNullOrWhiteSpace(linkWhatsApp))
             {
                 <div class="aviso-whatsapp">
+
                     Seu pedido já foi registrado no sistema.
                     Clique abaixo para enviá-lo também pelo WhatsApp do estabelecimento.
+
                 </div>
             }
 
@@ -272,20 +280,26 @@
                        target="_blank"
                        rel="noopener noreferrer"
                        class="btn btn-whatsapp">
+
                         Enviar pedido pelo WhatsApp
+
                     </a>
                 }
 
                 <a asp-controller="Cliente"
                    asp-action="Produtos"
                    class="btn btn-principal">
+
                     Fazer novo pedido
+
                 </a>
 
                 <a asp-controller="Home"
                    asp-action="Index"
                    class="btn btn-secundario">
+
                     Início
+
                 </a>
 
             </div>

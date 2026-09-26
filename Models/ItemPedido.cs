@@ -7,16 +7,42 @@ namespace WlcSistemaPedidos.Models
     {
         public int Id { get; set; }
 
-        // Pedido
+        // ==========================================
+        // PEDIDO
+        // ==========================================
+
         public int PedidoId { get; set; }
+
         public Pedido Pedido { get; set; } = null!;
 
-        // Produto
-        public int ProdutoId { get; set; }
-        public Produto Produto { get; set; } = null!;
+        // ==========================================
+        // PRODUTO
+        // ==========================================
+        // O vínculo com Produto é opcional.
+        //
+        // Isso permite que o administrador exclua um
+        // produto do cadastro sem apagar ou prejudicar
+        // os pedidos antigos.
+        //
+        // Se o produto for excluído, ProdutoId ficará
+        // nulo, mas NomeProduto, PrecoUnitario,
+        // Quantidade e Subtotal continuarão registrados.
+        // ==========================================
 
-        // Guardamos o nome e o preço no momento da compra.
-        // Assim, alterações futuras no produto não modificam pedidos antigos.
+        public int? ProdutoId { get; set; }
+
+        public Produto? Produto { get; set; }
+
+        // ==========================================
+        // DADOS HISTÓRICOS DO PRODUTO
+        // ==========================================
+        // Guardamos o nome e o preço existentes no
+        // momento da compra.
+        //
+        // Alterações ou exclusões futuras do produto
+        // não modificam o pedido antigo.
+        // ==========================================
+
         [Required]
         [StringLength(150)]
         public string NomeProduto { get; set; } = string.Empty;

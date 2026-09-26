@@ -144,6 +144,7 @@ namespace WlcSistemaPedidos.Controllers
             }
 
             mensagem.AppendLine();
+
             mensagem.AppendLine(
                 $"Subtotal: {pedido.Subtotal.ToString("C2", cultura)}");
 
@@ -173,6 +174,7 @@ namespace WlcSistemaPedidos.Controllers
                     pedido.Observacao))
             {
                 mensagem.AppendLine();
+
                 mensagem.AppendLine(
                     $"Observação: {pedido.Observacao}");
             }
@@ -296,6 +298,58 @@ namespace WlcSistemaPedidos.Controllers
             return RedirectToAction(
                 "Produtos",
                 "Cliente");
+        }
+
+        // Permite informar diretamente a quantidade desejada.
+        // Ex.: 10, 50, 100, 200 etc.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AlterarQuantidade(
+            int produtoId,
+            int quantidade)
+        {
+            var cliente = await ObterClienteLogado();
+
+            if (cliente == null || !cliente.Ativo)
+            {
+                return RedirectToAction(
+                    "AcessoNegado",
+                    "Conta");
+            }
+
+            if (!cliente.PermitirNovosPedidos)
+            {
+                TempData["Erro"] =
+                    "Novos pedidos estão bloqueados para este cliente.";
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            var carrinho = ObterCarrinho();
+
+            var item = carrinho.FirstOrDefault(i =>
+                i.ProdutoId == produtoId);
+
+            if (item == null)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (quantidade < 1)
+            {
+                quantidade = 1;
+            }
+
+            if (quantidade > 9999)
+            {
+                quantidade = 9999;
+            }
+
+            item.Quantidade = quantidade;
+
+            SalvarCarrinho(carrinho);
+
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
@@ -570,14 +624,17 @@ namespace WlcSistemaPedidos.Controllers
                 EnderecoEntrega = model.EnderecoEntrega.Trim(),
                 BairroEntrega = model.BairroEntrega.Trim(),
                 NumeroEntrega = model.NumeroEntrega.Trim(),
+
                 ComplementoEntrega =
                     string.IsNullOrWhiteSpace(model.ComplementoEntrega)
                         ? null
                         : model.ComplementoEntrega.Trim(),
+
                 Observacao =
                     string.IsNullOrWhiteSpace(model.Observacao)
                         ? null
                         : model.Observacao.Trim(),
+
                 Subtotal = subtotal,
                 TaxaEntrega = taxaEntrega,
                 Desconto = 0m,

@@ -3,7 +3,7 @@
 
 @{
     ViewData["Title"] = "Produtos";
-    Layout = null;
+    Layout = "_AdminLayout";
 
     var categorias =
         ViewBag.Categorias as IEnumerable<Categoria>
@@ -14,109 +14,11 @@
     int totalProdutos = ViewBag.TotalProdutos ?? 0;
     int? categoriaSelecionada = ViewBag.CategoriaId;
     string busca = ViewBag.Busca as string ?? "";
-
-    string nomeEstabelecimento =
-        ViewBag.NomeEstabelecimento
-        ?? "Sistema de Pedidos";
-
-    string logoEstabelecimento =
-        ViewBag.LogoEstabelecimento
-        ?? "/images/logo-wlc.png";
 }
 
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0" />
-
-    <title>Produtos - Sistema de Pedidos</title>
-
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            min-height: 100vh;
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f6f7f9;
-            color: #262626;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .topo {
-            background: #ffffff;
-            border-bottom: 1px solid #e8e8e8;
-            min-height: 72px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 5%;
-        }
-
-        .marca {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .logo-wlc {
-            width: 95px;
-            height: 48px;
-            object-fit: contain;
-        }
-
-        .nome-sistema {
-            border-left: 1px solid #dddddd;
-            padding-left: 14px;
-        }
-
-        .nome-sistema strong {
-            display: block;
-            font-size: 15px;
-        }
-
-        .nome-sistema span {
-            font-size: 12px;
-            color: #888888;
-        }
-
-        .menu {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-        }
-
-        .menu a,
-        .btn-sair {
-            border: none;
-            background: transparent;
-            color: #444444;
-            text-decoration: none;
-            padding: 10px 13px;
-            border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
-            font-family: inherit;
-        }
-
-        .menu a:hover,
-        .btn-sair:hover {
-            background: #fff3e6;
-            color: #f57c00;
-        }
-
-        .menu .ativo {
-            background: #f57c00;
-            color: #ffffff;
-        }
-
-        .conteudo {
+@section Styles {
+<style>
+.produtos-conteudo {
             width: 90%;
             max-width: 1250px;
             margin: 0 auto;
@@ -375,130 +277,21 @@
             color: #ffffff;
         }
 
-        .rodape {
-            background: #ffffff;
-            border-top: 1px solid #e8e8e8;
-            text-align: center;
-            padding: 18px;
-            color: #777777;
-            font-size: 12px;
-        }
-
-        .rodape strong {
-            color: #f57c00;
-        }
-
+        
         @@media (max-width: 850px) {
-            .topo {
-                flex-direction: column;
-                gap: 10px;
-                padding: 12px 4%;
-            }
-
-            .menu {
-                width: 100%;
-                justify-content: center;
-                flex-wrap: wrap;
-            }
-
-            .filtros form {
-                grid-template-columns: 1fr 1fr;
-            }
+            .filtros form { grid-template-columns: 1fr 1fr; }
         }
-
         @@media (max-width: 550px) {
-            .conteudo {
-                width: 92%;
-            }
-
-            .cabecalho {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-
-            .filtros form {
-                grid-template-columns: 1fr;
-            }
-
-            .marca {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .nome-sistema {
-                display: none;
-            }
-
-            .menu {
-                gap: 2px;
-            }
-
-            .menu a,
-            .btn-sair {
-                padding: 8px;
-                font-size: 13px;
-            }
+            .produtos-conteudo { width: 92%; }
+            .cabecalho { align-items: flex-start; flex-direction: column; }
+            .filtros form { grid-template-columns: 1fr; }
         }
-    </style>
-</head>
 
-<body>
+</style>
+}
 
-    <header class="topo">
-
-        <div class="marca">
-
-            <img src="@logoEstabelecimento"
-                 alt="@nomeEstabelecimento"
-                 class="logo-wlc" />
-
-            <div class="nome-sistema">
-                <strong>@nomeEstabelecimento</strong>
-                <span>Painel Administrativo</span>
-            </div>
-
-        </div>
-
-        <nav class="menu">
-
-            <a asp-controller="Admin"
-               asp-action="Index">
-                Início
-            </a>
-
-            <a asp-controller="Produtos"
-               asp-action="Index"
-               class="ativo">
-                Produtos
-            </a>
-
-            <a href="#">NF</a>
-
-            <a asp-controller="Configuracoes"
-               asp-action="Index">
-                Configurações
-            </a>
-
-            <form asp-controller="Conta"
-                  asp-action="Sair"
-                  method="post">
-
-                @Html.AntiForgeryToken()
-
-                <button type="submit"
-                        class="btn-sair">
-                    Sair
-                </button>
-
-            </form>
-
-        </nav>
-
-    </header>
-
-    <main class="conteudo">
-
-        <div class="cabecalho">
+<div class="produtos-conteudo">
+<div class="cabecalho">
 
             <div>
                 <h1>Produtos</h1>
@@ -772,12 +565,4 @@
 
             </div>
         }
-
-    </main>
-
-    <footer class="rodape">
-        Desenvolvido por <strong>WLC Sistemas</strong>
-    </footer>
-
-</body>
-</html>
+</div>

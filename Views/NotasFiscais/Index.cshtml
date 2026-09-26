@@ -2,14 +2,8 @@
 @model IEnumerable<NotaFiscal>
 
 @{
-    Layout = null;
+    Layout = "_AdminLayout";
     ViewData["Title"] = "Notas Fiscais";
-
-    string nomeEstabelecimento =
-        ViewBag.NomeEstabelecimento ?? "Sistema de Pedidos";
-
-    string logoEstabelecimento =
-        ViewBag.LogoEstabelecimento ?? "/images/logo-wlc.png";
 
     int paginaAtual = ViewBag.PaginaAtual ?? 1;
     int totalPaginas = ViewBag.TotalPaginas ?? 0;
@@ -19,102 +13,9 @@
         ViewBag.StatusSelecionado as StatusNotaFiscal?;
 }
 
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="utf-8" />
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0" />
-
-    <title>Notas Fiscais - @nomeEstabelecimento</title>
-
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f5f5f5;
-            color: #292929;
-        }
-
-        .topo {
-            background: #fff;
-            border-bottom: 3px solid #f58220;
-        }
-
-        .topo-conteudo {
-            max-width: 1200px;
-            margin: auto;
-            padding: 10px 20px;
-            min-height: 78px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-        }
-
-        .marca {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-decoration: none;
-            color: #222;
-        }
-
-        .marca img {
-            width: 58px;
-            height: 58px;
-            object-fit: contain;
-        }
-
-        .marca strong {
-            display: block;
-            font-size: 17px;
-        }
-
-        .marca span {
-            display: block;
-            color: #777;
-            font-size: 12px;
-            margin-top: 3px;
-        }
-
-        .menu {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .menu a,
-        .btn-sair {
-            padding: 10px 13px;
-            border-radius: 8px;
-            text-decoration: none;
-            color: #333;
-            font-weight: 700;
-            font-size: 14px;
-            border: 0;
-            background: transparent;
-            cursor: pointer;
-            font-family: inherit;
-        }
-
-        .menu a:hover,
-        .menu .ativo,
-        .btn-sair:hover {
-            background: #f58220;
-            color: #fff;
-        }
-
-        .menu form {
-            margin: 0;
-        }
-
-        .container {
+@section Styles {
+<style>
+.notas-container {
             max-width: 1200px;
             margin: auto;
             padding: 28px 20px 45px;
@@ -259,116 +160,19 @@
             border-color: #f58220;
         }
 
-        footer {
-            background: #fff;
-            border-top: 1px solid #e5e5e5;
-            padding: 22px;
-            text-align: center;
-            color: #777;
-            font-size: 12px;
-        }
-
-        footer strong {
-            color: #f58220;
-        }
-
+        
         @@media(max-width:700px) {
-            .topo-conteudo,
             .cabecalho {
                 flex-direction: column;
                 align-items: stretch;
             }
-
-            .menu {
-                justify-content: center;
-            }
         }
-    </style>
-</head>
 
-<body>
+</style>
+}
 
-<header class="topo">
-
-    <div class="topo-conteudo">
-
-        <a asp-controller="Admin"
-           asp-action="Index"
-           class="marca">
-
-            <img src="@logoEstabelecimento"
-                 alt="@nomeEstabelecimento" />
-
-            <div>
-                <strong>@nomeEstabelecimento</strong>
-                <span>Painel Administrativo</span>
-            </div>
-
-        </a>
-
-        <nav class="menu">
-
-            <a asp-controller="Admin"
-               asp-action="Index">
-                Início
-            </a>
-
-            <a asp-controller="Pedidos"
-               asp-action="Index">
-                Pedidos
-            </a>
-
-            <a asp-controller="Pedidos"
-               asp-action="Historico">
-                Histórico
-            </a>
-
-            <a asp-controller="Produtos"
-               asp-action="Index">
-                Produtos
-            </a>
-
-            <a asp-controller="Clientes"
-               asp-action="Index">
-                Clientes
-            </a>
-
-            <a asp-controller="Lembretes"
-               asp-action="Index">
-                Lembretes
-            </a>
-
-            <a asp-controller="NotasFiscais"
-               asp-action="Index"
-               class="ativo">
-                NF
-            </a>
-
-            <a asp-controller="Configuracoes"
-               asp-action="Index">
-                Configurações
-            </a>
-
-            <form asp-controller="Conta"
-                  asp-action="Sair"
-                  method="post">
-                @Html.AntiForgeryToken()
-
-                <button type="submit"
-                        class="btn-sair">
-                    Sair
-                </button>
-            </form>
-
-        </nav>
-
-    </div>
-
-</header>
-
-<main class="container">
-
-    <div class="cabecalho">
+<div class="notas-container">
+<div class="cabecalho">
 
         <div>
             <h1>Notas Fiscais</h1>
@@ -566,12 +370,4 @@
             Nenhuma nota fiscal preparada até o momento.
         </div>
     }
-
-</main>
-
-<footer>
-    Desenvolvido por <strong>WLC Sistemas</strong>
-</footer>
-
-</body>
-</html>
+</div>
