@@ -51,23 +51,5 @@ namespace WlcSistemaPedidos.ViewModels
         public bool Ativo { get; set; } = true;
 
         public bool PermitirNovosPedidos { get; set; } = true;
-
-        // =========================================================
-        // ACESSO AO SISTEMA
-        // =========================================================
-
-        public bool CriarAcesso { get; set; } = true;
-
-        [StringLength(50)]
-        public string? Login { get; set; }
-
-        [DataType(DataType.Password)]
-        public string? Senha { get; set; }
-
-        [DataType(DataType.Password)]
-        [Compare(
-            nameof(Senha),
-            ErrorMessage = "A confirmação da senha não confere.")]
-        public string? ConfirmarSenha { get; set; }
     }
 }

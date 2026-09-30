@@ -1,0 +1,1036 @@
+﻿@using WlcSistemaPedidos.Models
+@model IEnumerable<GastoCaixa>
+
+@{
+    ViewData["Title"] = "Caixa";
+    Layout = "_AdminLayout";
+
+    string periodo =
+        ViewBag.Periodo as string ?? "hoje";
+
+    decimal recebimentos =
+        ViewBag.Recebimentos ?? 0m;
+
+    decimal faturamentoRegistrado =
+        ViewBag.FaturamentoRegistrado ?? 0m;
+
+    int clientesComSaldoDevedor =
+        ViewBag.ClientesComSaldoDevedor ?? 0;
+
+    decimal totalAReceber =
+        ViewBag.TotalAReceber ?? 0m;
+
+    decimal totalGastos =
+        ViewBag.TotalGastos ?? 0m;
+
+    decimal lucro =
+        ViewBag.Lucro ?? 0m;
+
+    int paginaAtual =
+        ViewBag.PaginaAtual ?? 1;
+
+    int totalPaginas =
+        ViewBag.TotalPaginas ?? 0;
+
+    int totalRegistros =
+        ViewBag.TotalRegistros ?? 0;
+
+    var categorias =
+        ViewBag.CategoriasGastos
+            as IEnumerable<CategoriaGasto>
+        ?? Enumerable.Empty<CategoriaGasto>();
+
+    var cultura =
+        new System.Globalization.CultureInfo("pt-BR");
+}
+
+@section Styles {
+
+    <style>
+
+        .caixa-conteudo {
+            width: 90%;
+            max-width: 1250px;
+            margin: 0 auto;
+            padding: 35px 0;
+        }
+
+        .cabecalho {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .cabecalho h1 {
+            font-size: 27px;
+            margin: 0 0 6px 0;
+        }
+
+        .cabecalho p {
+            color: #777777;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .btn-imprimir {
+            border: none;
+            background: #333333;
+            color: #ffffff;
+            padding: 12px 18px;
+            border-radius: 9px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .mensagem {
+            padding: 13px 15px;
+            border-radius: 9px;
+            margin-bottom: 18px;
+            font-size: 14px;
+        }
+
+        .mensagem-sucesso {
+            background: #eaf8ef;
+            border: 1px solid #b7e4c7;
+            color: #207a3c;
+        }
+
+        .mensagem-erro {
+            background: #fff0f0;
+            border: 1px solid #f1b8b8;
+            color: #b42318;
+        }
+
+        /* ==========================================
+           PERÍODOS
+           ========================================== */
+
+        .periodos {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .periodo {
+            text-decoration: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            border: 1px solid #dddddd;
+            background: #ffffff;
+            color: #555555;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .periodo:hover {
+            border-color: #f57c00;
+            color: #f57c00;
+        }
+
+        .periodo-ativo {
+            background: #f57c00;
+            border-color: #f57c00;
+            color: #ffffff;
+        }
+
+        .periodo-ativo:hover {
+            color: #ffffff;
+        }
+
+        /* ==========================================
+           RESUMO FINANCEIRO
+           ========================================== */
+
+        .resumo-financeiro {
+            margin-bottom: 28px;
+        }
+
+        .resumo-bloco {
+            margin-bottom: 20px;
+        }
+
+        .resumo-bloco:last-child {
+            margin-bottom: 0;
+        }
+
+        .resumo-titulo {
+            font-size: 14px;
+            font-weight: bold;
+            color: #555555;
+            margin: 0 0 10px 2px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 15px;
+        }
+
+        .card-resumo {
+            background: #ffffff;
+            border: 1px solid #eeeeee;
+            border-radius: 13px;
+            padding: 20px;
+            min-width: 0;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+        }
+
+        .card-resumo span {
+            display: block;
+            color: #777777;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .card-resumo strong {
+            display: block;
+            font-size: 25px;
+        }
+
+        .card-resumo small {
+            display: block;
+            color: #999999;
+            font-size: 11px;
+            line-height: 1.4;
+            margin-top: 8px;
+        }
+
+        .valor-registrado {
+            color: #207a3c;
+        }
+
+        .valor-clientes {
+            color: #b42318;
+        }
+
+        .valor-a-receber {
+            color: #b42318;
+        }
+
+        .valor-recebido {
+            color: #207a3c;
+        }
+
+        .valor-gasto {
+            color: #b42318;
+        }
+
+        .valor-lucro {
+            color: #f57c00;
+        }
+
+        /* ==========================================
+           CATEGORIAS
+           ========================================== */
+
+        .categorias-box {
+            background: #ffffff;
+            border: 1px solid #eeeeee;
+            border-radius: 13px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .categorias-topo {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .categorias-topo h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .categorias-topo span {
+            color: #888888;
+            font-size: 12px;
+        }
+
+        .form-categoria {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .campo-categoria {
+            flex: 1;
+            height: 42px;
+            border: 1px solid #dddddd;
+            border-radius: 8px;
+            padding: 0 12px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .campo-categoria:focus {
+            border-color: #f57c00;
+            box-shadow: 0 0 0 3px rgba(245, 124, 0, .10);
+        }
+
+        .btn-adicionar-categoria {
+            height: 42px;
+            border: none;
+            border-radius: 8px;
+            background: #333333;
+            color: #ffffff;
+            padding: 0 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .lista-categorias {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .categoria-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: #f8f8f8;
+            border: 1px solid #e5e5e5;
+            border-radius: 20px;
+            padding: 7px 8px 7px 12px;
+            font-size: 13px;
+        }
+
+        .form-excluir-categoria {
+            margin: 0;
+        }
+
+        .btn-excluir-categoria {
+            width: 24px;
+            height: 24px;
+            border: none;
+            border-radius: 50%;
+            background: #ffffff;
+            color: #b42318;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .btn-excluir-categoria:hover {
+            background: #fff0f0;
+        }
+
+        .sem-categoria {
+            color: #777777;
+            font-size: 13px;
+            padding: 5px 0;
+        }
+
+        /* ==========================================
+           NOVO GASTO
+           ========================================== */
+
+        .novo-gasto {
+            background: #ffffff;
+            border: 1px solid #eeeeee;
+            border-radius: 13px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .novo-gasto h2 {
+            font-size: 18px;
+            margin: 0 0 17px 0;
+        }
+
+        .form-gasto {
+            display: grid;
+            grid-template-columns: 220px 1fr 180px auto;
+            gap: 10px;
+        }
+
+        .campo {
+            width: 100%;
+            height: 44px;
+            border: 1px solid #dddddd;
+            border-radius: 8px;
+            padding: 0 12px;
+            font-size: 14px;
+            outline: none;
+            background: #ffffff;
+        }
+
+        .campo:focus {
+            border-color: #f57c00;
+            box-shadow: 0 0 0 3px rgba(245, 124, 0, .10);
+        }
+
+        .btn-registrar {
+            height: 44px;
+            border: none;
+            border-radius: 8px;
+            background: #f57c00;
+            color: #ffffff;
+            padding: 0 20px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-registrar:hover {
+            background: #e66f00;
+        }
+
+        /* ==========================================
+           TABELA
+           ========================================== */
+
+        .titulo-lista {
+            margin: 0 0 12px 0;
+            font-size: 18px;
+        }
+
+        .resumo-registros {
+            margin-bottom: 12px;
+            color: #777777;
+            font-size: 13px;
+        }
+
+        .tabela-container {
+            background: #ffffff;
+            border: 1px solid #eeeeee;
+            border-radius: 13px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 750px;
+        }
+
+        th {
+            background: #fafafa;
+            color: #666666;
+            font-size: 12px;
+            text-align: left;
+            padding: 14px;
+            border-bottom: 1px solid #eeeeee;
+        }
+
+        td {
+            padding: 13px 14px;
+            border-bottom: 1px solid #eeeeee;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .gasto-valor {
+            color: #b42318;
+            font-weight: bold;
+        }
+
+        .btn-excluir {
+            border: 1px solid #f1b8b8;
+            background: #ffffff;
+            color: #b42318;
+            padding: 7px 10px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .vazio {
+            text-align: center;
+            padding: 45px 20px;
+            color: #777777;
+        }
+
+        /* ==========================================
+           PAGINAÇÃO
+           ========================================== */
+
+        .paginacao {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            margin-top: 22px;
+            flex-wrap: wrap;
+        }
+
+        .pagina {
+            min-width: 38px;
+            height: 38px;
+            padding: 0 10px;
+            border: 1px solid #dddddd;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #555555;
+            text-decoration: none;
+            background: #ffffff;
+            font-size: 13px;
+        }
+
+        .pagina:hover {
+            border-color: #f57c00;
+            color: #f57c00;
+        }
+
+        .pagina-atual {
+            background: #f57c00;
+            border-color: #f57c00;
+            color: #ffffff;
+        }
+
+        /* ==========================================
+           RESPONSIVO
+           ========================================== */
+
+        @@media (max-width: 900px) {
+
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
+            .form-gasto {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @@media (max-width: 550px) {
+
+            .caixa-conteudo {
+                width: 92%;
+            }
+
+            .cabecalho {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .form-categoria {
+                flex-direction: column;
+            }
+
+            .btn-adicionar-categoria {
+                width: 100%;
+            }
+        }
+
+        /* ==========================================
+           IMPRESSÃO
+           ========================================== */
+
+        @@media print {
+
+            .admin-topo,
+            .btn-imprimir,
+            .novo-gasto,
+            .categorias-box,
+            .periodos,
+            .btn-excluir,
+            .paginacao,
+            .admin-rodape {
+                display: none !important;
+            }
+
+            .caixa-conteudo {
+                width: 100%;
+                max-width: none;
+                padding: 0;
+            }
+
+            body {
+                background: #ffffff;
+            }
+
+            .cards {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+    </style>
+}
+
+<div class="caixa-conteudo">
+
+    @if (TempData["SucessoCaixa"] != null)
+    {
+        <div class="mensagem mensagem-sucesso">
+            @TempData["SucessoCaixa"]
+        </div>
+    }
+
+    @if (TempData["ErroCaixa"] != null)
+    {
+        <div class="mensagem mensagem-erro">
+            @TempData["ErroCaixa"]
+        </div>
+    }
+
+    <div class="cabecalho">
+
+        <div>
+
+            <h1>
+                Caixa
+            </h1>
+
+            <p>
+                Controle de recebimentos, valores pendentes, gastos e lucro do estabelecimento.
+            </p>
+
+        </div>
+
+        <button type="button"
+                class="btn-imprimir"
+                onclick="window.print()">
+            🖨 Imprimir
+        </button>
+
+    </div>
+
+    <div class="periodos">
+
+        <a asp-controller="Caixa"
+           asp-action="Index"
+           asp-route-periodo="hoje"
+           class="periodo @(periodo == "hoje" ? "periodo-ativo" : "")">
+            Hoje
+        </a>
+
+        <a asp-controller="Caixa"
+           asp-action="Index"
+           asp-route-periodo="semana"
+           class="periodo @(periodo == "semana" ? "periodo-ativo" : "")">
+            Semana
+        </a>
+
+        <a asp-controller="Caixa"
+           asp-action="Index"
+           asp-route-periodo="mes"
+           class="periodo @(periodo == "mes" ? "periodo-ativo" : "")">
+            Mês
+        </a>
+
+    </div>
+
+    <!-- ==========================================
+         RESUMO FINANCEIRO
+         ========================================== -->
+
+    <section class="resumo-financeiro">
+
+        <!-- VISÃO GERAL -->
+
+        <div class="resumo-bloco">
+
+            <div class="resumo-titulo">
+                Visão geral
+            </div>
+
+            <div class="cards">
+
+                <div class="card-resumo">
+
+                    <span>
+                        Recebimentos registrados
+                    </span>
+
+                    <strong class="valor-registrado">
+                        @faturamentoRegistrado.ToString("C2", cultura)
+                    </strong>
+
+                    <small>
+                        Total de pagamentos registrados no financeiro
+                    </small>
+
+                </div>
+
+                <div class="card-resumo">
+
+                    <span>
+                        Clientes com saldo devedor
+                    </span>
+
+                    <strong class="valor-clientes">
+                        @clientesComSaldoDevedor
+                    </strong>
+
+                    <small>
+                        Clientes que possuem valores pendentes
+                    </small>
+
+                </div>
+
+                <div class="card-resumo">
+
+                    <span>
+                        Total a receber
+                    </span>
+
+                    <strong class="valor-a-receber">
+                        @totalAReceber.ToString("C2", cultura)
+                    </strong>
+
+                    <small>
+                        Saldo devedor atual dos clientes
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- MOVIMENTO DO PERÍODO -->
+
+        <div class="resumo-bloco">
+
+            <div class="resumo-titulo">
+                Movimento do período
+            </div>
+
+            <div class="cards">
+
+                <div class="card-resumo">
+
+                    <span>
+                        Recebimentos do período
+                    </span>
+
+                    <strong class="valor-recebido">
+                        @recebimentos.ToString("C2", cultura)
+                    </strong>
+
+                    <small>
+                        Conforme o período selecionado
+                    </small>
+
+                </div>
+
+                <div class="card-resumo">
+
+                    <span>
+                        Gastos do período
+                    </span>
+
+                    <strong class="valor-gasto">
+                        @totalGastos.ToString("C2", cultura)
+                    </strong>
+
+                    <small>
+                        Conforme o período selecionado
+                    </small>
+
+                </div>
+
+                <div class="card-resumo">
+
+                    <span>
+                        Lucro do período
+                    </span>
+
+                    <strong class="valor-lucro">
+                        @lucro.ToString("C2", cultura)
+                    </strong>
+
+                    <small>
+                        Recebimentos menos gastos
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- ==========================================
+         CATEGORIAS DE GASTOS
+         ========================================== -->
+
+    <div class="categorias-box">
+
+        <div class="categorias-topo">
+
+            <h2>
+                Categorias de gastos
+            </h2>
+
+            <span>
+                Adicione somente as categorias que você utiliza.
+            </span>
+
+        </div>
+
+        <form asp-controller="Caixa"
+              asp-action="AdicionarCategoria"
+              method="post"
+              class="form-categoria">
+
+            @Html.AntiForgeryToken()
+
+            <input type="text"
+                   name="nome"
+                   class="campo-categoria"
+                   maxlength="100"
+                   placeholder="Ex.: Ingredientes, Energia, Funcionários..."
+                   required />
+
+            <button type="submit"
+                    class="btn-adicionar-categoria">
+                + Adicionar categoria
+            </button>
+
+        </form>
+
+        @if (categorias.Any())
+        {
+            <div class="lista-categorias">
+
+                @foreach (var categoria in categorias)
+                {
+                    <div class="categoria-item">
+
+                        <span>
+                            @categoria.Nome
+                        </span>
+
+                        <form asp-controller="Caixa"
+                              asp-action="ExcluirCategoria"
+                              asp-route-id="@categoria.Id"
+                              method="post"
+                              class="form-excluir-categoria"
+                              onsubmit="return confirm('Deseja excluir a categoria @categoria.Nome?');">
+
+                            @Html.AntiForgeryToken()
+
+                            <button type="submit"
+                                    class="btn-excluir-categoria"
+                                    title="Excluir categoria">
+                                ×
+                            </button>
+
+                        </form>
+
+                    </div>
+                }
+
+            </div>
+        }
+        else
+        {
+            <div class="sem-categoria">
+                Nenhuma categoria cadastrada. Adicione uma categoria para registrar gastos.
+            </div>
+        }
+
+    </div>
+
+    <!-- ==========================================
+         REGISTRAR GASTO
+         ========================================== -->
+
+    <div class="novo-gasto">
+
+        <h2>
+            Registrar gasto
+        </h2>
+
+        <form asp-controller="Caixa"
+              asp-action="RegistrarGasto"
+              method="post"
+              class="form-gasto">
+
+            @Html.AntiForgeryToken()
+
+            <select name="categoria"
+                    class="campo"
+                    required>
+
+                <option value="">
+                    Selecione a categoria
+                </option>
+
+                @foreach (var categoria in categorias)
+                {
+                    <option value="@categoria.Nome">
+                        @categoria.Nome
+                    </option>
+                }
+
+            </select>
+
+            <input type="text"
+                   name="descricao"
+                   class="campo"
+                   maxlength="250"
+                   placeholder="Descrição do gasto"
+                   required />
+
+            <input type="number"
+                   name="valor"
+                   class="campo"
+                   min="0.01"
+                   step="0.01"
+                   placeholder="Valor R$"
+                   required />
+
+            <button type="submit"
+                    class="btn-registrar"
+                    disabled="@(!categorias.Any())">
+                Registrar
+            </button>
+
+        </form>
+
+    </div>
+
+    <!-- ==========================================
+         HISTÓRICO DE GASTOS
+         ========================================== -->
+
+    <h2 class="titulo-lista">
+        Gastos do período
+    </h2>
+
+    <div class="resumo-registros">
+        @totalRegistros gasto(s) encontrado(s)
+    </div>
+
+    <div class="tabela-container">
+
+        @if (Model.Any())
+        {
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Data</th>
+                        <th>Categoria</th>
+                        <th>Descrição</th>
+                        <th>Valor</th>
+                        <th>Ação</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @foreach (var gasto in Model)
+                    {
+                        <tr>
+
+                            <td>
+                                @(gasto.DataGasto.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))
+                            </td>
+
+                            <td>
+                                @gasto.Categoria
+                            </td>
+
+                            <td>
+                                @gasto.Descricao
+                            </td>
+
+                            <td class="gasto-valor">
+                                @gasto.Valor.ToString(
+                                    "C2",
+                                    cultura)
+                            </td>
+
+                            <td>
+
+                                <form asp-controller="Caixa"
+                                      asp-action="Excluir"
+                                      asp-route-id="@gasto.Id"
+                                      method="post"
+                                      onsubmit="return confirm('Deseja excluir este gasto?');">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <button type="submit"
+                                            class="btn-excluir">
+                                        Excluir
+                                    </button>
+
+                                </form>
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+        }
+        else
+        {
+            <div class="vazio">
+                Nenhum gasto registrado neste período.
+            </div>
+        }
+
+    </div>
+
+    <!-- ==========================================
+         PAGINAÇÃO
+         ========================================== -->
+
+    @if (totalPaginas > 1)
+    {
+        <div class="paginacao">
+
+            @if (paginaAtual > 1)
+            {
+                <a asp-controller="Caixa"
+                   asp-action="Index"
+                   asp-route-periodo="@periodo"
+                   asp-route-pagina="@(paginaAtual - 1)"
+                   class="pagina">
+                    ‹
+                </a>
+            }
+
+            @for (int i = 1; i <= totalPaginas; i++)
+            {
+                <a asp-controller="Caixa"
+                   asp-action="Index"
+                   asp-route-periodo="@periodo"
+                   asp-route-pagina="@i"
+                   class="pagina @(i == paginaAtual ? "pagina-atual" : "")">
+                    @i
+                </a>
+            }
+
+            @if (paginaAtual < totalPaginas)
+            {
+                <a asp-controller="Caixa"
+                   asp-action="Index"
+                   asp-route-periodo="@periodo"
+                   asp-route-pagina="@(paginaAtual + 1)"
+                   class="pagina">
+                    ›
+                </a>
+            }
+
+        </div>
+    }
+
+</div>

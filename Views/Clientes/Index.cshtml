@@ -61,6 +61,41 @@
             color: #ffffff;
         }
 
+        .cabecalho-acoes {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-link-cliente {
+            border: 1px solid #b9dcff;
+            background: #eef7ff;
+            color: #1769aa;
+            padding: 12px 18px;
+            border-radius: 9px;
+            font-size: 14px;
+            font-weight: bold;
+            white-space: nowrap;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .btn-link-cliente:hover {
+            background: #1769aa;
+            border-color: #1769aa;
+            color: #ffffff;
+        }
+
+        .link-copiado {
+            display: none;
+            width: 100%;
+            color: #207a3c;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: right;
+        }
+
         /* =========================
            MENSAGENS
            ========================= */
@@ -169,7 +204,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1150px;
+            min-width: 1200px;
         }
 
         th {
@@ -284,6 +319,19 @@
             color: #ffffff;
         }
 
+        .acao-acesso {
+            background: #eef7ff;
+            border-color: #b9dcff;
+            color: #1769aa;
+            font-weight: bold;
+        }
+
+        .acao-acesso:hover {
+            background: #1769aa;
+            border-color: #1769aa;
+            color: #ffffff;
+        }
+
         /* =========================
            SEM CLIENTES
            ========================= */
@@ -394,11 +442,26 @@
 
         </div>
 
-        <a asp-controller="Clientes"
-           asp-action="Criar"
-           class="btn-novo">
-            + Novo Cliente
-        </a>
+        <div class="cabecalho-acoes">
+
+            <a asp-controller="Clientes"
+               asp-action="Criar"
+               class="btn-novo">
+                + Novo Cliente
+            </a>
+
+            <button type="button"
+                    class="btn-link-cliente"
+                    onclick="copiarLinkNovosClientes()">
+                Link para novos clientes
+            </button>
+
+            <span id="mensagemLinkCopiado"
+                  class="link-copiado">
+                Link copiado!
+            </span>
+
+        </div>
 
     </div>
 
@@ -574,6 +637,16 @@
                                         Editar
                                     </a>
 
+                                    @if (cliente.Ativo)
+                                    {
+                                        <a asp-controller="Clientes"
+                                           asp-action="Acesso"
+                                           asp-route-id="@cliente.Id"
+                                           class="acao acao-acesso">
+                                            Acesso
+                                        </a>
+                                    }
+
                                     <form asp-controller="Clientes"
                                           asp-action="Excluir"
                                           asp-route-id="@cliente.Id"
@@ -656,3 +729,39 @@
     }
 
 </div>
+
+<script>
+
+    async function copiarLinkNovosClientes() {
+
+        const link =
+            window.location.origin + "/Cliente/Acesso";
+
+        const mensagem =
+            document.getElementById("mensagemLinkCopiado");
+
+        try {
+            await navigator.clipboard.writeText(link);
+        } catch {
+            const campoTemporario =
+                document.createElement("textarea");
+
+            campoTemporario.value = link;
+            campoTemporario.style.position = "fixed";
+            campoTemporario.style.opacity = "0";
+
+            document.body.appendChild(campoTemporario);
+            campoTemporario.focus();
+            campoTemporario.select();
+            document.execCommand("copy");
+            document.body.removeChild(campoTemporario);
+        }
+
+        mensagem.style.display = "block";
+
+        setTimeout(function () {
+            mensagem.style.display = "none";
+        }, 2500);
+    }
+
+</script>

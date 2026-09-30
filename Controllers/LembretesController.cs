@@ -21,6 +21,10 @@ namespace WlcSistemaPedidos.Controllers
             _userManager = userManager;
         }
 
+        // =========================================================
+        // ADMINISTRADOR
+        // =========================================================
+
         private async Task<Usuario?> ObterAdministrador()
         {
             var usuario =
@@ -35,6 +39,10 @@ namespace WlcSistemaPedidos.Controllers
 
             return usuario;
         }
+
+        // =========================================================
+        // FUSO HORÁRIO
+        // =========================================================
 
         private TimeZoneInfo ObterFusoHorarioBrasil()
         {
@@ -94,6 +102,46 @@ namespace WlcSistemaPedidos.Controllers
                 fusoBrasil);
         }
 
+        // =========================================================
+        // CALCULAR PRÓXIMO ENVIO
+        // =========================================================
+
+        private DateTime CalcularProximoEnvioUtc(
+            DayOfWeek diaSemana,
+            TimeSpan horario)
+        {
+            var agoraBrasil =
+                ObterAgoraBrasil();
+
+            var diferencaDias =
+                ((int)diaSemana -
+                 (int)agoraBrasil.DayOfWeek +
+                 7) % 7;
+
+            var proximaDataBrasil =
+                agoraBrasil.Date
+                    .AddDays(diferencaDias)
+                    .Add(horario);
+
+            /*
+             * Se o dia escolhido for hoje, mas o horário
+             * já tiver passado, o próximo envio será
+             * na semana seguinte.
+             */
+            if (proximaDataBrasil <= agoraBrasil)
+            {
+                proximaDataBrasil =
+                    proximaDataBrasil.AddDays(7);
+            }
+
+            return ConverterBrasilParaUtc(
+                proximaDataBrasil);
+        }
+
+        // =========================================================
+        // ESTABELECIMENTO
+        // =========================================================
+
         private async Task CarregarEstabelecimento()
         {
             var configuracao =
@@ -115,22 +163,9 @@ namespace WlcSistemaPedidos.Controllers
                     : configuracao.LogoUrl;
         }
 
-        private async Task<string?> ObterUrlSistema()
-        {
-            var configuracao =
-                await _context.ConfiguracoesSistema
-                    .AsNoTracking()
-                    .OrderBy(c => c.Id)
-                    .FirstOrDefaultAsync();
-
-            if (string.IsNullOrWhiteSpace(
-                configuracao?.UrlSistema))
-            {
-                return null;
-            }
-
-            return configuracao.UrlSistema.Trim();
-        }
+        // =========================================================
+        // LISTAGEM
+        // =========================================================
 
         [HttpGet]
         public async Task<IActionResult> Index(
@@ -153,12 +188,17 @@ namespace WlcSistemaPedidos.Controllers
                 pagina = 1;
             }
 
+            /*
+             * Lembretes ativos aparecem primeiro.
+             * Dentro deles, mostramos primeiro o que
+             * possui o próximo envio mais próximo.
+             */
             var consulta =
                 _context.LembretesPedidos
                     .AsNoTracking()
                     .Include(l => l.Cliente)
-                    .OrderBy(l => l.Enviado)
-                    .ThenBy(l => l.DataHoraAgendada);
+                    .OrderByDescending(l => l.Ativo)
+                    .ThenBy(l => l.ProximoEnvio);
 
             var totalItens =
                 await consulta.CountAsync();
@@ -183,21 +223,21 @@ namespace WlcSistemaPedidos.Controllers
                     .ToListAsync();
 
             /*
-             * No banco os horários ficam em UTC.
-             * Para exibição, convertemos para o horário
-             * de Brasília.
+             * ProximoEnvio e UltimoEnvio ficam no banco
+             * em UTC. Para exibição no painel,
+             * convertemos para o horário de Brasília.
              */
             foreach (var lembrete in lembretes)
             {
-                lembrete.DataHoraAgendada =
+                lembrete.ProximoEnvio =
                     ConverterUtcParaBrasil(
-                        lembrete.DataHoraAgendada);
+                        lembrete.ProximoEnvio);
 
-                if (lembrete.DataEnvio.HasValue)
+                if (lembrete.UltimoEnvio.HasValue)
                 {
-                    lembrete.DataEnvio =
+                    lembrete.UltimoEnvio =
                         ConverterUtcParaBrasil(
-                            lembrete.DataEnvio.Value);
+                            lembrete.UltimoEnvio.Value);
                 }
             }
 
@@ -209,6 +249,10 @@ namespace WlcSistemaPedidos.Controllers
 
             return View(lembretes);
         }
+
+        // =========================================================
+        // CRIAR - GET
+        // =========================================================
 
         [HttpGet]
         public async Task<IActionResult> Criar()
@@ -229,39 +273,32 @@ namespace WlcSistemaPedidos.Controllers
             var agoraBrasil =
                 ObterAgoraBrasil();
 
-            var urlSistema =
-                await ObterUrlSistema();
-
-            var mensagem =
-                "Olá! Passando para lembrar do seu pedido. " +
-                "Acesse nosso sistema para fazer seu pedido.";
-
-            if (!string.IsNullOrWhiteSpace(
-                urlSistema))
-            {
-                mensagem +=
-                    Environment.NewLine +
-                    Environment.NewLine +
-                    urlSistema;
-            }
-
             var model =
                 new LembretePedido
                 {
-                    DataHoraAgendada =
-                        agoraBrasil.AddHours(1),
+                    DiaSemana =
+                        agoraBrasil.DayOfWeek,
+
+                    Horario =
+                        new TimeSpan(8, 0, 0),
 
                     Mensagem =
-                        mensagem
+                        "Olá! Passando para lembrar você de fazer o seu pedido."
                 };
 
             return View(model);
         }
 
+        // =========================================================
+        // CRIAR - POST
+        // =========================================================
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Criar(
-            LembretePedido model)
+            LembretePedido model,
+            List<DayOfWeek> diasSemana,
+            List<TimeSpan> horarios)
         {
             var administrador =
                 await ObterAdministrador();
@@ -273,10 +310,6 @@ namespace WlcSistemaPedidos.Controllers
                     "Conta");
             }
 
-            /*
-             * Estes campos não são digitados
-             * diretamente no formulário.
-             */
             ModelState.Remove(
                 nameof(LembretePedido.NomeCliente));
 
@@ -288,6 +321,15 @@ namespace WlcSistemaPedidos.Controllers
 
             ModelState.Remove(
                 nameof(LembretePedido.UsuarioResponsavel));
+
+            ModelState.Remove(
+                nameof(LembretePedido.ProximoEnvio));
+
+            ModelState.Remove(
+                nameof(LembretePedido.DiaSemana));
+
+            ModelState.Remove(
+                nameof(LembretePedido.Horario));
 
             var cliente =
                 await _context.Clientes
@@ -312,15 +354,72 @@ namespace WlcSistemaPedidos.Controllers
                     "O cliente não possui telefone cadastrado.");
             }
 
-            var agoraBrasil =
-                ObterAgoraBrasil();
+            diasSemana ??= new List<DayOfWeek>();
+            horarios ??= new List<TimeSpan>();
 
-            if (model.DataHoraAgendada <=
-                agoraBrasil)
+            if (diasSemana.Count == 0 ||
+                horarios.Count == 0 ||
+                diasSemana.Count != horarios.Count)
             {
                 ModelState.AddModelError(
-                    nameof(model.DataHoraAgendada),
-                    "Informe uma data e horário futuros.");
+                    string.Empty,
+                    "Informe pelo menos um dia da semana e horário.");
+            }
+            else if (diasSemana.Count > 3)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "Você pode programar no máximo 3 lembretes semanais para este cliente.");
+            }
+
+            for (int i = 0;
+                 i < Math.Min(
+                     diasSemana.Count,
+                     horarios.Count);
+                 i++)
+            {
+                if (!Enum.IsDefined(
+                        typeof(DayOfWeek),
+                        diasSemana[i]))
+                {
+                    ModelState.AddModelError(
+                        string.Empty,
+                        $"O dia do lembrete {i + 1} é inválido.");
+                }
+
+                if (horarios[i] < TimeSpan.Zero ||
+                    horarios[i] >= TimeSpan.FromDays(1))
+                {
+                    ModelState.AddModelError(
+                        string.Empty,
+                        $"O horário do lembrete {i + 1} é inválido.");
+                }
+            }
+
+            if (diasSemana.Count == horarios.Count)
+            {
+                var combinacoesDuplicadas =
+                    diasSemana
+                        .Select((dia, indice) =>
+                            new
+                            {
+                                Dia = dia,
+                                Horario = horarios[indice]
+                            })
+                        .GroupBy(x =>
+                            new
+                            {
+                                x.Dia,
+                                x.Horario
+                            })
+                        .Any(g => g.Count() > 1);
+
+                if (combinacoesDuplicadas)
+                {
+                    ModelState.AddModelError(
+                        string.Empty,
+                        "Não repita o mesmo dia e horário no mesmo cadastro.");
+                }
             }
 
             model.Mensagem =
@@ -328,11 +427,79 @@ namespace WlcSistemaPedidos.Controllers
                 ?? string.Empty;
 
             if (string.IsNullOrWhiteSpace(
-                model.Mensagem))
+                    model.Mensagem))
             {
                 ModelState.AddModelError(
                     nameof(model.Mensagem),
                     "Informe a mensagem do lembrete.");
+            }
+
+            var configuracao =
+                await _context.ConfiguracoesSistema
+                    .AsNoTracking()
+                    .OrderBy(c => c.Id)
+                    .FirstOrDefaultAsync();
+
+            if (string.IsNullOrWhiteSpace(
+                    configuracao?.UrlSistema))
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "A URL do sistema não está configurada. Configure a URL antes de criar o lembrete.");
+            }
+
+            if (cliente != null &&
+                diasSemana.Count > 0 &&
+                diasSemana.Count == horarios.Count &&
+                diasSemana.Count <= 3)
+            {
+                var lembretesAtivosExistentes =
+                    await _context.LembretesPedidos
+                        .CountAsync(l =>
+                            l.ClienteId == cliente.Id &&
+                            l.Ativo);
+
+                if (lembretesAtivosExistentes +
+                    diasSemana.Count > 3)
+                {
+                    ModelState.AddModelError(
+                        string.Empty,
+                        $"Este cliente já possui {lembretesAtivosExistentes} lembrete(s) ativo(s). O limite é de 3 lembretes ativos por cliente.");
+                }
+
+                var combinacoesNovas =
+                    diasSemana
+                        .Select((dia, indice) =>
+                            new
+                            {
+                                Dia = dia,
+                                Horario = horarios[indice]
+                            })
+                        .ToList();
+
+                var lembretesExistentes =
+                    await _context.LembretesPedidos
+                        .AsNoTracking()
+                        .Where(l =>
+                            l.ClienteId == cliente.Id &&
+                            l.Ativo)
+                        .Select(l =>
+                            new
+                            {
+                                l.DiaSemana,
+                                l.Horario
+                            })
+                        .ToListAsync();
+
+                if (combinacoesNovas.Any(novo =>
+                    lembretesExistentes.Any(existente =>
+                        existente.DiaSemana == novo.Dia &&
+                        existente.Horario == novo.Horario)))
+                {
+                    ModelState.AddModelError(
+                        string.Empty,
+                        "Este cliente já possui um lembrete ativo com um dos dias e horários informados.");
+                }
             }
 
             if (!ModelState.IsValid)
@@ -340,85 +507,82 @@ namespace WlcSistemaPedidos.Controllers
                 await CarregarClientes();
                 await CarregarEstabelecimento();
 
+                ViewBag.DiasSemanaSelecionados =
+                    diasSemana;
+
+                ViewBag.HorariosSelecionados =
+                    horarios;
+
                 return View(model);
             }
 
-            /*
-             * Garante que o link público do sistema
-             * esteja presente no lembrete.
-             */
-            var urlSistema =
-                await ObterUrlSistema();
-
-            if (!string.IsNullOrWhiteSpace(
-                    urlSistema) &&
-                !model.Mensagem.Contains(
-                    urlSistema,
-                    StringComparison.OrdinalIgnoreCase))
+            for (int i = 0;
+                 i < diasSemana.Count;
+                 i++)
             {
-                model.Mensagem +=
-                    Environment.NewLine +
-                    Environment.NewLine +
-                    urlSistema;
+                var proximoEnvioUtc =
+                    CalcularProximoEnvioUtc(
+                        diasSemana[i],
+                        horarios[i]);
+
+                var lembrete =
+                    new LembretePedido
+                    {
+                        ClienteId =
+                            cliente!.Id,
+
+                        NomeCliente =
+                            cliente.Nome,
+
+                        Telefone =
+                            cliente.Telefone!,
+
+                        Mensagem =
+                            model.Mensagem,
+
+                        DiaSemana =
+                            diasSemana[i],
+
+                        Horario =
+                            horarios[i],
+
+                        ProximoEnvio =
+                            proximoEnvioUtc,
+
+                        DataCadastro =
+                            DateTime.UtcNow,
+
+                        UltimoEnvio =
+                            null,
+
+                        Ativo =
+                            true,
+
+                        UsuarioResponsavelId =
+                            administrador.Id,
+
+                        ErroEnvio =
+                            null
+                    };
+
+                _context.LembretesPedidos.Add(
+                    lembrete);
             }
-
-            /*
-             * O ADM informa o horário de Brasília.
-             * Antes de salvar no PostgreSQL,
-             * convertemos para UTC.
-             */
-            var dataHoraUtc =
-                ConverterBrasilParaUtc(
-                    model.DataHoraAgendada);
-
-            var lembrete =
-                new LembretePedido
-                {
-                    ClienteId =
-                        cliente!.Id,
-
-                    NomeCliente =
-                        cliente.Nome,
-
-                    Telefone =
-                        cliente.Telefone!,
-
-                    Mensagem =
-                        model.Mensagem,
-
-                    DataHoraAgendada =
-                        dataHoraUtc,
-
-                    DataCadastro =
-                        DateTime.UtcNow,
-
-                    DataEnvio =
-                        null,
-
-                    Enviado =
-                        false,
-
-                    Ativo =
-                        true,
-
-                    UsuarioResponsavelId =
-                        administrador.Id,
-
-                    ErroEnvio =
-                        null
-                };
-
-            _context.LembretesPedidos.Add(
-                lembrete);
 
             await _context.SaveChangesAsync();
 
             TempData["Sucesso"] =
-                "Lembrete agendado com sucesso.";
+                diasSemana.Count == 1
+                    ? "Lembrete recorrente criado com sucesso."
+                    : $"{diasSemana.Count} lembretes recorrentes criados com sucesso.";
 
             return RedirectToAction(
                 nameof(Index));
         }
+
+        // =========================================================
+        // CANCELAR / DESATIVAR
+        // =========================================================
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -445,19 +609,10 @@ namespace WlcSistemaPedidos.Controllers
                 return NotFound();
             }
 
-            if (lembrete.Enviado)
-            {
-                TempData["Erro"] =
-                    "Este lembrete já foi enviado.";
-
-                return RedirectToAction(
-                    nameof(Index));
-            }
-
             if (!lembrete.Ativo)
             {
                 TempData["Erro"] =
-                    "Este lembrete já está cancelado.";
+                    "Este lembrete já está desativado.";
 
                 return RedirectToAction(
                     nameof(Index));
@@ -468,11 +623,74 @@ namespace WlcSistemaPedidos.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Sucesso"] =
-                "Lembrete cancelado com sucesso.";
+                "Lembrete desativado com sucesso.";
 
             return RedirectToAction(
                 nameof(Index));
         }
+
+        // =========================================================
+        // REATIVAR
+        // =========================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Reativar(
+            int id)
+        {
+            var administrador =
+                await ObterAdministrador();
+
+            if (administrador == null)
+            {
+                return RedirectToAction(
+                    "AcessoNegado",
+                    "Conta");
+            }
+
+            var lembrete =
+                await _context.LembretesPedidos
+                    .FirstOrDefaultAsync(l =>
+                        l.Id == id);
+
+            if (lembrete == null)
+            {
+                return NotFound();
+            }
+
+            if (lembrete.Ativo)
+            {
+                TempData["Erro"] =
+                    "Este lembrete já está ativo.";
+
+                return RedirectToAction(
+                    nameof(Index));
+            }
+
+            /*
+             * Ao reativar, recalculamos a próxima
+             * ocorrência semanal.
+             */
+            lembrete.ProximoEnvio =
+                CalcularProximoEnvioUtc(
+                    lembrete.DiaSemana,
+                    lembrete.Horario);
+
+            lembrete.Ativo = true;
+            lembrete.ErroEnvio = null;
+
+            await _context.SaveChangesAsync();
+
+            TempData["Sucesso"] =
+                "Lembrete reativado com sucesso.";
+
+            return RedirectToAction(
+                nameof(Index));
+        }
+
+        // =========================================================
+        // EXCLUIR
+        // =========================================================
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -500,15 +718,14 @@ namespace WlcSistemaPedidos.Controllers
             }
 
             /*
-             * Lembrete ainda pendente não pode
-             * ser excluído diretamente.
-             * Primeiro deve ser cancelado.
+             * Para evitar exclusão acidental,
+             * um lembrete ativo precisa primeiro
+             * ser desativado.
              */
-            if (lembrete.Ativo &&
-                !lembrete.Enviado)
+            if (lembrete.Ativo)
             {
                 TempData["Erro"] =
-                    "Cancele o lembrete antes de excluí-lo.";
+                    "Desative o lembrete antes de excluí-lo.";
 
                 return RedirectToAction(
                     nameof(Index));
@@ -525,6 +742,10 @@ namespace WlcSistemaPedidos.Controllers
             return RedirectToAction(
                 nameof(Index));
         }
+
+        // =========================================================
+        // CLIENTES
+        // =========================================================
 
         private async Task CarregarClientes()
         {

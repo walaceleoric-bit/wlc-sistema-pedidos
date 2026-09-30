@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WlcSistemaPedidos.Data;
 using WlcSistemaPedidos.Models;
+using WlcSistemaPedidos.Services;
 using WlcSistemaPedidos.ViewModels;
 
 namespace WlcSistemaPedidos.Controllers
@@ -13,13 +14,16 @@ namespace WlcSistemaPedidos.Controllers
     {
         private readonly AppDbContext _context;
         private readonly UserManager<Usuario> _userManager;
+        private readonly AcessoClienteService _acessoClienteService;
 
         public ClientesController(
             AppDbContext context,
-            UserManager<Usuario> userManager)
+            UserManager<Usuario> userManager,
+            AcessoClienteService acessoClienteService)
         {
             _context = context;
             _userManager = userManager;
+            _acessoClienteService = acessoClienteService;
         }
 
         // =========================================================
@@ -98,7 +102,6 @@ namespace WlcSistemaPedidos.Controllers
 
             var consulta = _context.Clientes
                 .AsNoTracking()
-                .Include(c => c.Usuario)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(busca))
@@ -118,12 +121,6 @@ namespace WlcSistemaPedidos.Controllers
                     (c.Telefone != null &&
                      EF.Functions.ILike(
                          c.Telefone,
-                         $"%{busca}%")) ||
-
-                    (c.Usuario != null &&
-                     c.Usuario.UserName != null &&
-                     EF.Functions.ILike(
-                         c.Usuario.UserName,
                          $"%{busca}%")));
             }
 
@@ -158,6 +155,75 @@ namespace WlcSistemaPedidos.Controllers
         }
 
         // =========================================================
+        // ACESSO DO CLIENTE
+        // GERA O LINK REAL DE ACESSO
+        // =========================================================
+
+        [HttpGet]
+        public async Task<IActionResult> Acesso(int id)
+        {
+            if (!await UsuarioEhAdministrador())
+            {
+                return RedirectToAction(
+                    "AcessoNegado",
+                    "Conta");
+            }
+
+            var cliente = await _context.Clientes
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (cliente == null)
+            {
+                return NotFound();
+            }
+
+            if (!cliente.Ativo)
+            {
+                TempData["Erro"] =
+                    $"O cliente \"{cliente.Nome}\" está inativo e não pode receber um link de acesso.";
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            var dataExpiracao =
+                DateTime.UtcNow.AddDays(30);
+
+            var token =
+                await _acessoClienteService.CriarTokenAsync(
+                    cliente.Id,
+                    dataExpiracao);
+
+            var linkAcesso =
+                Url.Action(
+                    "EntrarPorLink",
+                    "Cliente",
+                    new
+                    {
+                        token
+                    },
+                    Request.Scheme);
+
+            if (string.IsNullOrWhiteSpace(linkAcesso))
+            {
+                TempData["Erro"] =
+                    "Não foi possível gerar o link de acesso do cliente.";
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            ViewBag.ClienteId = cliente.Id;
+            ViewBag.NomeCliente = cliente.Nome;
+            ViewBag.TelefoneCliente = cliente.Telefone;
+            ViewBag.LinkAcesso = linkAcesso;
+            ViewBag.DataExpiracao = dataExpiracao;
+
+            await CarregarEstabelecimento();
+
+            return View();
+        }
+
+        // =========================================================
         // CRIAR - GET
         // =========================================================
 
@@ -176,8 +242,7 @@ namespace WlcSistemaPedidos.Controllers
             return View(new ClienteCriarViewModel
             {
                 Ativo = true,
-                PermitirNovosPedidos = true,
-                CriarAcesso = true
+                PermitirNovosPedidos = true
             });
         }
 
@@ -199,118 +264,10 @@ namespace WlcSistemaPedidos.Controllers
 
             PrepararModelCriacao(model);
 
-            // =====================================================
-            // VALIDAÇÃO DO ACESSO
-            // =====================================================
-
-            if (model.CriarAcesso)
-            {
-                if (string.IsNullOrWhiteSpace(model.Login))
-                {
-                    ModelState.AddModelError(
-                        nameof(model.Login),
-                        "Informe o login do cliente.");
-                }
-
-                if (string.IsNullOrWhiteSpace(model.Senha))
-                {
-                    ModelState.AddModelError(
-                        nameof(model.Senha),
-                        "Informe a senha do cliente.");
-                }
-                else if (model.Senha.Length != 6 ||
-                         !model.Senha.All(char.IsDigit))
-                {
-                    ModelState.AddModelError(
-                        nameof(model.Senha),
-                        "A senha deve conter exatamente 6 números.");
-                }
-
-                if (string.IsNullOrWhiteSpace(model.ConfirmarSenha))
-                {
-                    ModelState.AddModelError(
-                        nameof(model.ConfirmarSenha),
-                        "Confirme a senha do cliente.");
-                }
-
-                if (!string.IsNullOrWhiteSpace(model.Senha) &&
-                    !string.IsNullOrWhiteSpace(model.ConfirmarSenha) &&
-                    model.Senha != model.ConfirmarSenha)
-                {
-                    ModelState.AddModelError(
-                        nameof(model.ConfirmarSenha),
-                        "A confirmação da senha não confere.");
-                }
-
-                if (!string.IsNullOrWhiteSpace(model.Login))
-                {
-                    var usuarioExistente =
-                        await _userManager.FindByNameAsync(model.Login);
-
-                    if (usuarioExistente != null)
-                    {
-                        ModelState.AddModelError(
-                            nameof(model.Login),
-                            "Este login já está sendo utilizado.");
-                    }
-                }
-            }
-            else
-            {
-                ModelState.Remove(nameof(model.Login));
-                ModelState.Remove(nameof(model.Senha));
-                ModelState.Remove(nameof(model.ConfirmarSenha));
-
-                model.Login = null;
-                model.Senha = null;
-                model.ConfirmarSenha = null;
-            }
-
             if (!ModelState.IsValid)
             {
                 await CarregarEstabelecimento();
                 return View(model);
-            }
-
-            Usuario? novoUsuario = null;
-
-            // =====================================================
-            // CRIA USUÁRIO DE ACESSO
-            // =====================================================
-
-            if (model.CriarAcesso)
-            {
-                novoUsuario = new Usuario
-                {
-                    Nome = model.Nome,
-                    UserName = model.Login,
-
-                    Email = string.IsNullOrWhiteSpace(model.Email)
-                        ? null
-                        : model.Email,
-
-                    Perfil = PerfilUsuario.Cliente,
-                    Ativo = model.Ativo,
-                    DataCadastro = DateTime.UtcNow
-                };
-
-                var resultadoUsuario =
-                    await _userManager.CreateAsync(
-                        novoUsuario,
-                        model.Senha!);
-
-                if (!resultadoUsuario.Succeeded)
-                {
-                    foreach (var erro in resultadoUsuario.Errors)
-                    {
-                        ModelState.AddModelError(
-                            string.Empty,
-                            erro.Description);
-                    }
-
-                    await CarregarEstabelecimento();
-                    return View(model);
-                }
             }
 
             // =====================================================
@@ -338,35 +295,15 @@ namespace WlcSistemaPedidos.Controllers
                 SaldoDevedor = 0,
                 DataCadastro = DateTime.UtcNow,
 
-                UsuarioId = novoUsuario?.Id
+                UsuarioId = null
             };
 
-            try
-            {
-                _context.Clientes.Add(cliente);
+            _context.Clientes.Add(cliente);
 
-                await _context.SaveChangesAsync();
-            }
-            catch
-            {
-                // Se o usuário Identity foi criado,
-                // mas o cadastro do cliente falhou,
-                // removemos o usuário para não deixar
-                // um acesso órfão no banco.
-
-                if (novoUsuario != null)
-                {
-                    await _userManager.DeleteAsync(
-                        novoUsuario);
-                }
-
-                throw;
-            }
+            await _context.SaveChangesAsync();
 
             TempData["Sucesso"] =
-                model.CriarAcesso
-                    ? $"Cliente \"{cliente.Nome}\" cadastrado com acesso ao sistema."
-                    : $"Cliente \"{cliente.Nome}\" cadastrado com sucesso.";
+                $"Cliente \"{cliente.Nome}\" cadastrado com sucesso.";
 
             return RedirectToAction(nameof(Index));
         }
@@ -395,6 +332,7 @@ namespace WlcSistemaPedidos.Controllers
             }
 
             await CarregarEstabelecimento();
+
             return View(cliente);
         }
 
@@ -451,6 +389,7 @@ namespace WlcSistemaPedidos.Controllers
                     clienteBanco.SaldoDevedor;
 
                 await CarregarEstabelecimento();
+
                 return View(cliente);
             }
 
@@ -489,63 +428,6 @@ namespace WlcSistemaPedidos.Controllers
 
             clienteBanco.PermitirNovosPedidos =
                 cliente.PermitirNovosPedidos;
-
-            // Se existir login vinculado ao cliente,
-            // mantemos o nome e o status do usuário sincronizados.
-
-            if (clienteBanco.UsuarioId.HasValue)
-            {
-                var usuarioCliente =
-                    await _userManager.FindByIdAsync(
-                        clienteBanco.UsuarioId.Value.ToString());
-
-                if (usuarioCliente != null)
-                {
-                    usuarioCliente.Nome =
-                        clienteBanco.Nome;
-
-                    usuarioCliente.Ativo =
-                        clienteBanco.Ativo;
-
-                    if (!string.IsNullOrWhiteSpace(
-                        clienteBanco.Email))
-                    {
-                        usuarioCliente.Email =
-                            clienteBanco.Email;
-                    }
-                    else
-                    {
-                        usuarioCliente.Email = null;
-                    }
-
-                    var resultadoAtualizacao =
-                        await _userManager.UpdateAsync(
-                            usuarioCliente);
-
-                    if (!resultadoAtualizacao.Succeeded)
-                    {
-                        foreach (var erro in
-                                 resultadoAtualizacao.Errors)
-                        {
-                            ModelState.AddModelError(
-                                string.Empty,
-                                erro.Description);
-                        }
-
-                        cliente.SaldoDevedor =
-                            clienteBanco.SaldoDevedor;
-
-                        cliente.UsuarioId =
-                            clienteBanco.UsuarioId;
-
-                        cliente.DataCadastro =
-                            clienteBanco.DataCadastro;
-
-                        await CarregarEstabelecimento();
-                        return View(cliente);
-                    }
-                }
-            }
 
             await _context.SaveChangesAsync();
 
@@ -635,6 +517,7 @@ namespace WlcSistemaPedidos.Controllers
             ViewBag.TotalMovimentacoes = totalMovimentacoes;
 
             await CarregarEstabelecimento();
+
             return View(model);
         }
 
@@ -664,8 +547,6 @@ namespace WlcSistemaPedidos.Controllers
             }
 
             // Os dados abaixo sempre vêm do banco.
-            // Não confiamos em nome ou saldo enviados pelo navegador.
-
             model.NomeCliente = cliente.Nome;
             model.SaldoDevedor = cliente.SaldoDevedor;
             model.PermitirNovosPedidos =
@@ -734,6 +615,7 @@ namespace WlcSistemaPedidos.Controllers
                         .ToListAsync();
 
                 await CarregarEstabelecimento();
+
                 return View(model);
             }
 
@@ -798,6 +680,7 @@ namespace WlcSistemaPedidos.Controllers
                             .ToListAsync();
 
                     await CarregarEstabelecimento();
+
                     return View(model);
             }
 
@@ -820,6 +703,7 @@ namespace WlcSistemaPedidos.Controllers
                         .ToListAsync();
 
                 await CarregarEstabelecimento();
+
                 return View(model);
             }
 
@@ -851,9 +735,6 @@ namespace WlcSistemaPedidos.Controllers
 
             // =====================================================
             // TRANSAÇÃO
-            //
-            // Atualização do saldo e criação do histórico
-            // precisam acontecer juntas.
             // =====================================================
 
             await using var transacao =
@@ -997,49 +878,14 @@ namespace WlcSistemaPedidos.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            Usuario? usuarioCliente = null;
-
-            if (cliente.UsuarioId.HasValue)
-            {
-                usuarioCliente =
-                    await _userManager.FindByIdAsync(
-                        cliente.UsuarioId.Value.ToString());
-            }
-
             var nomeCliente = cliente.Nome;
-
-            // Primeiro removemos o cliente porque ele possui
-            // a referência para o usuário.
 
             _context.Clientes.Remove(cliente);
 
             await _context.SaveChangesAsync();
 
-            // Depois removemos o usuário de acesso,
-            // caso exista.
-
-            if (usuarioCliente != null)
-            {
-                var resultadoExclusao =
-                    await _userManager.DeleteAsync(
-                        usuarioCliente);
-
-                if (!resultadoExclusao.Succeeded)
-                {
-                    // O cliente já foi excluído.
-                    // Não derrubamos a tela por causa de uma
-                    // eventual falha ao remover o login.
-
-                    TempData["Erro"] =
-                        "O cliente foi excluído, mas não foi possível remover o usuário de acesso. Verifique o cadastro de usuários.";
-                }
-            }
-
-            if (TempData["Erro"] == null)
-            {
-                TempData["Sucesso"] =
-                    $"Cliente \"{nomeCliente}\" excluído com sucesso.";
-            }
+            TempData["Sucesso"] =
+                $"Cliente \"{nomeCliente}\" excluído com sucesso.";
 
             return RedirectToAction(nameof(Index));
         }
@@ -1090,10 +936,6 @@ namespace WlcSistemaPedidos.Controllers
             model.Cep =
                 LimparOuRetornarNulo(
                     model.Cep);
-
-            model.Login =
-                LimparOuRetornarNulo(
-                    model.Login);
         }
 
         // =========================================================

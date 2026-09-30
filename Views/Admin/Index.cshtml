@@ -2,20 +2,8 @@
     ViewData["Title"] = "Painel Administrativo";
     Layout = "_AdminLayout";
 
-    var cultura =
-        new System.Globalization.CultureInfo("pt-BR");
-
     int pedidosHoje =
         ViewBag.PedidosHoje ?? 0;
-
-    decimal faturamentoRegistrado =
-        ViewBag.FaturamentoRegistrado ?? 0m;
-
-    int clientesComSaldoDevedor =
-        ViewBag.ClientesComSaldoDevedor ?? 0;
-
-    decimal totalAReceber =
-        ViewBag.TotalAReceber ?? 0m;
 }
 
 @section Styles {
@@ -30,11 +18,19 @@
         }
 
         /* =========================
-           BOAS-VINDAS
+           CABEÇALHO
            ========================= */
 
+        .topo-painel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 25px;
+            margin-bottom: 32px;
+        }
+
         .boas-vindas {
-            margin-bottom: 30px;
+            flex: 1;
         }
 
         .boas-vindas h1 {
@@ -53,48 +49,35 @@
         }
 
         /* =========================
-           INDICADORES
+           PEDIDOS HOJE
            ========================= */
 
-        .cards {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 18px;
-            margin-bottom: 32px;
-        }
-
-        .card {
+        .pedidos-hoje {
+            width: 230px;
             background: #ffffff;
             border-radius: 14px;
-            padding: 22px;
+            padding: 18px 20px;
             border: 1px solid #eeeeee;
             box-shadow: 0 5px 18px rgba(0, 0, 0, 0.04);
         }
 
-        .card-titulo {
+        .pedidos-hoje-titulo {
             color: #777777;
             font-size: 13px;
-            margin-bottom: 10px;
+            margin-bottom: 6px;
         }
 
-        .card-valor {
+        .pedidos-hoje-valor {
             color: #222222;
             font-size: 27px;
             font-weight: bold;
+            line-height: 1;
         }
 
-        .card-valor.devedor {
-            color: #b42318;
-        }
-
-        .card-valor.recebido {
-            color: #207a3c;
-        }
-
-        .card-detalhe {
-            margin-top: 8px;
+        .pedidos-hoje-detalhe {
+            margin-top: 7px;
             color: #999999;
-            font-size: 12px;
+            font-size: 11px;
         }
 
         /* =========================
@@ -108,7 +91,7 @@
 
         .atalhos {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 18px;
         }
 
@@ -121,6 +104,7 @@
             color: #333333;
             transition: .2s;
             min-height: 140px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.025);
         }
 
         .atalho:hover {
@@ -151,9 +135,10 @@
         }
 
         .atalho span {
+            display: block;
             color: #888888;
             font-size: 12px;
-            line-height: 1.4;
+            line-height: 1.5;
         }
 
         /* =========================
@@ -162,9 +147,20 @@
 
         @@media (max-width: 950px) {
 
-            .cards,
             .atalhos {
                 grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @@media (max-width: 700px) {
+
+            .topo-painel {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .pedidos-hoje {
+                width: auto;
             }
         }
 
@@ -175,7 +171,6 @@
                 padding: 28px 0;
             }
 
-            .cards,
             .atalhos {
                 grid-template-columns: 1fr;
             }
@@ -190,85 +185,45 @@
 
 <div class="painel-conteudo">
 
-    <section class="boas-vindas">
+    <!-- =========================
+         CABEÇALHO
+         ========================= -->
 
-        <h1>
-            Olá, <span>@ViewBag.NomeUsuario</span>
-        </h1>
+    <section class="topo-painel">
 
-        <p>
-            Acompanhe e gerencie o estabelecimento por aqui.
-        </p>
+        <div class="boas-vindas">
 
-    </section>
+            <h1>
+                Olá, <span>@ViewBag.NomeUsuario</span>
+            </h1>
 
-    <section class="cards">
+            <p>
+                Acompanhe e gerencie o estabelecimento por aqui.
+            </p>
 
-        <div class="card">
+        </div>
 
-            <div class="card-titulo">
+        <div class="pedidos-hoje">
+
+            <div class="pedidos-hoje-titulo">
                 Pedidos hoje
             </div>
 
-            <div class="card-valor">
+            <div class="pedidos-hoje-valor">
                 @pedidosHoje
             </div>
 
-            <div class="card-detalhe">
+            <div class="pedidos-hoje-detalhe">
                 Pedidos registrados hoje
             </div>
 
         </div>
 
-        <div class="card">
-
-            <div class="card-titulo">
-                Recebimentos registrados
-            </div>
-
-            <div class="card-valor recebido">
-                @faturamentoRegistrado.ToString("C2", cultura)
-            </div>
-
-            <div class="card-detalhe">
-                Pagamentos registrados no financeiro
-            </div>
-
-        </div>
-
-        <div class="card">
-
-            <div class="card-titulo">
-                Clientes com saldo devedor
-            </div>
-
-            <div class="card-valor @(clientesComSaldoDevedor > 0 ? "devedor" : "")">
-                @clientesComSaldoDevedor
-            </div>
-
-            <div class="card-detalhe">
-                Clientes com valores pendentes
-            </div>
-
-        </div>
-
-        <div class="card">
-
-            <div class="card-titulo">
-                Total a receber
-            </div>
-
-            <div class="card-valor @(totalAReceber > 0 ? "devedor" : "")">
-                @totalAReceber.ToString("C2", cultura)
-            </div>
-
-            <div class="card-detalhe">
-                Saldo devedor atual dos clientes
-            </div>
-
-        </div>
-
     </section>
+
+    <!-- =========================
+         ACESSO RÁPIDO
+         ========================= -->
 
     <h2 class="atalhos-titulo">
         Acesso rápido

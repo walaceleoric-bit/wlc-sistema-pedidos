@@ -21,6 +21,11 @@ namespace WlcSistemaPedidos.Data
         public DbSet<ConfiguracaoSistema> ConfiguracoesSistema { get; set; }
         public DbSet<LembretePedido> LembretesPedidos { get; set; }
         public DbSet<NotaFiscal> NotasFiscais { get; set; }
+        public DbSet<GastoCaixa> GastosCaixa { get; set; }
+        public DbSet<CategoriaGasto> CategoriasGastos { get; set; }
+
+        // Acessos seguros enviados aos clientes
+        public DbSet<AcessoCliente> AcessosClientes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -85,6 +90,10 @@ namespace WlcSistemaPedidos.Data
                 .HasForeignKey(m => m.UsuarioResponsavelId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            // ==========================================
+            // LEMBRETES RECORRENTES
+            // ==========================================
+
             // Cliente -> Lembretes de pedido
             builder.Entity<LembretePedido>()
                 .HasOne(l => l.Cliente)
@@ -99,13 +108,44 @@ namespace WlcSistemaPedidos.Data
                 .HasForeignKey(l => l.UsuarioResponsavelId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            // Ajuda na busca dos lembretes que precisam ser enviados
+            /*
+             * Ajuda o serviço automático a localizar rapidamente
+             * os lembretes ativos cujo horário de envio chegou.
+             */
             builder.Entity<LembretePedido>()
                 .HasIndex(l => new
                 {
                     l.Ativo,
-                    l.Enviado,
-                    l.DataHoraAgendada
+                    l.ProximoEnvio
+                });
+
+            // ==========================================
+            // ACESSO SEGURO DO CLIENTE
+            // ==========================================
+
+            // Cliente -> Acessos seguros
+            //
+            // Um cliente poderá possuir vários acessos ao longo
+            // do tempo, por exemplo links enviados em diferentes
+            // lembretes pelo WhatsApp.
+            builder.Entity<AcessoCliente>()
+                .HasOne(a => a.Cliente)
+                .WithMany()
+                .HasForeignKey(a => a.ClienteId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // O hash identifica de forma única cada link.
+            builder.Entity<AcessoCliente>()
+                .HasIndex(a => a.TokenHash)
+                .IsUnique();
+
+            // Ajuda a localizar acessos válidos/ativos.
+            builder.Entity<AcessoCliente>()
+                .HasIndex(a => new
+                {
+                    a.ClienteId,
+                    a.Ativo,
+                    a.DataExpiracao
                 });
 
             // ==========================================
@@ -139,6 +179,38 @@ namespace WlcSistemaPedidos.Data
                     n.Status,
                     n.DataCriacao
                 });
+
+            // ==========================================
+            // CAIXA - GASTOS
+            // ==========================================
+
+            // Administrador responsável pelo lançamento do gasto
+            builder.Entity<GastoCaixa>()
+                .HasOne(g => g.UsuarioResponsavel)
+                .WithMany()
+                .HasForeignKey(g => g.UsuarioResponsavelId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Ajuda nas consultas diária, semanal e mensal
+            builder.Entity<GastoCaixa>()
+                .HasIndex(g => g.DataGasto);
+
+            // Ajuda nos relatórios agrupados por categoria
+            builder.Entity<GastoCaixa>()
+                .HasIndex(g => new
+                {
+                    g.Categoria,
+                    g.DataGasto
+                });
+
+            // ==========================================
+            // CAIXA - CATEGORIAS DE GASTOS
+            // ==========================================
+
+            // Não permite duas categorias com o mesmo nome.
+            builder.Entity<CategoriaGasto>()
+                .HasIndex(c => c.Nome)
+                .IsUnique();
         }
     }
 }

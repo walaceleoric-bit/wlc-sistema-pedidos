@@ -15,6 +15,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8" />
+
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0" />
 
@@ -109,14 +110,14 @@
             color: #f57c00;
         }
 
-        .menu .entrar {
+        .menu .administrativo {
             background: #f57c00;
             color: #ffffff;
-            padding-left: 22px;
-            padding-right: 22px;
+            padding-left: 20px;
+            padding-right: 20px;
         }
 
-        .menu .entrar:hover {
+        .menu .administrativo:hover {
             background: #df7000;
             color: #ffffff;
         }
@@ -170,47 +171,49 @@
             color: #6f6f6f;
             font-size: 17px;
             line-height: 1.65;
-            margin-bottom: 30px;
+            margin-bottom: 27px;
         }
 
-        .acoes {
+        /* =========================
+           ACESSO DO CLIENTE
+        ========================= */
+
+        .acesso-cliente {
+            max-width: 590px;
             display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
+            align-items: flex-start;
+            gap: 13px;
+            padding: 17px 18px;
+            background: #ffffff;
+            border: 1px solid #eeeeee;
+            border-left: 4px solid #f57c00;
+            border-radius: 10px;
         }
 
-        .btn {
-            display: inline-flex;
+        .acesso-icone {
+            min-width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #fff0e1;
+            color: #f57c00;
+            display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 48px;
-            padding: 0 23px;
-            border-radius: 9px;
-            text-decoration: none;
-            font-size: 14px;
+            font-size: 17px;
             font-weight: bold;
-            transition: .2s;
         }
 
-        .btn-principal {
-            background: #f57c00;
-            color: #ffffff;
+        .acesso-texto strong {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 4px;
         }
 
-        .btn-principal:hover {
-            background: #df7000;
-            transform: translateY(-1px);
-        }
-
-        .btn-secundario {
-            background: #ffffff;
-            color: #333333;
-            border: 1px solid #dddddd;
-        }
-
-        .btn-secundario:hover {
-            border-color: #f57c00;
-            color: #f57c00;
+        .acesso-texto span {
+            display: block;
+            color: #777777;
+            font-size: 13px;
+            line-height: 1.5;
         }
 
         /* =========================
@@ -348,7 +351,7 @@
                 font-size: 13px;
             }
 
-            .menu .entrar {
+            .menu .administrativo {
                 padding-left: 15px;
                 padding-right: 15px;
             }
@@ -364,14 +367,6 @@
 
             .descricao {
                 font-size: 15px;
-            }
-
-            .acoes {
-                flex-direction: column;
-            }
-
-            .btn {
-                width: 100%;
             }
 
             .painel {
@@ -394,7 +389,7 @@
 
             <div class="marca-texto">
                 <strong>@nomeEstabelecimento</strong>
-                <span>Pedidos rápidos e organizados</span>
+                <span>Gestão simples e organizada</span>
             </div>
 
         </div>
@@ -407,20 +402,10 @@
                 Início
             </a>
 
-            <!--
-                Sem login, Produtos leva primeiro
-                para a autenticação.
-            -->
             <a asp-controller="Conta"
                asp-action="Login"
-               asp-route-returnUrl="/Cliente/Produtos">
-                Produtos
-            </a>
-
-            <a asp-controller="Conta"
-               asp-action="Login"
-               class="entrar">
-                Entrar
+               class="administrativo">
+                Área Administrativa
             </a>
 
         </nav>
@@ -435,34 +420,38 @@
             <section>
 
                 <span class="destaque">
-                    SISTEMA DE PEDIDOS
+                    GESTÃO DO ESTABELECIMENTO
                 </span>
 
                 <h1>
-                    Faça seus pedidos de forma
-                    <span>rápida e simples.</span>
+                    Bem-vindo ao
+                    <span>seu sistema.</span>
                 </h1>
 
                 <p class="descricao">
-                    Entre na sua conta para visualizar os produtos
-                    disponíveis, acompanhar seu histórico e realizar
-                    seus pedidos com praticidade.
+                    Gerencie seus pedidos, clientes, produtos e financeiro
+                    em um só lugar, com mais organização e praticidade
+                    no dia a dia do seu negócio.
                 </p>
 
-                <div class="acoes">
+                <div class="acesso-cliente">
 
-                    <a asp-controller="Conta"
-                       asp-action="Login"
-                       asp-route-returnUrl="/Cliente/Produtos"
-                       class="btn btn-principal">
-                        Ver produtos
-                    </a>
+                    <div class="acesso-icone">
+                        ✓
+                    </div>
 
-                    <a asp-controller="Conta"
-                       asp-action="Login"
-                       class="btn btn-secundario">
-                        Entrar na minha conta
-                    </a>
+                    <div class="acesso-texto">
+
+                        <strong>
+                            Controle do seu negócio
+                        </strong>
+
+                        <span>
+                            Acesse a Área Administrativa para acompanhar
+                            e organizar as principais atividades do estabelecimento.
+                        </span>
+
+                    </div>
 
                 </div>
 
@@ -475,7 +464,7 @@
                 </h2>
 
                 <p class="painel-subtitulo">
-                    Mais facilidade para fazer e acompanhar seus pedidos.
+                    As principais ferramentas para administrar seu estabelecimento.
                 </p>
 
                 <div class="vantagem">
@@ -485,10 +474,11 @@
                     </div>
 
                     <div>
-                        <strong>Produtos organizados</strong>
+                        <strong>Pedidos e clientes</strong>
+
                         <span>
-                            Consulte os produtos disponíveis,
-                            categorias e preços atualizados.
+                            Acompanhe os pedidos e mantenha
+                            seus clientes organizados.
                         </span>
                     </div>
 
@@ -501,10 +491,11 @@
                     </div>
 
                     <div>
-                        <strong>Histórico de pedidos</strong>
+                        <strong>Produtos e lembretes</strong>
+
                         <span>
-                            Acompanhe suas compras e consulte
-                            seus pedidos anteriores.
+                            Organize seu catálogo e acompanhe
+                            os lembretes programados para clientes.
                         </span>
                     </div>
 
@@ -517,10 +508,11 @@
                     </div>
 
                     <div>
-                        <strong>Situação financeira</strong>
+                        <strong>Financeiro e Nota Fiscal</strong>
+
                         <span>
-                            Consulte seu saldo e acompanhe
-                            as atualizações realizadas pelo estabelecimento.
+                            Acompanhe recebimentos, gastos e informações
+                            importantes da gestão financeira.
                         </span>
                     </div>
 

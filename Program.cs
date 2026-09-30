@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WlcSistemaPedidos.Data;
 using WlcSistemaPedidos.Models;
+using WlcSistemaPedidos.Services;
 using WlcSistemaPedidos.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -43,6 +44,37 @@ builder.Services
 builder.Services.AddScoped<IPasswordValidator<Usuario>, SenhaNumericaValidator>();
 
 // =========================================================
+// SERVIÇOS DA APLICAÇÃO
+// =========================================================
+
+builder.Services.AddScoped<AcessoClienteService>();
+
+// Processa a regra dos lembretes recorrentes.
+builder.Services.AddScoped<ProcessadorLembretesService>();
+
+// =========================================================
+// WHATSAPP
+// =========================================================
+
+/*
+ * Implementação temporária.
+ *
+ * Enquanto a API real do WhatsApp não estiver configurada,
+ * EstaConfigurado será false e nenhum lembrete será enviado.
+ */
+builder.Services.AddSingleton<IWhatsAppSender, WhatsAppSenderPendente>();
+
+// =========================================================
+// PROCESSAMENTO AUTOMÁTICO DOS LEMBRETES
+// =========================================================
+
+/*
+ * Serviço em segundo plano que verifica periodicamente
+ * se existem lembretes que chegaram ao horário programado.
+ */
+builder.Services.AddHostedService<LembretesBackgroundService>();
+
+// =========================================================
 // COOKIE DE LOGIN
 // =========================================================
 
@@ -55,7 +87,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 // =========================================================
-// SESSÃO DO CARRINHO
+// SESSÃO DO CARRINHO / CLIENTE
 // =========================================================
 
 builder.Services.AddDistributedMemoryCache();

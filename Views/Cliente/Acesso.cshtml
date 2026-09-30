@@ -1,18 +1,30 @@
 ﻿@{
-    ViewData["Title"] = "Acesso Administrativo";
+    ViewData["Title"] = "Acessar Cardápio";
     Layout = null;
+
+    string nomeEstabelecimento =
+        ViewBag.NomeEstabelecimento
+        ?? "Sistema de Pedidos";
+
+    string logoEstabelecimento =
+        ViewBag.LogoEstabelecimento
+        ?? "/images/logo-wlc.png";
 }
 
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
+
     <meta charset="utf-8" />
+
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0" />
 
-    <title>Acesso Administrativo - Sistema de Pedidos</title>
+    <title>@nomeEstabelecimento</title>
 
     <style>
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -23,9 +35,11 @@
             min-height: 100vh;
             font-family: Arial, Helvetica, sans-serif;
             background: linear-gradient(135deg, #fff7ed, #f5f5f5);
+
             display: flex;
             align-items: center;
             justify-content: center;
+
             padding: 20px;
         }
 
@@ -34,11 +48,16 @@
             max-width: 430px;
         }
 
-        .login-card {
+        .card {
             background: #ffffff;
+
             border-radius: 20px;
+
             padding: 38px 32px;
-            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.10);
+
+            box-shadow:
+                0 15px 45px rgba(0, 0, 0, 0.10);
+
             border-top: 5px solid #f57c00;
         }
 
@@ -47,19 +66,23 @@
             margin-bottom: 28px;
         }
 
-        .logo-wlc {
+        .logo {
             display: block;
+
             max-width: 190px;
             max-height: 110px;
+
             width: auto;
             height: auto;
+
             object-fit: contain;
+
             margin: 0 auto 20px;
         }
 
         .marca h1 {
             color: #222222;
-            font-size: 26px;
+            font-size: 25px;
             margin-bottom: 8px;
         }
 
@@ -69,24 +92,17 @@
             line-height: 1.5;
         }
 
-        .acesso-aviso {
-            margin-top: 13px;
-            display: inline-block;
-            padding: 6px 11px;
-            border-radius: 20px;
-            background: #fff3e6;
-            color: #e66f00;
-            font-size: 11px;
-            font-weight: bold;
-        }
-
         .erro {
             background: #fff1f0;
             color: #b42318;
+
             border: 1px solid #fecdca;
             border-radius: 10px;
+
             padding: 12px 14px;
+
             margin-bottom: 18px;
+
             font-size: 14px;
         }
 
@@ -96,71 +112,77 @@
 
         .form-group label {
             display: block;
+
             margin-bottom: 7px;
+
             color: #333333;
+
             font-size: 14px;
             font-weight: 600;
         }
 
         .form-control {
             width: 100%;
-            height: 50px;
+            height: 52px;
+
             border: 1px solid #dddddd;
             border-radius: 10px;
+
             padding: 0 14px;
-            font-size: 16px;
+
+            font-size: 17px;
+
             outline: none;
+
             background: #ffffff;
-            transition: border-color .2s, box-shadow .2s;
         }
 
         .form-control:focus {
             border-color: #f57c00;
-            box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.12);
+
+            box-shadow:
+                0 0 0 3px rgba(245, 124, 0, 0.12);
         }
 
-        .btn-login {
+        .btn-entrar {
             width: 100%;
-            height: 50px;
+            height: 52px;
+
             border: none;
             border-radius: 10px;
+
             background: #f57c00;
             color: #ffffff;
+
             font-size: 16px;
             font-weight: 700;
+
             cursor: pointer;
-            transition: background .2s, transform .2s;
-            margin-top: 5px;
         }
 
-        .btn-login:hover {
+        .btn-entrar:hover {
             background: #e66f00;
-            transform: translateY(-1px);
         }
 
-        .voltar {
+        .ajuda {
+            margin-top: 18px;
+
             text-align: center;
-            margin-top: 22px;
-        }
 
-        .voltar a {
-            color: #666666;
-            font-size: 14px;
-            text-decoration: none;
-        }
+            color: #888888;
 
-        .voltar a:hover {
-            color: #f57c00;
-        }
+            font-size: 12px;
 
-        /* =========================
-           RODAPÉ
-        ========================= */
+            line-height: 1.5;
+        }
 
         .rodape {
             text-align: center;
+
             margin-top: 22px;
+
             color: #777777;
+
             font-size: 13px;
         }
 
@@ -168,57 +190,50 @@
             color: #f57c00;
         }
 
-        .rodape-suporte {
+        .whatsapp {
             margin-top: 5px;
+
             font-size: 11px;
+
             color: #999999;
         }
 
         @@media (max-width: 480px) {
 
-            body {
-                padding: 15px;
-            }
-
-            .login-card {
+            .card {
                 padding: 30px 22px;
             }
 
-            .logo-wlc {
+            .logo {
                 max-width: 160px;
             }
 
-            .marca h1 {
-                font-size: 23px;
-            }
         }
+
     </style>
+
 </head>
 
 <body>
 
     <div class="pagina">
 
-        <div class="login-card">
+        <div class="card">
 
             <div class="marca">
 
-                <img src="~/images/logo-wlc.png"
-                     alt="WLC Sistemas"
-                     class="logo-wlc" />
+                <img src="@logoEstabelecimento"
+                     alt="@nomeEstabelecimento"
+                     class="logo" />
 
                 <h1>
-                    Acesso Administrativo
+                    @nomeEstabelecimento
                 </h1>
 
                 <p>
-                    Entre com seu login e sua senha
-                    para acessar a administração do sistema.
+                    Informe seu telefone para acessar
+                    o cardápio e fazer seu pedido.
                 </p>
-
-                <span class="acesso-aviso">
-                    ACESSO EXCLUSIVO PARA ADMINISTRAÇÃO
-                </span>
 
             </div>
 
@@ -229,66 +244,43 @@
                 </div>
             }
 
-            <form asp-controller="Conta"
-                  asp-action="Login"
+            <form asp-controller="Cliente"
+                  asp-action="Acesso"
                   method="post">
 
                 @Html.AntiForgeryToken()
 
-                <input type="hidden"
-                       name="returnUrl"
-                       value="@ViewBag.ReturnUrl" />
-
                 <div class="form-group">
 
-                    <label for="login">
-                        Login
+                    <label for="telefone">
+                        Seu telefone
                     </label>
 
-                    <input id="login"
-                           name="login"
-                           type="text"
+                    <input id="telefone"
+                           name="telefone"
+                           type="tel"
                            class="form-control"
-                           placeholder="Digite seu login"
-                           autocomplete="username"
+                           placeholder="(27) 99999-9999"
+                           inputmode="tel"
+                           autocomplete="tel"
+                           maxlength="20"
                            required
                            autofocus />
 
                 </div>
 
-                <div class="form-group">
-
-                    <label for="senha">
-                        Senha
-                    </label>
-
-                    <input id="senha"
-                           name="senha"
-                           type="password"
-                           class="form-control"
-                           placeholder="Digite sua senha de 6 números"
-                           inputmode="numeric"
-                           pattern="[0-9]{6}"
-                           maxlength="6"
-                           autocomplete="current-password"
-                           required />
-
-                </div>
-
                 <button type="submit"
-                        class="btn-login">
-                    Entrar
+                        class="btn-entrar">
+
+                    Acessar cardápio
+
                 </button>
 
             </form>
 
-            <div class="voltar">
-
-                <a asp-controller="Home"
-                   asp-action="Index">
-                    ← Voltar para o início
-                </a>
-
+            <div class="ajuda">
+                Use o mesmo número de telefone
+                cadastrado no estabelecimento.
             </div>
 
         </div>
@@ -300,7 +292,7 @@
                 <strong>WLC Sistemas</strong>
             </div>
 
-            <div class="rodape-suporte">
+            <div class="whatsapp">
                 Whatsapp: (27) 98843-3016
             </div>
 
@@ -309,4 +301,5 @@
     </div>
 
 </body>
+
 </html>

@@ -88,8 +88,6 @@ namespace WlcSistemaPedidos.Controllers
             var logoEstabelecimento =
                 configuracao?.LogoUrl;
 
-            // Se ainda não existir uma logo do estabelecimento,
-            // usamos a WLC temporariamente como imagem padrão.
             if (string.IsNullOrWhiteSpace(
                     logoEstabelecimento))
             {
@@ -124,44 +122,6 @@ namespace WlcSistemaPedidos.Controllers
                         p.DataPedido < inicioAmanhaUtc);
 
             // =====================================================
-            // RECEBIMENTOS REGISTRADOS
-            // =====================================================
-
-            var faturamentoRegistrado =
-                await _context
-                    .MovimentacoesFinanceiras
-                    .AsNoTracking()
-                    .Where(m =>
-                        m.Tipo ==
-                        TipoMovimentacaoFinanceira.Pagamento)
-                    .SumAsync(m =>
-                        (decimal?)m.Valor)
-                ?? 0m;
-
-            // =====================================================
-            // CLIENTES COM SALDO DEVEDOR
-            // =====================================================
-
-            var clientesComSaldoDevedor =
-                await _context.Clientes
-                    .AsNoTracking()
-                    .CountAsync(c =>
-                        c.SaldoDevedor > 0);
-
-            // =====================================================
-            // TOTAL A RECEBER
-            // =====================================================
-
-            var totalAReceber =
-                await _context.Clientes
-                    .AsNoTracking()
-                    .Where(c =>
-                        c.SaldoDevedor > 0)
-                    .SumAsync(c =>
-                        (decimal?)c.SaldoDevedor)
-                ?? 0m;
-
-            // =====================================================
             // DADOS PARA A VIEW
             // =====================================================
 
@@ -176,15 +136,6 @@ namespace WlcSistemaPedidos.Controllers
 
             ViewBag.PedidosHoje =
                 pedidosHoje;
-
-            ViewBag.FaturamentoRegistrado =
-                faturamentoRegistrado;
-
-            ViewBag.ClientesComSaldoDevedor =
-                clientesComSaldoDevedor;
-
-            ViewBag.TotalAReceber =
-                totalAReceber;
 
             return View();
         }

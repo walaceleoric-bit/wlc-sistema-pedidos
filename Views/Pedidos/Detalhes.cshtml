@@ -1,127 +1,664 @@
-﻿@using WlcSistemaPedidos.Models
-@model Pedido
+﻿@model WlcSistemaPedidos.Models.Pedido
 
 @{
     Layout = null;
     ViewData["Title"] = $"Pedido #{Model.Id}";
 
-    string nomeEstabelecimento = ViewBag.NomeEstabelecimento ?? "Sistema de Pedidos";
-    string logoEstabelecimento = ViewBag.LogoEstabelecimento ?? "/images/logo-wlc.png";
+    string nomeEstabelecimento =
+        ViewBag.NomeEstabelecimento
+        ?? "Sistema de Pedidos";
+
+    string logoEstabelecimento =
+        ViewBag.LogoEstabelecimento
+        ?? "/images/logo-wlc.png";
 }
 
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
+
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pedido #@Model.Id - @nomeEstabelecimento</title>
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>
+        Pedido #@Model.Id - @nomeEstabelecimento
+    </title>
+
     <style>
-        * { box-sizing:border-box; }
-        body { margin:0; font-family:Arial,Helvetica,sans-serif; background:#f5f5f5; color:#292929; }
-        .topo { background:#fff; border-bottom:3px solid #f58220; padding:12px 20px; }
-        .marca { max-width:900px; margin:auto; display:flex; align-items:center; gap:12px; }
-        .marca img { width:58px; height:58px; object-fit:contain; }
-        .marca strong { display:block; }
-        .marca span { display:block; color:#777; font-size:12px; margin-top:3px; }
-        .container { max-width:900px; margin:auto; padding:30px 20px 45px; }
-        .voltar { color:#e96e00; font-weight:700; text-decoration:none; display:inline-block; margin-bottom:18px; }
-        .card { background:#fff; border:1px solid #e5e5e5; border-radius:14px; padding:22px; margin-bottom:18px; }
-        h1 { margin:0 0 20px; }
-        h2 { font-size:18px; margin:0 0 15px; }
-        .linha { display:flex; justify-content:space-between; gap:20px; padding:10px 0; border-bottom:1px solid #eee; }
-        .linha:last-child { border-bottom:0; }
-        .total { font-size:20px; font-weight:900; }
-        .status { color:#e96e00; font-weight:900; }
-        select { width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; margin-bottom:12px; background:#fff; }
-        .btn { border:0; border-radius:8px; padding:12px 18px; font-weight:700; cursor:pointer; background:#f58220; color:#fff; }
-        .mensagem { padding:13px; border-radius:8px; margin-bottom:15px; background:#eef9f0; color:#218838; font-weight:700; }
-        .erro { padding:13px; border-radius:8px; margin-bottom:15px; background:#fff3f3; color:#c62828; font-weight:700; }
-        footer { text-align:center; padding:25px; color:#777; font-size:12px; }
-        footer strong { color:#f58220; }
-        @@media(max-width:550px){.linha{flex-direction:column;gap:4px}}
-    </style>
-</head>
-<body>
-<header class="topo">
-    <div class="marca">
-        <img src="@logoEstabelecimento" alt="@nomeEstabelecimento" />
-        <div><strong>@nomeEstabelecimento</strong><span>Painel Administrativo</span></div>
-    </div>
-</header>
 
-<main class="container">
-    <a asp-controller="Pedidos" asp-action="Index" class="voltar">← Voltar para pedidos</a>
-
-    @if (TempData["Sucesso"] != null)
-    {
-        <div class="mensagem">@TempData["Sucesso"]</div>
-    }
-
-    @if (TempData["Erro"] != null)
-    {
-        <div class="erro">@TempData["Erro"]</div>
-    }
-
-    <section class="card">
-        <h1>Pedido #@Model.Id</h1>
-        <div class="linha"><span>Cliente</span><strong>@Model.NomeCliente</strong></div>
-        <div class="linha"><span>Telefone</span><strong>@(Model.TelefoneCliente ?? "-")</strong></div>
-        <div class="linha"><span>Data</span><strong>@Model.DataPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</strong></div>
-        <div class="linha"><span>Status</span><strong class="status">@Model.Status</strong></div>
-    </section>
-
-    <section class="card">
-        <h2>Entrega</h2>
-        <div class="linha"><span>Endereço</span><strong>@Model.EnderecoEntrega, @Model.NumeroEntrega</strong></div>
-        <div class="linha"><span>Bairro</span><strong>@Model.BairroEntrega</strong></div>
-        <div class="linha"><span>Complemento</span><strong>@(Model.ComplementoEntrega ?? "-")</strong></div>
-        <div class="linha"><span>Observação</span><strong>@(Model.Observacao ?? "-")</strong></div>
-    </section>
-
-    <section class="card">
-        <h2>Itens</h2>
-        @foreach (var item in Model.Itens)
-        {
-            <div class="linha">
-                <span>@item.Quantidade x @item.NomeProduto</span>
-                <strong>@item.Subtotal.ToString("C2")</strong>
-            </div>
+        * {
+            box-sizing: border-box;
         }
 
-        <div class="linha"><span>Subtotal</span><strong>@Model.Subtotal.ToString("C2")</strong></div>
-        <div class="linha"><span>Taxa de entrega</span><strong>@Model.TaxaEntrega.ToString("C2")</strong></div>
-        <div class="linha total"><span>Total</span><span>@Model.Total.ToString("C2")</span></div>
-    </section>
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f5f5;
+            color: #292929;
+        }
 
-    <section class="card">
-        <h2>Alterar status</h2>
+        /* ==========================================
+           TOPO
+           ========================================== */
 
-        <form asp-controller="Pedidos"
-              asp-action="AlterarStatus"
-              method="post">
-            @Html.AntiForgeryToken()
+        .topo {
+            background: #ffffff;
+            border-bottom: 3px solid #f58220;
+            padding: 12px 20px;
+        }
 
-            <input type="hidden" name="id" value="@Model.Id" />
+        .marca {
+            max-width: 850px;
+            margin: auto;
 
-            <select name="status">
-                @foreach (StatusPedido status in Enum.GetValues(typeof(StatusPedido)))
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .marca img {
+            width: 58px;
+            height: 58px;
+            object-fit: contain;
+        }
+
+        .marca strong {
+            display: block;
+            font-size: 17px;
+        }
+
+        .marca span {
+            display: block;
+            color: #777777;
+            font-size: 12px;
+            margin-top: 3px;
+        }
+
+        /* ==========================================
+           CONTEÚDO
+           ========================================== */
+
+        .container {
+            max-width: 850px;
+            margin: auto;
+            padding: 30px 20px 45px;
+        }
+
+        .acoes {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+
+            margin-bottom: 18px;
+        }
+
+        .btn {
+            min-height: 42px;
+
+            border: 0;
+            border-radius: 8px;
+
+            padding: 0 17px;
+
+            font-size: 14px;
+            font-weight: 700;
+
+            cursor: pointer;
+
+            text-decoration: none;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-voltar {
+            background: #ffffff;
+            color: #e96e00;
+            border: 1px solid #f58220;
+        }
+
+        .btn-imprimir {
+            background: #f58220;
+            color: #ffffff;
+        }
+
+        .btn-imprimir:hover {
+            background: #e66f00;
+        }
+
+        /* ==========================================
+           PEDIDO
+           ========================================== */
+
+        .pedido {
+            background: #ffffff;
+
+            border: 1px solid #e5e5e5;
+            border-radius: 14px;
+
+            overflow: hidden;
+        }
+
+        .pedido-cabecalho {
+            text-align: center;
+
+            padding: 25px 20px;
+
+            border-bottom: 1px dashed #cccccc;
+        }
+
+        .pedido-cabecalho h1 {
+            margin: 0 0 7px;
+
+            font-size: 27px;
+        }
+
+        .pedido-cabecalho p {
+            margin: 0;
+
+            color: #777777;
+
+            font-size: 13px;
+        }
+
+        .secao {
+            padding: 20px 24px;
+
+            border-bottom: 1px dashed #cccccc;
+        }
+
+        .secao:last-child {
+            border-bottom: 0;
+        }
+
+        .secao h2 {
+            margin: 0 0 13px;
+
+            font-size: 17px;
+
+            color: #333333;
+        }
+
+        .linha {
+            display: flex;
+            justify-content: space-between;
+
+            gap: 20px;
+
+            padding: 8px 0;
+
+            font-size: 14px;
+        }
+
+        .linha span:first-child {
+            color: #666666;
+        }
+
+        .linha strong {
+            text-align: right;
+        }
+
+        /* ==========================================
+           ITENS
+           ========================================== */
+
+        .item {
+            display: grid;
+
+            grid-template-columns:
+                minmax(0, 1fr)
+                100px;
+
+            gap: 15px;
+
+            padding: 11px 0;
+
+            border-bottom: 1px solid #eeeeee;
+        }
+
+        .item:last-of-type {
+            border-bottom: 0;
+        }
+
+        .item-descricao {
+            font-size: 14px;
+        }
+
+        .item-descricao strong {
+            display: block;
+        }
+
+        .item-descricao span {
+            display: block;
+
+            margin-top: 3px;
+
+            color: #777777;
+
+            font-size: 12px;
+        }
+
+        .item-valor {
+            text-align: right;
+
+            font-weight: 700;
+
+            font-size: 14px;
+        }
+
+        /* ==========================================
+           TOTAL
+           ========================================== */
+
+        .resumo {
+            margin-top: 15px;
+
+            border-top: 2px solid #eeeeee;
+
+            padding-top: 10px;
+        }
+
+        .total {
+            font-size: 21px;
+            font-weight: 900;
+
+            color: #f58220;
+
+            padding-top: 12px;
+        }
+
+        /* ==========================================
+           OBSERVAÇÃO
+           ========================================== */
+
+        .observacao {
+            background: #fffaf5;
+
+            border-radius: 8px;
+
+            padding: 13px;
+
+            color: #555555;
+
+            line-height: 1.5;
+
+            font-size: 14px;
+        }
+
+        /* ==========================================
+           RODAPÉ
+           ========================================== */
+
+        footer {
+            text-align: center;
+
+            padding: 25px 15px;
+
+            color: #777777;
+
+            font-size: 12px;
+        }
+
+        footer strong {
+            color: #f58220;
+        }
+
+        .contato {
+            margin-top: 5px;
+
+            color: #999999;
+
+            font-size: 11px;
+        }
+
+        /* ==========================================
+           CELULAR
+           ========================================== */
+
+        @@media (max-width: 550px) {
+
+            .acoes {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .linha {
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .linha strong {
+                text-align: left;
+            }
+
+        }
+
+        /* ==========================================
+           IMPRESSÃO
+           ========================================== */
+
+        @@media print {
+
+            @@page {
+                margin: 10mm;
+            }
+
+            body {
+                background: #ffffff;
+            }
+
+            .topo,
+            .acoes,
+            footer {
+                display: none !important;
+            }
+
+            .container {
+                max-width: none;
+
+                margin: 0;
+
+                padding: 0;
+            }
+
+            .pedido {
+                border: 0;
+                border-radius: 0;
+            }
+
+            .pedido-cabecalho {
+                padding-top: 0;
+            }
+
+            .secao {
+                padding-left: 0;
+                padding-right: 0;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <header class="topo">
+
+        <div class="marca">
+
+            <img src="@logoEstabelecimento"
+                 alt="@nomeEstabelecimento" />
+
+            <div>
+
+                <strong>
+                    @nomeEstabelecimento
+                </strong>
+
+                <span>
+                    Pedido para impressão
+                </span>
+
+            </div>
+
+        </div>
+
+    </header>
+
+    <main class="container">
+
+        <div class="acoes">
+
+            <a asp-controller="Pedidos"
+               asp-action="Index"
+               class="btn btn-voltar">
+
+                ← Voltar para pedidos
+
+            </a>
+
+            <button type="button"
+                    class="btn btn-imprimir"
+                    onclick="window.print()">
+
+                🖨 Imprimir pedido
+
+            </button>
+
+        </div>
+
+        <article class="pedido">
+
+            <!-- =====================================
+                 CABEÇALHO DO PEDIDO
+                 ===================================== -->
+
+            <div class="pedido-cabecalho">
+
+                <h1>
+                    Pedido #@Model.Id
+                </h1>
+
+                <p>
+                    @(Model.DataPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))
+                </p>
+
+            </div>
+
+            <!-- =====================================
+                 CLIENTE
+                 ===================================== -->
+
+            <section class="secao">
+
+                <h2>
+                    Cliente
+                </h2>
+
+                <div class="linha">
+
+                    <span>
+                        Nome
+                    </span>
+
+                    <strong>
+                        @Model.NomeCliente
+                    </strong>
+
+                </div>
+
+                <div class="linha">
+
+                    <span>
+                        Telefone
+                    </span>
+
+                    <strong>
+                        @(string.IsNullOrWhiteSpace(
+                            Model.TelefoneCliente)
+                                ? "-"
+                                : Model.TelefoneCliente)
+                    </strong>
+
+                </div>
+
+            </section>
+
+            <!-- =====================================
+                 ENTREGA
+                 ===================================== -->
+
+            <section class="secao">
+
+                <h2>
+                    Entrega
+                </h2>
+
+                <div class="linha">
+
+                    <span>
+                        Endereço
+                    </span>
+
+                    <strong>
+                        @(string.IsNullOrWhiteSpace(
+                            Model.EnderecoEntrega)
+                                ? "-"
+                                : Model.EnderecoEntrega)
+
+                        @if (!string.IsNullOrWhiteSpace(
+                            Model.NumeroEntrega))
+                        {
+                            <text>, @Model.NumeroEntrega</text>
+                        }
+                    </strong>
+
+                </div>
+
+                <div class="linha">
+
+                    <span>
+                        Bairro
+                    </span>
+
+                    <strong>
+                        @(string.IsNullOrWhiteSpace(
+                            Model.BairroEntrega)
+                                ? "-"
+                                : Model.BairroEntrega)
+                    </strong>
+
+                </div>
+
+                <div class="linha">
+
+                    <span>
+                        Complemento
+                    </span>
+
+                    <strong>
+                        @(string.IsNullOrWhiteSpace(
+                            Model.ComplementoEntrega)
+                                ? "-"
+                                : Model.ComplementoEntrega)
+                    </strong>
+
+                </div>
+
+            </section>
+
+            <!-- =====================================
+                 ITENS
+                 ===================================== -->
+
+            <section class="secao">
+
+                <h2>
+                    Itens do pedido
+                </h2>
+
+                @foreach (var item in Model.Itens)
                 {
-                    if (Model.Status == status)
-                    {
-                        <option value="@((int)status)" selected>@status</option>
-                    }
-                    else
-                    {
-                        <option value="@((int)status)">@status</option>
-                    }
+                    <div class="item">
+
+                        <div class="item-descricao">
+
+                            <strong>
+                                @item.Quantidade x
+                                @item.NomeProduto
+                            </strong>
+
+                            <span>
+                                @item.PrecoUnitario.ToString("C2")
+                                cada
+                            </span>
+
+                        </div>
+
+                        <div class="item-valor">
+                            @item.Subtotal.ToString("C2")
+                        </div>
+
+                    </div>
                 }
-            </select>
 
-            <button type="submit" class="btn">Salvar status</button>
-        </form>
-    </section>
-</main>
+                <div class="resumo">
 
-<footer>Desenvolvido por <strong>WLC Sistemas</strong></footer>
+                    <div class="linha">
+
+                        <span>
+                            Subtotal
+                        </span>
+
+                        <strong>
+                            @Model.Subtotal.ToString("C2")
+                        </strong>
+
+                    </div>
+
+                    <div class="linha total">
+
+                        <span>
+                            TOTAL
+                        </span>
+
+                        <strong>
+                            @Model.Total.ToString("C2")
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- =====================================
+                 OBSERVAÇÃO
+                 ===================================== -->
+
+            @if (!string.IsNullOrWhiteSpace(
+                Model.Observacao))
+            {
+                <section class="secao">
+
+                    <h2>
+                        Observação
+                    </h2>
+
+                    <div class="observacao">
+                        @Model.Observacao
+                    </div>
+
+                </section>
+            }
+
+        </article>
+
+    </main>
+
+    <footer>
+
+        <div>
+            Desenvolvido por
+            <strong>WLC Sistemas</strong>
+        </div>
+
+        <div class="contato">
+            Whatsapp: (27) 98843-3016
+        </div>
+
+    </footer>
+
 </body>
+
 </html>

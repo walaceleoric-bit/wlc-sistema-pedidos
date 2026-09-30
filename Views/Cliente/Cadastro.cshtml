@@ -1,0 +1,466 @@
+﻿@{
+    ViewData["Title"] = "Novo Cadastro";
+    Layout = null;
+
+    string nomeEstabelecimento =
+        ViewBag.NomeEstabelecimento
+        ?? "Sistema de Pedidos";
+
+    string logoEstabelecimento =
+        ViewBag.LogoEstabelecimento
+        ?? "/images/logo-wlc.png";
+
+    string telefone =
+        ViewBag.Telefone
+        ?? "";
+}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>Novo Cadastro - @nomeEstabelecimento</title>
+
+    <style>
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                min-height: 100vh;
+                font-family: Arial, Helvetica, sans-serif;
+                background: linear-gradient( 135deg, #fff7ed, #f5f5f5);
+                padding: 30px 20px;
+            }
+
+            .pagina {
+                width: 100%;
+                max-width: 620px;
+                margin: 0 auto;
+            }
+
+            .card {
+                background: #ffffff;
+                border-radius: 20px;
+                padding: 36px 32px;
+                box-shadow: 0 15px 45px rgba(0, 0, 0, 0.10);
+                border-top: 5px solid #f57c00;
+            }
+
+            .marca {
+                text-align: center;
+                margin-bottom: 28px;
+            }
+
+            .logo {
+                display: block;
+                max-width: 170px;
+                max-height: 100px;
+                width: auto;
+                height: auto;
+                object-fit: contain;
+                margin: 0 auto 18px;
+            }
+
+            .marca h1 {
+                color: #222222;
+                font-size: 25px;
+                margin-bottom: 8px;
+            }
+
+            .marca p {
+                color: #777777;
+                font-size: 14px;
+                line-height: 1.5;
+            }
+
+            .erro {
+                background: #fff1f0;
+                color: #b42318;
+                border: 1px solid #fecdca;
+                border-radius: 10px;
+                padding: 12px 14px;
+                margin-bottom: 20px;
+                font-size: 14px;
+            }
+
+            .secao {
+                margin-top: 25px;
+                margin-bottom: 15px;
+                padding-bottom: 8px;
+                border-bottom: 1px solid #eeeeee;
+                color: #444444;
+                font-size: 15px;
+                font-weight: 700;
+            }
+
+                .secao:first-of-type {
+                    margin-top: 0;
+                }
+
+            .linha {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 14px;
+            }
+
+            .linha-endereco {
+                display: grid;
+                grid-template-columns: 1fr 130px;
+                gap: 14px;
+            }
+
+            .form-group {
+                margin-bottom: 16px;
+            }
+
+                .form-group label {
+                    display: block;
+                    margin-bottom: 7px;
+                    color: #333333;
+                    font-size: 13px;
+                    font-weight: 600;
+                }
+
+            .obrigatorio {
+                color: #d92d20;
+            }
+
+            .form-control {
+                width: 100%;
+                height: 50px;
+                border: 1px solid #dddddd;
+                border-radius: 10px;
+                padding: 0 13px;
+                font-size: 15px;
+                outline: none;
+                background: #ffffff;
+            }
+
+                .form-control:focus {
+                    border-color: #f57c00;
+                    box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.12);
+                }
+
+                .form-control[readonly] {
+                    background: #f5f5f5;
+                    color: #666666;
+                }
+
+            .ajuda-campo {
+                margin-top: 5px;
+                color: #999999;
+                font-size: 11px;
+            }
+
+            .btn-cadastrar {
+                width: 100%;
+                height: 52px;
+                margin-top: 12px;
+                border: none;
+                border-radius: 10px;
+                background: #f57c00;
+                color: #ffffff;
+                font-size: 16px;
+                font-weight: 700;
+                cursor: pointer;
+            }
+
+                .btn-cadastrar:hover {
+                    background: #e66f00;
+                }
+
+            .voltar {
+                display: block;
+                margin-top: 16px;
+                text-align: center;
+                color: #777777;
+                font-size: 13px;
+                text-decoration: none;
+            }
+
+                .voltar:hover {
+                    color: #f57c00;
+                }
+
+            .rodape {
+                text-align: center;
+                margin-top: 22px;
+                color: #777777;
+                font-size: 13px;
+            }
+
+                .rodape strong {
+                    color: #f57c00;
+                }
+
+            .whatsapp {
+                margin-top: 5px;
+                font-size: 11px;
+                color: #999999;
+            }
+
+            @@media (max-width: 600px) {
+
+                body {
+                    padding: 18px 12px;
+                }
+
+                .card {
+                    padding: 28px 20px;
+                }
+
+                .linha,
+                .linha-endereco {
+                    grid-template-columns: 1fr;
+                }
+
+                .logo {
+                    max-width: 150px;
+                }
+            }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="pagina">
+
+        <div class="card">
+
+            <div class="marca">
+
+                <img src="@logoEstabelecimento"
+                     alt="@nomeEstabelecimento"
+                     class="logo" />
+
+                <h1>
+                    Complete seu cadastro
+                </h1>
+
+                <p>
+                    É rapidinho. Precisamos dos seus
+                    dados para identificar seus pedidos
+                    e realizar a entrega.
+                </p>
+
+            </div>
+
+            @if (ViewBag.Erro != null)
+            {
+                <div class="erro">
+                    @ViewBag.Erro
+                </div>
+            }
+
+            <form asp-controller="Cliente"
+                  asp-action="Cadastro"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <div class="secao">
+                    Seus dados
+                </div>
+
+                <div class="form-group">
+
+                    <label for="nome">
+                        Nome
+                        <span class="obrigatorio">*</span>
+                    </label>
+
+                    <input id="nome"
+                           name="nome"
+                           type="text"
+                           class="form-control"
+                           maxlength="150"
+                           autocomplete="name"
+                           required
+                           autofocus />
+
+                </div>
+
+                <div class="form-group">
+
+                    <label for="telefone">
+                        Telefone
+                    </label>
+
+                    <input id="telefone"
+                           name="telefone"
+                           type="tel"
+                           class="form-control"
+                           value="@telefone"
+                           readonly
+                           required />
+
+                    <div class="ajuda-campo">
+                        Este é o número usado para iniciar seu cadastro.
+                    </div>
+
+                </div>
+
+                <div class="secao">
+                    Endereço de entrega
+                </div>
+
+                <div class="linha-endereco">
+
+                    <div class="form-group">
+
+                        <label for="endereco">
+                            Endereço
+                            <span class="obrigatorio">*</span>
+                        </label>
+
+                        <input id="endereco"
+                               name="endereco"
+                               type="text"
+                               class="form-control"
+                               placeholder="Rua, avenida..."
+                               maxlength="250"
+                               autocomplete="street-address"
+                               required />
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label for="numero">
+                            Número
+                            <span class="obrigatorio">*</span>
+                        </label>
+
+                        <input id="numero"
+                               name="numero"
+                               type="text"
+                               class="form-control"
+                               maxlength="10"
+                               required />
+
+                    </div>
+
+                </div>
+
+                <div class="linha">
+
+                    <div class="form-group">
+
+                        <label for="bairro">
+                            Bairro
+                            <span class="obrigatorio">*</span>
+                        </label>
+
+                        <input id="bairro"
+                               name="bairro"
+                               type="text"
+                               class="form-control"
+                               maxlength="100"
+                               required />
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label for="cidade">
+                            Cidade
+                            <span class="obrigatorio">*</span>
+                        </label>
+
+                        <input id="cidade"
+                               name="cidade"
+                               type="text"
+                               class="form-control"
+                               maxlength="100"
+                               autocomplete="address-level2"
+                               required />
+
+                    </div>
+
+                </div>
+
+                <div class="linha">
+
+                    <div class="form-group">
+
+                        <label for="cep">
+                            CEP
+                        </label>
+
+                        <input id="cep"
+                               name="cep"
+                               type="text"
+                               class="form-control"
+                               placeholder="00000-000"
+                               maxlength="10"
+                               inputmode="numeric"
+                               autocomplete="postal-code" />
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label for="complemento">
+                            Complemento
+                        </label>
+
+                        <input id="complemento"
+                               name="complemento"
+                               type="text"
+                               class="form-control"
+                               placeholder="Apto, bloco..."
+                               maxlength="250" />
+
+                    </div>
+
+                </div>
+
+                <button type="submit"
+                        class="btn-cadastrar">
+
+                    Concluir cadastro e acessar cardápio
+
+                </button>
+
+            </form>
+
+            <a asp-controller="Cliente"
+               asp-action="Acesso"
+               class="voltar">
+
+                Voltar
+
+            </a>
+
+        </div>
+
+        <div class="rodape">
+
+            <div>
+                Desenvolvido por
+                <strong>WLC Sistemas</strong>
+            </div>
+
+            <div class="whatsapp">
+                Whatsapp: (27) 98843-3016
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>

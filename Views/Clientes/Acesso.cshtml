@@ -1,0 +1,357 @@
+﻿@{
+    ViewData["Title"] = "Acesso do Cliente";
+    Layout = "_AdminLayout";
+
+    string nomeCliente =
+        ViewBag.NomeCliente as string ?? "";
+
+    string telefoneCliente =
+        ViewBag.TelefoneCliente as string ?? "";
+
+    string linkAcesso =
+        ViewBag.LinkAcesso as string ?? "";
+
+    DateTime dataExpiracao =
+        ViewBag.DataExpiracao is DateTime data
+            ? data
+            : DateTime.UtcNow;
+}
+
+@section Styles {
+
+    <style>
+
+        .acesso-conteudo {
+            width: 90%;
+            max-width: 850px;
+            margin: 0 auto;
+            padding: 35px 0;
+        }
+
+        .cabecalho {
+            margin-bottom: 25px;
+        }
+
+        .cabecalho h1 {
+            font-size: 27px;
+            margin: 0 0 6px 0;
+        }
+
+        .cabecalho p {
+            color: #777777;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .card {
+            background: #ffffff;
+            border: 1px solid #eeeeee;
+            border-radius: 13px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .cliente-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .info-item {
+            background: #fafafa;
+            border: 1px solid #eeeeee;
+            border-radius: 9px;
+            padding: 15px;
+        }
+
+        .info-item span {
+            display: block;
+            color: #888888;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .info-item strong {
+            color: #333333;
+            font-size: 15px;
+        }
+
+        .titulo-link {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333333;
+            margin-bottom: 8px;
+        }
+
+        .descricao-link {
+            font-size: 13px;
+            color: #777777;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .link-box {
+            display: flex;
+            gap: 10px;
+            align-items: stretch;
+        }
+
+        .campo-link {
+            width: 100%;
+            min-width: 0;
+            border: 1px solid #dddddd;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 13px;
+            background: #fafafa;
+            color: #444444;
+            outline: none;
+        }
+
+        .btn-copiar {
+            border: none;
+            border-radius: 8px;
+            padding: 0 18px;
+            background: #1769aa;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .btn-copiar:hover {
+            background: #12568b;
+        }
+
+        .validade {
+            margin-top: 12px;
+            font-size: 12px;
+            color: #777777;
+        }
+
+        .aviso {
+            background: #fff7ed;
+            border: 1px solid #ffd4a8;
+            border-radius: 9px;
+            padding: 14px;
+            color: #9a4b00;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-top: 20px;
+        }
+
+        .acoes {
+            display: flex;
+            gap: 10px;
+            margin-top: 22px;
+            flex-wrap: wrap;
+        }
+
+        .btn-voltar,
+        .btn-testar {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+            padding: 0 17px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .btn-voltar {
+            background: #ffffff;
+            border: 1px solid #dddddd;
+            color: #555555;
+        }
+
+        .btn-voltar:hover {
+            border-color: #f57c00;
+            color: #f57c00;
+        }
+
+        .btn-testar {
+            background: #f57c00;
+            border: 1px solid #f57c00;
+            color: #ffffff;
+        }
+
+        .btn-testar:hover {
+            background: #e66f00;
+            color: #ffffff;
+        }
+
+        .copiado {
+            display: none;
+            margin-top: 10px;
+            color: #207a3c;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        @@media (max-width: 650px) {
+
+            .acesso-conteudo {
+                width: 92%;
+            }
+
+            .cliente-info {
+                grid-template-columns: 1fr;
+            }
+
+            .link-box {
+                flex-direction: column;
+            }
+
+            .btn-copiar {
+                min-height: 44px;
+            }
+        }
+
+    </style>
+}
+
+<div class="acesso-conteudo">
+
+    <div class="cabecalho">
+
+        <h1>Acesso do Cliente</h1>
+
+        <p>
+            Link seguro para acesso à área de pedidos.
+        </p>
+
+    </div>
+
+    <div class="card">
+
+        <div class="cliente-info">
+
+            <div class="info-item">
+
+                <span>Cliente</span>
+
+                <strong>
+                    @nomeCliente
+                </strong>
+
+            </div>
+
+            <div class="info-item">
+
+                <span>Telefone</span>
+
+                <strong>
+                    @(string.IsNullOrWhiteSpace(telefoneCliente)
+                        ? "Não informado"
+                        : telefoneCliente)
+                </strong>
+
+            </div>
+
+        </div>
+
+        <div class="titulo-link">
+            Link de acesso
+        </div>
+
+        <div class="descricao-link">
+            Este link identifica automaticamente o cliente.
+            Não é necessário informar login ou senha.
+        </div>
+
+        <div class="link-box">
+
+            <input id="linkAcesso"
+                   type="text"
+                   class="campo-link"
+                   value="@linkAcesso"
+                   readonly />
+
+            <button type="button"
+                    class="btn-copiar"
+                    onclick="copiarLink()">
+                Copiar link
+            </button>
+
+        </div>
+
+        <div id="mensagemCopiado"
+             class="copiado">
+            Link copiado.
+        </div>
+
+        <div class="validade">
+            Este acesso é válido por 30 dias.
+        </div>
+
+        <div class="aviso">
+            O link dá acesso à conta deste cliente.
+            Compartilhe somente com a pessoa correta.
+        </div>
+
+        <div class="acoes">
+
+            <a asp-controller="Clientes"
+               asp-action="Index"
+               class="btn-voltar">
+                Voltar para clientes
+            </a>
+
+            <a href="@linkAcesso"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="btn-testar">
+                Abrir acesso do cliente
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+    async function copiarLink() {
+
+        const campo =
+            document.getElementById("linkAcesso");
+
+        const mensagem =
+            document.getElementById("mensagemCopiado");
+
+        try {
+
+            await navigator.clipboard.writeText(
+                campo.value
+            );
+
+            mensagem.style.display = "block";
+
+            setTimeout(function () {
+                mensagem.style.display = "none";
+            }, 2500);
+
+        } catch {
+
+            campo.select();
+            campo.setSelectionRange(
+                0,
+                99999
+            );
+
+            document.execCommand("copy");
+
+            mensagem.style.display = "block";
+
+            setTimeout(function () {
+                mensagem.style.display = "none";
+            }, 2500);
+        }
+    }
+
+</script>

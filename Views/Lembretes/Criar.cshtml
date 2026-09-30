@@ -16,6 +16,68 @@
         ViewBag.Clientes as
         IEnumerable<WlcSistemaPedidos.Models.Cliente>
         ?? Enumerable.Empty<WlcSistemaPedidos.Models.Cliente>();
+
+    var diasSelecionados =
+        ViewBag.DiasSemanaSelecionados as
+        IEnumerable<DayOfWeek>;
+
+    var horariosSelecionados =
+        ViewBag.HorariosSelecionados as
+        IEnumerable<TimeSpan>;
+
+    var dias =
+        diasSelecionados?.ToList()
+        ?? new List<DayOfWeek>
+        {
+            Model.DiaSemana
+        };
+
+    var horarios =
+        horariosSelecionados?.ToList()
+        ?? new List<TimeSpan>
+        {
+            Model.Horario
+        };
+
+    if (dias.Count == 0)
+    {
+        dias.Add(Model.DiaSemana);
+    }
+
+    if (horarios.Count == 0)
+    {
+        horarios.Add(Model.Horario);
+    }
+
+    while (horarios.Count < dias.Count)
+    {
+        horarios.Add(new TimeSpan(8, 0, 0));
+    }
+
+    if (dias.Count > 3)
+    {
+        dias = dias.Take(3).ToList();
+    }
+
+    if (horarios.Count > 3)
+    {
+        horarios = horarios.Take(3).ToList();
+    }
+
+    string NomeDia(DayOfWeek dia)
+    {
+        return dia switch
+        {
+            DayOfWeek.Monday => "Segunda-feira",
+            DayOfWeek.Tuesday => "Terça-feira",
+            DayOfWeek.Wednesday => "Quarta-feira",
+            DayOfWeek.Thursday => "Quinta-feira",
+            DayOfWeek.Friday => "Sexta-feira",
+            DayOfWeek.Saturday => "Sábado",
+            DayOfWeek.Sunday => "Domingo",
+            _ => ""
+        };
+    }
 }
 
 <!DOCTYPE html>
@@ -90,10 +152,27 @@
         .descricao {
             color: #777;
             margin-bottom: 25px;
+            line-height: 1.5;
         }
 
         .campo {
             margin-bottom: 18px;
+        }
+
+        .linha-lembrete {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 12px;
+            align-items: end;
+            padding: 14px;
+            margin-bottom: 12px;
+            border: 1px solid #e7e7e7;
+            border-radius: 10px;
+            background: #fafafa;
+        }
+
+        .linha-lembrete .campo {
+            margin-bottom: 0;
         }
 
         label {
@@ -112,6 +191,7 @@
             padding: 11px;
             font-family: inherit;
             font-size: 14px;
+            background: #fff;
         }
 
         textarea {
@@ -119,10 +199,66 @@
             resize: vertical;
         }
 
+        .ajuda {
+            display: block;
+            color: #777;
+            font-size: 12px;
+            margin-top: 6px;
+            line-height: 1.4;
+        }
+
+        .aviso-recorrencia {
+            background: #fff8f1;
+            border: 1px solid #f6d5b8;
+            border-radius: 9px;
+            padding: 13px;
+            margin-bottom: 20px;
+            color: #6f4a2a;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .limite {
+            margin: 4px 0 14px;
+            color: #777;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
         .erro {
             color: #b42318;
             font-size: 13px;
             margin-top: 5px;
+        }
+
+        .btn-adicionar {
+            border: 1px dashed #f58220;
+            background: #fff8f1;
+            color: #e96e00;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 18px;
+        }
+
+        .btn-adicionar:disabled {
+            border-color: #ccc;
+            background: #f5f5f5;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .btn-remover {
+            min-width: 42px;
+            height: 42px;
+            border: 1px solid #c93030;
+            background: #fff;
+            color: #c93030;
+            border-radius: 8px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
         }
 
         .acoes {
@@ -168,6 +304,14 @@
         }
 
         @@media (max-width: 550px) {
+            .linha-lembrete {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-remover {
+                width: 100%;
+            }
+
             .acoes {
                 flex-direction: column;
             }
@@ -204,7 +348,16 @@
         <h1>Novo lembrete</h1>
 
         <div class="descricao">
-            Escolha o cliente, a data e o horário do lembrete.
+            Escolha o cliente e programe os dias e horários
+            em que os lembretes deverão ser enviados.
+        </div>
+
+        <div class="aviso-recorrencia">
+            <strong>Lembretes recorrentes:</strong>
+            enquanto estiverem ativos, serão enviados
+            semanalmente nos dias e horários escolhidos.
+            Cada cliente pode ter no máximo
+            <strong>3 lembretes ativos.</strong>
         </div>
 
         <form asp-controller="Lembretes"
@@ -244,20 +397,77 @@
 
             </div>
 
-            <div class="campo">
+            <div id="lista-lembretes">
 
-                <label asp-for="DataHoraAgendada">
-                    Data e horário
-                </label>
+                @for (int i = 0; i < dias.Count; i++)
+                {
+                    <div class="linha-lembrete">
 
-                <input asp-for="DataHoraAgendada"
-                       type="datetime-local"
-                       asp-format="{0:yyyy-MM-ddTHH:mm}" />
+                        <div class="campo">
 
-                <span asp-validation-for="DataHoraAgendada"
-                      class="erro">
-                </span>
+                            <label>
+                                Dia da semana
+                            </label>
 
+                            <select name="diasSemana">
+
+                                @foreach (DayOfWeek dia in
+                                    Enum.GetValues(typeof(DayOfWeek)))
+                                {
+                                    if (dias[i] == dia)
+                                    {
+                                        <option value="@((int)dia)"
+                                                selected>
+                                            @NomeDia(dia)
+                                        </option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@((int)dia)">
+                                            @NomeDia(dia)
+                                        </option>
+                                    }
+                                }
+
+                            </select>
+
+                        </div>
+
+                        <div class="campo">
+
+                            <label>
+                                Horário
+                            </label>
+
+                            <input name="horarios"
+                                   type="time"
+                                   step="60"
+                                   value="@horarios[i].ToString(@"hh\:mm")" />
+
+                        </div>
+
+                        <button type="button"
+                                class="btn-remover"
+                                title="Remover este horário"
+                                onclick="removerLembrete(this)">
+                            ×
+                        </button>
+
+                    </div>
+                }
+
+            </div>
+
+            <button type="button"
+                    id="btn-adicionar"
+                    class="btn-adicionar"
+                    onclick="adicionarLembrete()">
+                + Adicionar outro dia e horário
+            </button>
+
+            <div class="limite">
+                Você pode programar no máximo
+                <strong>3 lembretes semanais por cliente.</strong>
             </div>
 
             <div class="campo">
@@ -269,6 +479,11 @@
                 <textarea asp-for="Mensagem"
                           maxlength="1000"></textarea>
 
+                <span class="ajuda">
+                    O link individual de acesso do cliente será
+                    acrescentado automaticamente no momento do envio.
+                </span>
+
                 <span asp-validation-for="Mensagem"
                       class="erro">
                 </span>
@@ -279,7 +494,7 @@
 
                 <button type="submit"
                         class="btn btn-salvar">
-                    Agendar lembrete
+                    Ativar lembrete(s)
                 </button>
 
                 <a asp-controller="Lembretes"
@@ -299,6 +514,100 @@
 <footer>
     Desenvolvido por <strong>WLC Sistemas</strong>
 </footer>
+
+<script>
+    const limiteLembretes = 3;
+
+    function atualizarBotoes() {
+        const linhas =
+            document.querySelectorAll(".linha-lembrete");
+
+        const botaoAdicionar =
+            document.getElementById("btn-adicionar");
+
+        botaoAdicionar.disabled =
+            linhas.length >= limiteLembretes;
+
+        linhas.forEach(linha => {
+            const botaoRemover =
+                linha.querySelector(".btn-remover");
+
+            botaoRemover.style.display =
+                linhas.length > 1
+                    ? "block"
+                    : "none";
+        });
+    }
+
+    function adicionarLembrete() {
+        const lista =
+            document.getElementById("lista-lembretes");
+
+        const linhas =
+            lista.querySelectorAll(".linha-lembrete");
+
+        if (linhas.length >= limiteLembretes) {
+            return;
+        }
+
+        const novaLinha =
+            document.createElement("div");
+
+        novaLinha.className =
+            "linha-lembrete";
+
+        novaLinha.innerHTML = `
+            <div class="campo">
+                <label>Dia da semana</label>
+
+                <select name="diasSemana">
+                    <option value="1">Segunda-feira</option>
+                    <option value="2">Terça-feira</option>
+                    <option value="3">Quarta-feira</option>
+                    <option value="4">Quinta-feira</option>
+                    <option value="5">Sexta-feira</option>
+                    <option value="6">Sábado</option>
+                    <option value="0">Domingo</option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label>Horário</label>
+
+                <input name="horarios"
+                       type="time"
+                       step="60"
+                       value="08:00" />
+            </div>
+
+            <button type="button"
+                    class="btn-remover"
+                    title="Remover este horário"
+                    onclick="removerLembrete(this)">
+                ×
+            </button>
+        `;
+
+        lista.appendChild(novaLinha);
+
+        atualizarBotoes();
+    }
+
+    function removerLembrete(botao) {
+        const linhas =
+            document.querySelectorAll(".linha-lembrete");
+
+        if (linhas.length <= 1) {
+            return;
+        }
+
+        botao.closest(".linha-lembrete").remove();
+
+        atualizarBotoes();
+    }
+
+    atualizarBotoes();
+</script>
 
 </body>
 </html>

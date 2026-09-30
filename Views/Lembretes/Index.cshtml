@@ -18,14 +18,29 @@
         ViewBag.TotalItens != null
             ? (int)ViewBag.TotalItens
             : 0;
+
+    string NomeDia(DayOfWeek dia)
+    {
+        return dia switch
+        {
+            DayOfWeek.Monday => "Segunda-feira",
+            DayOfWeek.Tuesday => "Terça-feira",
+            DayOfWeek.Wednesday => "Quarta-feira",
+            DayOfWeek.Thursday => "Quinta-feira",
+            DayOfWeek.Friday => "Sexta-feira",
+            DayOfWeek.Saturday => "Sábado",
+            DayOfWeek.Sunday => "Domingo",
+            _ => ""
+        };
+    }
 }
 
 @section Styles {
     <style>
 
         .lembretes-container {
-            width: 90%;
-            max-width: 1150px;
+            width: 94%;
+            max-width: 1200px;
             margin: 35px auto;
         }
 
@@ -92,20 +107,43 @@
             padding: 14px;
             border-bottom: 1px solid #eee;
             font-size: 14px;
+            vertical-align: middle;
         }
 
         th {
             background: #fafafa;
             color: #555;
+            white-space: nowrap;
         }
 
-        .status {
+        .cliente-nome {
             font-weight: bold;
         }
 
-        .agendado { color: #d56b00; }
-        .enviado { color: #23803d; }
-        .cancelado { color: #9b2525; }
+        .horario {
+            white-space: nowrap;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px 9px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .ativo {
+            background: #eaf8ef;
+            color: #23803d;
+        }
+
+        .inativo {
+            background: #f1f1f1;
+            color: #666;
+        }
 
         .acoes {
             display: flex;
@@ -114,9 +152,11 @@
             flex-wrap: wrap;
         }
 
-        .acoes form { margin: 0; }
+        .acoes form {
+            margin: 0;
+        }
 
-        .btn-cancelar {
+        .btn-desativar {
             border: 1px solid #c93030;
             color: #c93030;
             background: #fff;
@@ -126,7 +166,23 @@
             font-weight: bold;
         }
 
-        .btn-cancelar:hover { background: #fff2f2; }
+        .btn-desativar:hover {
+            background: #fff2f2;
+        }
+
+        .btn-reativar {
+            border: 1px solid #23803d;
+            color: #23803d;
+            background: #fff;
+            border-radius: 7px;
+            padding: 7px 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-reativar:hover {
+            background: #effaf2;
+        }
 
         .btn-excluir {
             border: 1px solid #777;
@@ -138,7 +194,15 @@
             font-weight: bold;
         }
 
-        .btn-excluir:hover { background: #f1f1f1; }
+        .btn-excluir:hover {
+            background: #f1f1f1;
+        }
+
+        .detalhes {
+            margin-top: 5px;
+            font-size: 12px;
+            color: #777;
+        }
 
         .vazio {
             padding: 35px;
@@ -200,22 +264,34 @@
             background: #f5f5f5;
         }
 
-        @@media (max-width: 650px) {
+        @@media (max-width: 750px) {
+
             .cabecalho {
                 align-items: stretch;
                 flex-direction: column;
             }
 
-            .btn-novo { text-align: center; }
+            .btn-novo {
+                text-align: center;
+            }
 
-            .rodape-lista { justify-content: center; }
+            th,
+            td {
+                padding: 11px;
+            }
+
+            .rodape-lista {
+                justify-content: center;
+            }
 
             .total-registros {
                 width: 100%;
                 text-align: center;
             }
 
-            .paginacao { justify-content: center; }
+            .paginacao {
+                justify-content: center;
+            }
         }
 
     </style>
@@ -223,221 +299,246 @@
 
 <div class="lembretes-container">
 
-<div class="cabecalho">
-            <div>
-                <h1>Lembretes de pedidos</h1>
-                <p>
-                    Agende lembretes para seus clientes.
-                </p>
-            </div>
+    <div class="cabecalho">
 
-            <a asp-controller="Lembretes"
-               asp-action="Criar"
-               class="btn-novo">
-                + Novo lembrete
-            </a>
+        <div>
+            <h1>Lembretes de pedidos</h1>
+
+            <p>
+                Lembretes automáticos e recorrentes enviados
+                semanalmente aos clientes.
+            </p>
         </div>
 
-        @if (TempData["Sucesso"] != null)
+        <a asp-controller="Lembretes"
+           asp-action="Criar"
+           class="btn-novo">
+            + Novo lembrete
+        </a>
+
+    </div>
+
+    @if (TempData["Sucesso"] != null)
+    {
+        <div class="mensagem sucesso">
+            @TempData["Sucesso"]
+        </div>
+    }
+
+    @if (TempData["Erro"] != null)
+    {
+        <div class="mensagem erro">
+            @TempData["Erro"]
+        </div>
+    }
+
+    <div class="tabela-box">
+
+        @if (!Model.Any())
         {
-            <div class="mensagem sucesso">
-                @TempData["Sucesso"]
+            <div class="vazio">
+                Nenhum lembrete cadastrado.
             </div>
         }
-
-        @if (TempData["Erro"] != null)
+        else
         {
-            <div class="mensagem erro">
-                @TempData["Erro"]
-            </div>
-        }
+            <table>
 
-        <div class="tabela-box">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Dia</th>
+                        <th>Horário</th>
+                        <th>Status</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
 
-            @if (!Model.Any())
-            {
-                <div class="vazio">
-                    Nenhum lembrete cadastrado.
-                </div>
-            }
-            else
-            {
-                <table>
-                    <thead>
+                <tbody>
+
+                    @foreach (var lembrete in Model)
+                    {
                         <tr>
-                            <th>Cliente</th>
-                            <th>Telefone</th>
-                            <th>Agendado para</th>
-                            <th>Status</th>
-                            <th>Ação</th>
-                        </tr>
-                    </thead>
 
-                    <tbody>
+                            <td>
+                                <div class="cliente-nome">
+                                    @lembrete.NomeCliente
+                                </div>
 
-                        @foreach (var lembrete in Model)
-                        {
-                            <tr>
-                                <td>
-                                    <strong>
-                                        @lembrete.NomeCliente
-                                    </strong>
-                                </td>
-
-                                <td>
+                                <div class="detalhes">
                                     @lembrete.Telefone
-                                </td>
+                                </div>
+                            </td>
 
-                                <td>
-                                    @(lembrete.DataHoraAgendada
-                                        .ToString("dd/MM/yyyy HH:mm"))
-                                </td>
+                            <td>
+                                @NomeDia(lembrete.DiaSemana)
+                            </td>
 
-                                <td>
+                            <td class="horario">
+                                @lembrete.Horario.ToString(@"hh\:mm")
+                            </td>
 
-                                    @if (lembrete.Enviado)
+
+
+                            <td>
+
+                                @if (lembrete.Ativo)
+                                {
+                                    <span class="status ativo">
+                                        Ativo
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="status inativo">
+                                        Desativado
+                                    </span>
+                                }
+
+                            </td>
+
+                            <td>
+
+                                <div class="acoes">
+
+                                    @if (lembrete.Ativo)
                                     {
-                                        <span class="status enviado">
-                                            Enviado
-                                        </span>
-                                    }
-                                    else if (!lembrete.Ativo)
-                                    {
-                                        <span class="status cancelado">
-                                            Cancelado
-                                        </span>
+                                        <form asp-controller="Lembretes"
+                                              asp-action="Cancelar"
+                                              method="post"
+                                              onsubmit="return confirm('Deseja desativar este lembrete?');">
+
+                                            @Html.AntiForgeryToken()
+
+                                            <input type="hidden"
+                                                   name="id"
+                                                   value="@lembrete.Id" />
+
+                                            <button type="submit"
+                                                    class="btn-desativar">
+                                                Desativar
+                                            </button>
+
+                                        </form>
                                     }
                                     else
                                     {
-                                        <span class="status agendado">
-                                            Agendado
-                                        </span>
+                                        <form asp-controller="Lembretes"
+                                              asp-action="Reativar"
+                                              method="post">
+
+                                            @Html.AntiForgeryToken()
+
+                                            <input type="hidden"
+                                                   name="id"
+                                                   value="@lembrete.Id" />
+
+                                            <button type="submit"
+                                                    class="btn-reativar">
+                                                Reativar
+                                            </button>
+
+                                        </form>
+
+                                        <form asp-controller="Lembretes"
+                                              asp-action="Excluir"
+                                              method="post"
+                                              onsubmit="return confirm('Deseja realmente excluir este lembrete?');">
+
+                                            @Html.AntiForgeryToken()
+
+                                            <input type="hidden"
+                                                   name="id"
+                                                   value="@lembrete.Id" />
+
+                                            <button type="submit"
+                                                    class="btn-excluir">
+                                                Excluir
+                                            </button>
+
+                                        </form>
                                     }
 
-                                </td>
+                                </div>
 
-                                <td>
-                                    <div class="acoes">
+                            </td>
 
-                                        @if (!lembrete.Enviado &&
-                                             lembrete.Ativo)
-                                        {
-                                            <form asp-controller="Lembretes"
-                                                  asp-action="Cancelar"
-                                                  method="post"
-                                                  onsubmit="return confirm('Deseja realmente cancelar este lembrete?');">
+                        </tr>
+                    }
 
-                                                @Html.AntiForgeryToken()
+                </tbody>
 
-                                                <input type="hidden"
-                                                       name="id"
-                                                       value="@lembrete.Id" />
+            </table>
+        }
 
-                                                <button type="submit"
-                                                        class="btn-cancelar">
-                                                    Cancelar
-                                                </button>
+    </div>
 
-                                            </form>
-                                        }
-                                        else
-                                        {
-                                            <form asp-controller="Lembretes"
-                                                  asp-action="Excluir"
-                                                  method="post"
-                                                  onsubmit="return confirm('Deseja realmente excluir este lembrete?');">
+    @if (totalItens > 0)
+    {
+        <div class="rodape-lista">
 
-                                                @Html.AntiForgeryToken()
+            <div class="total-registros">
+                Total: @totalItens lembrete@(totalItens == 1 ? "" : "s")
+            </div>
 
-                                                <input type="hidden"
-                                                       name="id"
-                                                       value="@lembrete.Id" />
+            @if (totalPaginas > 1)
+            {
+                <div class="paginacao">
 
-                                                <button type="submit"
-                                                        class="btn-excluir">
-                                                    Excluir
-                                                </button>
+                    @if (paginaAtual > 1)
+                    {
+                        <a asp-controller="Lembretes"
+                           asp-action="Index"
+                           asp-route-pagina="@(paginaAtual - 1)">
+                            ‹
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="desabilitado">
+                            ‹
+                        </span>
+                    }
 
-                                            </form>
-                                        }
-
-                                    </div>
-                                </td>
-                            </tr>
+                    @for (int pagina = 1;
+                         pagina <= totalPaginas;
+                         pagina++)
+                    {
+                        if (pagina == paginaAtual)
+                        {
+                            <span class="pagina-atual">
+                                @pagina
+                            </span>
                         }
+                        else
+                        {
+                            <a asp-controller="Lembretes"
+                               asp-action="Index"
+                               asp-route-pagina="@pagina">
+                                @pagina
+                            </a>
+                        }
+                    }
 
-                    </tbody>
-                </table>
+                    @if (paginaAtual < totalPaginas)
+                    {
+                        <a asp-controller="Lembretes"
+                           asp-action="Index"
+                           asp-route-pagina="@(paginaAtual + 1)">
+                            ›
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="desabilitado">
+                            ›
+                        </span>
+                    }
+
+                </div>
             }
 
         </div>
-
-        @if (totalItens > 0)
-        {
-            <div class="rodape-lista">
-
-                <div class="total-registros">
-                    Total: @totalItens lembrete@(totalItens == 1 ? "" : "s")
-                </div>
-
-                @if (totalPaginas > 1)
-                {
-                    <div class="paginacao">
-
-                        @if (paginaAtual > 1)
-                        {
-                            <a asp-controller="Lembretes"
-                               asp-action="Index"
-                               asp-route-pagina="@(paginaAtual - 1)">
-                                ‹
-                            </a>
-                        }
-                        else
-                        {
-                            <span class="desabilitado">
-                                ‹
-                            </span>
-                        }
-
-                        @for (int pagina = 1;
-                              pagina <= totalPaginas;
-                              pagina++)
-                        {
-                            if (pagina == paginaAtual)
-                            {
-                                <span class="pagina-atual">
-                                    @pagina
-                                </span>
-                            }
-                            else
-                            {
-                                <a asp-controller="Lembretes"
-                                   asp-action="Index"
-                                   asp-route-pagina="@pagina">
-                                    @pagina
-                                </a>
-                            }
-                        }
-
-                        @if (paginaAtual < totalPaginas)
-                        {
-                            <a asp-controller="Lembretes"
-                               asp-action="Index"
-                               asp-route-pagina="@(paginaAtual + 1)">
-                                ›
-                            </a>
-                        }
-                        else
-                        {
-                            <span class="desabilitado">
-                                ›
-                            </span>
-                        }
-
-                    </div>
-                }
-
-            </div>
-        }
+    }
 
 </div>

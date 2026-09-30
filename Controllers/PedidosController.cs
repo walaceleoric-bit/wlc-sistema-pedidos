@@ -326,6 +326,8 @@ namespace WlcSistemaPedidos.Controllers
 
             try
             {
+                // O débito agora é criado automaticamente
+                // no momento em que o cliente finaliza o pedido.
                 bool debitoJaLancado =
                     await _context.MovimentacoesFinanceiras
                         .AnyAsync(m =>
@@ -339,51 +341,6 @@ namespace WlcSistemaPedidos.Controllers
                             m.PedidoId == pedido.Id &&
                             m.Tipo ==
                                 TipoMovimentacaoFinanceira.Estorno);
-
-                if (status == StatusPedido.Confirmado &&
-                    !debitoJaLancado)
-                {
-                    if (pedido.ClienteId == null ||
-                        pedido.Cliente == null)
-                    {
-                        await transacao.RollbackAsync();
-
-                        TempData["Erro"] =
-                            "Não foi possível confirmar o pedido porque ele não possui um cliente vinculado.";
-
-                        return RedirectToAction(
-                            nameof(Detalhes),
-                            new { id });
-                    }
-
-                    pedido.Cliente.SaldoDevedor +=
-                        pedido.Total;
-
-                    _context.MovimentacoesFinanceiras.Add(
-                        new MovimentacaoFinanceira
-                        {
-                            ClienteId =
-                                pedido.Cliente.Id,
-
-                            PedidoId =
-                                pedido.Id,
-
-                            Tipo =
-                                TipoMovimentacaoFinanceira.Debito,
-
-                            Valor =
-                                pedido.Total,
-
-                            Observacao =
-                                $"Débito automático referente ao pedido #{pedido.Id}.",
-
-                            DataMovimentacao =
-                                DateTime.UtcNow,
-
-                            UsuarioResponsavelId =
-                                usuario.Id
-                        });
-                }
 
                 if (status == StatusPedido.Cancelado &&
                     debitoJaLancado &&

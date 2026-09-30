@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WlcSistemaPedidos.Data;
@@ -11,9 +12,11 @@ using WlcSistemaPedidos.Data;
 namespace WlcSistemaPedidos.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260929105318_AdicionarCategoriasGastos")]
+    partial class AdicionarCategoriasGastos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -152,44 +155,6 @@ namespace WlcSistemaPedidos.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
-                });
-
-            modelBuilder.Entity("WlcSistemaPedidos.Models.AcessoCliente", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Ativo")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("ClienteId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("DataCriacao")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("DataExpiracao")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("DataUltimoAcesso")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("TokenHash")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TokenHash")
-                        .IsUnique();
-
-                    b.HasIndex("ClienteId", "Ativo", "DataExpiracao");
-
-                    b.ToTable("AcessosClientes");
                 });
 
             modelBuilder.Entity("WlcSistemaPedidos.Models.Categoria", b =>
@@ -512,15 +477,18 @@ namespace WlcSistemaPedidos.Migrations
                     b.Property<DateTime>("DataCadastro")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("DiaSemana")
-                        .HasColumnType("integer");
+                    b.Property<DateTime?>("DataEnvio")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("DataHoraAgendada")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("Enviado")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("ErroEnvio")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
-
-                    b.Property<TimeSpan>("Horario")
-                        .HasColumnType("interval");
 
                     b.Property<string>("Mensagem")
                         .IsRequired()
@@ -532,16 +500,10 @@ namespace WlcSistemaPedidos.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
 
-                    b.Property<DateTime>("ProximoEnvio")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("Telefone")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
-
-                    b.Property<DateTime?>("UltimoEnvio")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int?>("UsuarioResponsavelId")
                         .HasColumnType("integer");
@@ -552,7 +514,7 @@ namespace WlcSistemaPedidos.Migrations
 
                     b.HasIndex("UsuarioResponsavelId");
 
-                    b.HasIndex("Ativo", "ProximoEnvio");
+                    b.HasIndex("Ativo", "Enviado", "DataHoraAgendada");
 
                     b.ToTable("LembretesPedidos");
                 });
@@ -952,17 +914,6 @@ namespace WlcSistemaPedidos.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("WlcSistemaPedidos.Models.AcessoCliente", b =>
-                {
-                    b.HasOne("WlcSistemaPedidos.Models.Cliente", "Cliente")
-                        .WithMany()
-                        .HasForeignKey("ClienteId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Cliente");
                 });
 
             modelBuilder.Entity("WlcSistemaPedidos.Models.Cliente", b =>

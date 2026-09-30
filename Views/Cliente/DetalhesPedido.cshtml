@@ -1,0 +1,746 @@
+﻿@using WlcSistemaPedidos.Models
+@model Pedido
+
+@{
+    Layout = null;
+    ViewData["Title"] = $"Pedido #{Model.Id}";
+
+    var cultura =
+        new System.Globalization.CultureInfo("pt-BR");
+
+    string nomeEstabelecimento =
+        ViewBag.NomeEstabelecimento
+        ?? "Sistema de Pedidos";
+
+    string logoEstabelecimento =
+        ViewBag.LogoEstabelecimento
+        ?? "/images/logo-wlc.png";
+
+    decimal saldoDevedor =
+        ViewBag.SaldoDevedor ?? 0m;
+
+    string classeStatus =
+        Model.Status == StatusPedido.Cancelado
+            ? "cancelado"
+            : Model.Status == StatusPedido.Finalizado
+                ? "finalizado"
+                : "";
+
+    string enderecoCompleto =
+        string.Join(
+            ", ",
+            new[]
+            {
+                Model.EnderecoEntrega,
+                Model.NumeroEntrega
+            }
+            .Where(x =>
+                !string.IsNullOrWhiteSpace(x)));
+
+    string localidade =
+        string.Join(
+            " - ",
+            new[]
+            {
+                Model.BairroEntrega
+            }
+            .Where(x =>
+                !string.IsNullOrWhiteSpace(x)));
+}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>
+        Pedido #@Model.Id - @nomeEstabelecimento
+    </title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f6f7f9;
+            color: #262626;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topo {
+            background: #ffffff;
+            border-bottom: 1px solid #e8e8e8;
+            min-height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 5%;
+        }
+
+        .marca {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-estabelecimento {
+            width: 95px;
+            height: 48px;
+            object-fit: contain;
+        }
+
+        .nome-sistema {
+            border-left: 1px solid #dddddd;
+            padding-left: 14px;
+        }
+
+        .nome-sistema strong {
+            display: block;
+            font-size: 15px;
+        }
+
+        .nome-sistema span {
+            font-size: 12px;
+            color: #888888;
+        }
+
+        .menu {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            flex-wrap: wrap;
+        }
+
+        .menu a,
+        .btn-sair {
+            border: none;
+            background: transparent;
+            color: #444444;
+            text-decoration: none;
+            padding: 10px 13px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .menu a:hover,
+        .btn-sair:hover {
+            background: #fff3e6;
+            color: #f57c00;
+        }
+
+        .menu .ativo {
+            background: #f57c00;
+            color: #ffffff;
+        }
+
+        .form-sair {
+            margin: 0;
+        }
+
+        .conteudo {
+            width: 90%;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 38px 0;
+            flex: 1;
+        }
+
+        .voltar {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 20px;
+            color: #666666;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .voltar:hover {
+            color: #f57c00;
+        }
+
+        .cabecalho {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .cabecalho h1 {
+            font-size: 27px;
+            margin-bottom: 7px;
+        }
+
+        .cabecalho p {
+            color: #777777;
+            font-size: 14px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 8px 13px;
+            border-radius: 20px;
+            background: #fff3e6;
+            color: #e66f00;
+            font-weight: bold;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .status.cancelado {
+            background: #fff0f0;
+            color: #b42318;
+        }
+
+        .status.finalizado {
+            background: #edf8f0;
+            color: #207a3c;
+        }
+
+        .grid-resumo {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .resumo {
+            background: #ffffff;
+            border: 1px solid #eeeeee;
+            border-radius: 14px;
+            padding: 17px;
+        }
+
+        .resumo span {
+            display: block;
+            color: #888888;
+            font-size: 11px;
+            margin-bottom: 6px;
+        }
+
+        .resumo strong {
+            font-size: 16px;
+            color: #333333;
+        }
+
+        .resumo .devedor {
+            color: #b42318;
+        }
+
+        .card {
+            background: #ffffff;
+            border: 1px solid #eeeeee;
+            border-radius: 14px;
+            margin-bottom: 18px;
+            overflow: hidden;
+        }
+
+        .card-cabecalho {
+            padding: 17px 19px;
+            border-bottom: 1px solid #eeeeee;
+            background: #fafafa;
+        }
+
+        .card-cabecalho h2 {
+            font-size: 17px;
+        }
+
+        .tabela-box {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 650px;
+        }
+
+        th,
+        td {
+            padding: 14px 18px;
+            border-bottom: 1px solid #eeeeee;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        th {
+            background: #fafafa;
+            color: #666666;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .produto-nome {
+            font-weight: bold;
+        }
+
+        .observacao-item {
+            display: block;
+            margin-top: 4px;
+            color: #888888;
+            font-size: 11px;
+        }
+
+        .valores {
+            padding: 18px 20px;
+            border-top: 1px solid #eeeeee;
+        }
+
+        .linha-valor {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 7px 0;
+            font-size: 13px;
+            color: #666666;
+        }
+
+        .linha-valor strong {
+            color: #333333;
+        }
+
+        .linha-total {
+            margin-top: 7px;
+            padding-top: 14px;
+            border-top: 1px solid #eeeeee;
+            font-size: 17px;
+            font-weight: bold;
+            color: #262626;
+        }
+
+        .linha-total strong {
+            color: #f57c00;
+            font-size: 20px;
+        }
+
+        .informacoes {
+            padding: 19px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px 25px;
+        }
+
+        .informacao span {
+            display: block;
+            color: #888888;
+            font-size: 11px;
+            margin-bottom: 5px;
+        }
+
+        .informacao strong {
+            font-size: 14px;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        .informacao.largura-total {
+            grid-column: 1 / -1;
+        }
+
+        .observacao-pedido {
+            font-weight: normal !important;
+            white-space: pre-wrap;
+        }
+
+        .acoes {
+            display: flex;
+            justify-content: flex-start;
+            margin-top: 24px;
+        }
+
+        .btn-voltar {
+            display: inline-block;
+            border: 1px solid #f57c00;
+            background: #f57c00;
+            color: #ffffff;
+            border-radius: 8px;
+            padding: 11px 18px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .btn-voltar:hover {
+            background: #e66f00;
+        }
+
+        .rodape {
+            background: #ffffff;
+            border-top: 1px solid #e8e8e8;
+            text-align: center;
+            padding: 18px;
+            color: #777777;
+            font-size: 12px;
+        }
+
+        .rodape strong {
+            color: #f57c00;
+        }
+
+        @@media (max-width: 800px) {
+
+            .topo {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .menu {
+                justify-content: center;
+            }
+
+            .cabecalho {
+                flex-direction: column;
+            }
+
+            .grid-resumo {
+                grid-template-columns: 1fr;
+            }
+
+            .informacoes {
+                grid-template-columns: 1fr;
+            }
+
+            .informacao.largura-total {
+                grid-column: auto;
+            }
+        }
+
+        @@media (max-width: 550px) {
+
+            .conteudo {
+                width: 92%;
+            }
+
+            .nome-sistema {
+                display: none;
+            }
+
+            .marca {
+                justify-content: center;
+            }
+
+            .menu {
+                gap: 3px;
+            }
+
+            .menu a,
+            .btn-sair {
+                padding: 8px 9px;
+                font-size: 13px;
+            }
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <header class="topo">
+
+        <div class="marca">
+
+            <img src="@logoEstabelecimento"
+                 alt="@nomeEstabelecimento"
+                 class="logo-estabelecimento" />
+
+            <div class="nome-sistema">
+                <strong>@nomeEstabelecimento</strong>
+                <span>Área do Cliente</span>
+            </div>
+
+        </div>
+
+        <nav class="menu">
+
+            <a asp-controller="Cliente"
+               asp-action="Historico"
+               class="ativo">
+                Histórico
+            </a>
+
+            <a asp-controller="Cliente"
+               asp-action="Produtos">
+                Produtos
+            </a>
+
+            <a asp-controller="Carrinho"
+               asp-action="Index">
+                Carrinho
+            </a>
+
+            <form asp-controller="Cliente"
+                  asp-action="Sair"
+                  method="post"
+                  class="form-sair">
+
+                @Html.AntiForgeryToken()
+
+                <button type="submit"
+                        class="btn-sair">
+                    Sair
+                </button>
+
+            </form>
+
+        </nav>
+
+    </header>
+
+    <main class="conteudo">
+
+        <a asp-controller="Cliente"
+           asp-action="Historico"
+           class="voltar">
+            ← Voltar ao histórico
+        </a>
+
+        <section class="cabecalho">
+
+            <div>
+
+                <h1>
+                    Pedido #@Model.Id
+                </h1>
+
+                <p>
+                    Realizado em
+                    @(Model.DataPedido.ToLocalTime().ToString("dd/MM/yyyy 'às' HH:mm"))
+                </p>
+
+            </div>
+
+            <span class="status @classeStatus">
+                @Model.Status
+            </span>
+
+        </section>
+
+        <section class="grid-resumo">
+
+            <div class="resumo">
+                <span>Total do pedido</span>
+
+                <strong>
+                    @Model.Total.ToString("C2", cultura)
+                </strong>
+            </div>
+
+            <div class="resumo">
+                <span>Pagamento</span>
+
+                <strong>
+                    @(Model.Pago
+                        ? "Pago"
+                        : "Pendente")
+                </strong>
+            </div>
+
+            <div class="resumo">
+                <span>Saldo atual</span>
+
+                <strong class="@(saldoDevedor > 0 ? "devedor" : "")">
+                    @(saldoDevedor > 0
+                        ? saldoDevedor.ToString("C2", cultura)
+                        : "Em dia")
+                </strong>
+            </div>
+
+        </section>
+
+        <section class="card">
+
+            <div class="card-cabecalho">
+                <h2>Itens do pedido</h2>
+            </div>
+
+            <div class="tabela-box">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Qtd.</th>
+                            <th>Valor unitário</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var item in Model.Itens)
+                        {
+                            <tr>
+
+                                <td>
+                                    <span class="produto-nome">
+                                        @item.NomeProduto
+                                    </span>
+
+                                    @if (!string.IsNullOrWhiteSpace(
+                                        item.Observacao))
+                                    {
+                                        <span class="observacao-item">
+                                            @item.Observacao
+                                        </span>
+                                    }
+                                </td>
+
+                                <td>
+                                    @item.Quantidade
+                                </td>
+
+                                <td>
+                                    @(item.PrecoUnitario.ToString("C2", cultura))
+                                </td>
+
+                                <td>
+                                    <strong>
+                                        @(item.Subtotal.ToString("C2", cultura))
+                                    </strong>
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <div class="valores">
+
+                <div class="linha-valor">
+                    <span>Subtotal</span>
+
+                    <strong>
+                        @Model.Subtotal.ToString("C2", cultura)
+                    </strong>
+                </div>
+
+                @if (Model.Desconto > 0)
+                {
+                    <div class="linha-valor">
+                        <span>Desconto</span>
+
+                        <strong>
+                            - @Model.Desconto.ToString("C2", cultura)
+                        </strong>
+                    </div>
+                }
+
+                <div class="linha-valor linha-total">
+                    <span>Total</span>
+
+                    <strong>
+                        @Model.Total.ToString("C2", cultura)
+                    </strong>
+                </div>
+
+            </div>
+
+        </section>
+
+        <section class="card">
+
+            <div class="card-cabecalho">
+                <h2>Entrega</h2>
+            </div>
+
+            <div class="informacoes">
+
+                <div class="informacao largura-total">
+
+                    <span>Endereço</span>
+
+                    <strong>
+                        @(string.IsNullOrWhiteSpace(enderecoCompleto)
+                            ? "Não informado"
+                            : enderecoCompleto)
+                    </strong>
+
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(localidade))
+                {
+                    <div class="informacao">
+
+                        <span>Bairro</span>
+
+                        <strong>
+                            @localidade
+                        </strong>
+
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(
+                    Model.ComplementoEntrega))
+                {
+                    <div class="informacao">
+
+                        <span>Complemento</span>
+
+                        <strong>
+                            @Model.ComplementoEntrega
+                        </strong>
+
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(
+                    Model.Observacao))
+                {
+                    <div class="informacao largura-total">
+
+                        <span>Observação do pedido</span>
+
+                        <strong class="observacao-pedido">
+                            @Model.Observacao
+                        </strong>
+
+                    </div>
+                }
+
+            </div>
+
+        </section>
+
+        <div class="acoes">
+
+            <a asp-controller="Cliente"
+               asp-action="Historico"
+               class="btn-voltar">
+                Voltar ao histórico
+            </a>
+
+        </div>
+
+    </main>
+
+    <footer class="rodape">
+        Desenvolvido por
+        <strong>WLC Sistemas</strong>
+    </footer>
+
+</body>
+</html>

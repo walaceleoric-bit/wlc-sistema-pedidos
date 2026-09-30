@@ -1,7 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WlcSistemaPedidos.Data;
@@ -10,20 +9,18 @@ using WlcSistemaPedidos.ViewModels;
 
 namespace WlcSistemaPedidos.Controllers
 {
-    [Authorize]
+    [AllowAnonymous]
     public class CarrinhoController : Controller
     {
         private readonly AppDbContext _context;
-        private readonly UserManager<Usuario> _userManager;
 
         private const string ChaveCarrinho = "Carrinho";
+        private const string ChaveClienteId = "ClienteIdentificadoId";
 
         public CarrinhoController(
-            AppDbContext context,
-            UserManager<Usuario> userManager)
+            AppDbContext context)
         {
             _context = context;
-            _userManager = userManager;
         }
 
         private List<ItemCarrinhoViewModel> ObterCarrinho()
@@ -52,20 +49,21 @@ namespace WlcSistemaPedidos.Controllers
                 carrinhoJson);
         }
 
-        private async Task<Cliente?> ObterClienteLogado()
+        private async Task<Cliente?> ObterClienteIdentificado()
         {
-            var usuario = await _userManager.GetUserAsync(User);
+            var clienteId =
+                HttpContext.Session.GetInt32(
+                    ChaveClienteId);
 
-            if (usuario == null ||
-                !usuario.Ativo ||
-                usuario.Perfil != PerfilUsuario.Cliente)
+            if (!clienteId.HasValue)
             {
                 return null;
             }
 
             return await _context.Clientes
                 .FirstOrDefaultAsync(c =>
-                    c.UsuarioId == usuario.Id);
+                    c.Id == clienteId.Value &&
+                    c.Ativo);
         }
 
         private async Task CarregarEstabelecimento()
@@ -189,13 +187,13 @@ namespace WlcSistemaPedidos.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var cliente = await ObterClienteLogado();
+            var cliente = await ObterClienteIdentificado();
 
             if (cliente == null || !cliente.Ativo)
             {
                 return RedirectToAction(
-                    "AcessoNegado",
-                    "Conta");
+                    "Acesso",
+                    "Cliente");
             }
 
             var carrinho = ObterCarrinho();
@@ -213,13 +211,13 @@ namespace WlcSistemaPedidos.Controllers
         public async Task<IActionResult> Adicionar(
             int produtoId)
         {
-            var cliente = await ObterClienteLogado();
+            var cliente = await ObterClienteIdentificado();
 
             if (cliente == null || !cliente.Ativo)
             {
                 return RedirectToAction(
-                    "AcessoNegado",
-                    "Conta");
+                    "Acesso",
+                    "Cliente");
             }
 
             if (!cliente.PermitirNovosPedidos)
@@ -308,13 +306,13 @@ namespace WlcSistemaPedidos.Controllers
             int produtoId,
             int quantidade)
         {
-            var cliente = await ObterClienteLogado();
+            var cliente = await ObterClienteIdentificado();
 
             if (cliente == null || !cliente.Ativo)
             {
                 return RedirectToAction(
-                    "AcessoNegado",
-                    "Conta");
+                    "Acesso",
+                    "Cliente");
             }
 
             if (!cliente.PermitirNovosPedidos)
@@ -356,13 +354,13 @@ namespace WlcSistemaPedidos.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Aumentar(int produtoId)
         {
-            var cliente = await ObterClienteLogado();
+            var cliente = await ObterClienteIdentificado();
 
             if (cliente == null || !cliente.Ativo)
             {
                 return RedirectToAction(
-                    "AcessoNegado",
-                    "Conta");
+                    "Acesso",
+                    "Cliente");
             }
 
             if (!cliente.PermitirNovosPedidos)
@@ -391,13 +389,13 @@ namespace WlcSistemaPedidos.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Diminuir(int produtoId)
         {
-            var cliente = await ObterClienteLogado();
+            var cliente = await ObterClienteIdentificado();
 
             if (cliente == null || !cliente.Ativo)
             {
                 return RedirectToAction(
-                    "AcessoNegado",
-                    "Conta");
+                    "Acesso",
+                    "Cliente");
             }
 
             var carrinho = ObterCarrinho();
@@ -424,13 +422,13 @@ namespace WlcSistemaPedidos.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Remover(int produtoId)
         {
-            var cliente = await ObterClienteLogado();
+            var cliente = await ObterClienteIdentificado();
 
             if (cliente == null || !cliente.Ativo)
             {
                 return RedirectToAction(
-                    "AcessoNegado",
-                    "Conta");
+                    "Acesso",
+                    "Cliente");
             }
 
             var carrinho = ObterCarrinho();
@@ -451,13 +449,13 @@ namespace WlcSistemaPedidos.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Limpar()
         {
-            var cliente = await ObterClienteLogado();
+            var cliente = await ObterClienteIdentificado();
 
             if (cliente == null || !cliente.Ativo)
             {
                 return RedirectToAction(
-                    "AcessoNegado",
-                    "Conta");
+                    "Acesso",
+                    "Cliente");
             }
 
             HttpContext.Session.Remove(ChaveCarrinho);
@@ -468,13 +466,13 @@ namespace WlcSistemaPedidos.Controllers
         [HttpGet]
         public async Task<IActionResult> Finalizar()
         {
-            var cliente = await ObterClienteLogado();
+            var cliente = await ObterClienteIdentificado();
 
             if (cliente == null || !cliente.Ativo)
             {
                 return RedirectToAction(
-                    "AcessoNegado",
-                    "Conta");
+                    "Acesso",
+                    "Cliente");
             }
 
             if (!cliente.PermitirNovosPedidos)
@@ -510,7 +508,6 @@ namespace WlcSistemaPedidos.Controllers
             }
 
             var subtotal = carrinho.Sum(i => i.Subtotal);
-            var taxaEntrega = configuracao?.TaxaEntregaPadrao ?? 0m;
 
             var model = new FinalizarPedidoViewModel
             {
@@ -519,8 +516,8 @@ namespace WlcSistemaPedidos.Controllers
                 NumeroEntrega = cliente.Numero ?? string.Empty,
                 ComplementoEntrega = cliente.Complemento,
                 Subtotal = subtotal,
-                TaxaEntrega = taxaEntrega,
-                Total = subtotal + taxaEntrega
+                TaxaEntrega = 0m,
+                Total = subtotal
             };
 
             await CarregarEstabelecimento();
@@ -533,13 +530,13 @@ namespace WlcSistemaPedidos.Controllers
         public async Task<IActionResult> Finalizar(
             FinalizarPedidoViewModel model)
         {
-            var cliente = await ObterClienteLogado();
+            var cliente = await ObterClienteIdentificado();
 
             if (cliente == null || !cliente.Ativo)
             {
                 return RedirectToAction(
-                    "AcessoNegado",
-                    "Conta");
+                    "Acesso",
+                    "Cliente");
             }
 
             if (!cliente.PermitirNovosPedidos)
@@ -603,11 +600,14 @@ namespace WlcSistemaPedidos.Controllers
             }
 
             var subtotal = carrinho.Sum(i => i.Subtotal);
-            var taxaEntrega = configuracao?.TaxaEntregaPadrao ?? 0m;
+
+            // O sistema não utilizará mais taxa de entrega
+            // na realização dos novos pedidos.
+            var taxaEntrega = 0m;
 
             model.Subtotal = subtotal;
-            model.TaxaEntrega = taxaEntrega;
-            model.Total = subtotal + taxaEntrega;
+            model.TaxaEntrega = 0m;
+            model.Total = subtotal;
 
             if (!ModelState.IsValid)
             {
@@ -672,30 +672,64 @@ namespace WlcSistemaPedidos.Controllers
                 pedido.TaxaEntrega -
                 pedido.Desconto;
 
-            _context.Pedidos.Add(pedido);
+            await using var transacao =
+                await _context.Database.BeginTransactionAsync();
 
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.Pedidos.Add(pedido);
 
-            HttpContext.Session.Remove(ChaveCarrinho);
+                cliente.SaldoDevedor += pedido.Total;
 
-            TempData["Sucesso"] =
-                $"Pedido #{pedido.Id} realizado com sucesso.";
+                _context.MovimentacoesFinanceiras.Add(
+                    new MovimentacaoFinanceira
+                    {
+                        ClienteId = cliente.Id,
+                        Pedido = pedido,
+                        Tipo = TipoMovimentacaoFinanceira.Debito,
+                        Valor = pedido.Total,
+                        Observacao =
+                            "Débito automático referente ao pedido.",
+                        DataMovimentacao = DateTime.UtcNow,
+                        UsuarioResponsavelId = null
+                    });
 
-            return RedirectToAction(
-                "Sucesso",
-                new { id = pedido.Id });
+                await _context.SaveChangesAsync();
+                await transacao.CommitAsync();
+
+                HttpContext.Session.Remove(ChaveCarrinho);
+
+                TempData["Sucesso"] =
+                    $"Pedido #{pedido.Id} realizado com sucesso.";
+
+                return RedirectToAction(
+                    "Sucesso",
+                    new { id = pedido.Id });
+            }
+            catch
+            {
+                await transacao.RollbackAsync();
+
+                ModelState.AddModelError(
+                    string.Empty,
+                    "Não foi possível finalizar o pedido. Tente novamente.");
+
+                await CarregarEstabelecimento();
+
+                return View(model);
+            }
         }
 
         [HttpGet]
         public async Task<IActionResult> Sucesso(int id)
         {
-            var cliente = await ObterClienteLogado();
+            var cliente = await ObterClienteIdentificado();
 
             if (cliente == null || !cliente.Ativo)
             {
                 return RedirectToAction(
-                    "AcessoNegado",
-                    "Conta");
+                    "Acesso",
+                    "Cliente");
             }
 
             var pedido = await _context.Pedidos
