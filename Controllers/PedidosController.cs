@@ -227,6 +227,264 @@ namespace WlcSistemaPedidos.Controllers
             return View(pedido);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Editar(int id)
+        {
+            if (!await UsuarioEhAdministrador())
+            {
+                return RedirectToAction(
+                    "AcessoNegado",
+                    "Conta");
+            }
+
+            var pedido = await _context.Pedidos
+                .AsNoTracking()
+                .Include(p => p.Itens)
+                .FirstOrDefaultAsync(p =>
+                    p.Id == id);
+
+            if (pedido == null)
+            {
+                return NotFound();
+            }
+
+            if (pedido.Status == StatusPedido.Finalizado ||
+                pedido.Status == StatusPedido.Cancelado)
+            {
+                TempData["Erro"] =
+                    "Pedidos finalizados ou cancelados não podem ser editados.";
+
+                return RedirectToAction(
+                    nameof(Detalhes),
+                    new { id });
+            }
+
+            await CarregarEstabelecimento();
+
+            return View(pedido);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Editar(
+            int id,
+            List<int> itemIds,
+            List<int> quantidades)
+        {
+            var usuario =
+                await _userManager.GetUserAsync(User);
+
+            if (usuario == null ||
+                !usuario.Ativo ||
+                usuario.Perfil != PerfilUsuario.Administrador)
+            {
+                return RedirectToAction(
+                    "AcessoNegado",
+                    "Conta");
+            }
+
+            var pedido = await _context.Pedidos
+                .Include(p => p.Cliente)
+                .Include(p => p.Itens)
+                .FirstOrDefaultAsync(p =>
+                    p.Id == id);
+
+            if (pedido == null)
+            {
+                return NotFound();
+            }
+
+            if (pedido.Status == StatusPedido.Finalizado ||
+                pedido.Status == StatusPedido.Cancelado)
+            {
+                TempData["Erro"] =
+                    "Pedidos finalizados ou cancelados não podem ser editados.";
+
+                return RedirectToAction(
+                    nameof(Detalhes),
+                    new { id });
+            }
+
+            if (itemIds == null ||
+                quantidades == null ||
+                itemIds.Count == 0 ||
+                itemIds.Count != quantidades.Count)
+            {
+                TempData["Erro"] =
+                    "Não foi possível identificar os itens do pedido.";
+
+                return RedirectToAction(
+                    nameof(Editar),
+                    new { id });
+            }
+
+            var quantidadesPorItem =
+                new Dictionary<int, int>();
+
+            for (int i = 0;
+                 i < itemIds.Count;
+                 i++)
+            {
+                if (quantidades[i] < 0)
+                {
+                    TempData["Erro"] =
+                        "A quantidade dos itens não pode ser negativa.";
+
+                    return RedirectToAction(
+                        nameof(Editar),
+                        new { id });
+                }
+
+                quantidadesPorItem[itemIds[i]] =
+                    quantidades[i];
+            }
+
+            if (pedido.Itens.Any(item =>
+                    !quantidadesPorItem.ContainsKey(item.Id)))
+            {
+                TempData["Erro"] =
+                    "A lista de itens recebida está incompleta.";
+
+                return RedirectToAction(
+                    nameof(Editar),
+                    new { id });
+            }
+
+            decimal novoSubtotal = 0m;
+
+            foreach (var item in pedido.Itens)
+            {
+                int novaQuantidade =
+                    quantidadesPorItem[item.Id];
+
+                if (novaQuantidade > 0)
+                {
+                    novoSubtotal +=
+                        item.PrecoUnitario *
+                        novaQuantidade;
+                }
+            }
+
+            if (novoSubtotal <= 0)
+            {
+                TempData["Erro"] =
+                    "O pedido precisa ter pelo menos um item com quantidade maior que zero.";
+
+                return RedirectToAction(
+                    nameof(Editar),
+                    new { id });
+            }
+
+            decimal novoTotal =
+                novoSubtotal +
+                pedido.TaxaEntrega -
+                pedido.Desconto;
+
+            if (novoTotal < 0)
+            {
+                novoTotal = 0;
+            }
+
+            if (novoTotal < pedido.ValorPago)
+            {
+                TempData["Erro"] =
+                    $"O novo total ({novoTotal:C2}) não pode ser menor que o valor já pago ({pedido.ValorPago:C2}).";
+
+                return RedirectToAction(
+                    nameof(Editar),
+                    new { id });
+            }
+
+            decimal totalAnterior =
+                pedido.Total;
+
+            decimal diferenca =
+                novoTotal -
+                totalAnterior;
+
+            await using var transacao =
+                await _context.Database
+                    .BeginTransactionAsync();
+
+            try
+            {
+                foreach (var item in
+                         pedido.Itens.ToList())
+                {
+                    int novaQuantidade =
+                        quantidadesPorItem[item.Id];
+
+                    if (novaQuantidade == 0)
+                    {
+                        _context.ItensPedido
+                            .Remove(item);
+
+                        continue;
+                    }
+
+                    item.Quantidade =
+                        novaQuantidade;
+
+                    item.Subtotal =
+                        item.PrecoUnitario *
+                        novaQuantidade;
+                }
+
+                pedido.Subtotal =
+                    novoSubtotal;
+
+                pedido.Total =
+                    novoTotal;
+
+                var debito = await _context
+                    .MovimentacoesFinanceiras
+                    .FirstOrDefaultAsync(m =>
+                        m.PedidoId == pedido.Id &&
+                        m.Tipo ==
+                            TipoMovimentacaoFinanceira.Debito);
+
+                if (debito != null)
+                {
+                    debito.Valor =
+                        novoTotal;
+
+                    debito.Observacao =
+                        $"Débito do pedido #{pedido.Id} atualizado após edição do pedido.";
+
+                    if (pedido.Cliente != null &&
+                        diferenca != 0)
+                    {
+                        pedido.Cliente.SaldoDevedor =
+                            Math.Max(
+                                0m,
+                                pedido.Cliente.SaldoDevedor +
+                                diferenca);
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                await transacao.CommitAsync();
+
+                TempData["Sucesso"] =
+                    $"Pedido #{pedido.Id} atualizado. Confira os dados antes de imprimir.";
+
+                return RedirectToAction(
+                    nameof(Detalhes),
+                    new { id = pedido.Id });
+            }
+            catch
+            {
+                await transacao.RollbackAsync();
+
+                TempData["Erro"] =
+                    "Não foi possível editar o pedido. Nenhuma alteração foi salva.";
+
+                return RedirectToAction(
+                    nameof(Editar),
+                    new { id });
+            }
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AlterarStatus(

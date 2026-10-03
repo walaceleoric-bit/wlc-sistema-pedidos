@@ -1,0 +1,554 @@
+﻿@using WlcSistemaPedidos.Models
+@model Pedido
+
+@{
+    Layout = null;
+    ViewData["Title"] = $"Editar pedido #{Model.Id}";
+
+    string nomeEstabelecimento =
+        ViewBag.NomeEstabelecimento
+        ?? "Sistema de Pedidos";
+
+    string logoEstabelecimento =
+        ViewBag.LogoEstabelecimento
+        ?? "/images/logo-wlc.png";
+}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>Editar pedido #@Model.Id - @nomeEstabelecimento</title>
+
+    <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                font-family: Arial, Helvetica, sans-serif;
+                background: #f5f5f5;
+                color: #292929;
+            }
+
+            .topo {
+                background: #ffffff;
+                border-bottom: 3px solid #f58220;
+                padding: 12px 20px;
+            }
+
+            .marca {
+                max-width: 900px;
+                margin: auto;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+                .marca img {
+                    width: 58px;
+                    height: 58px;
+                    object-fit: contain;
+                }
+
+                .marca strong {
+                    display: block;
+                    font-size: 17px;
+                }
+
+                .marca span {
+                    display: block;
+                    color: #777;
+                    font-size: 12px;
+                    margin-top: 3px;
+                }
+
+            .container {
+                max-width: 900px;
+                margin: 30px auto;
+                padding: 0 20px 40px;
+            }
+
+            .voltar {
+                display: inline-flex;
+                margin-bottom: 15px;
+                color: #e66f00;
+                text-decoration: none;
+                font-weight: bold;
+                font-size: 13px;
+            }
+
+            .card {
+                background: #ffffff;
+                border: 1px solid #e5e5e5;
+                border-radius: 14px;
+                overflow: hidden;
+            }
+
+            .cabecalho {
+                padding: 22px 24px;
+                border-bottom: 1px solid #eeeeee;
+            }
+
+                .cabecalho h1 {
+                    margin: 0 0 5px;
+                    font-size: 25px;
+                }
+
+                .cabecalho p {
+                    margin: 0;
+                    color: #777;
+                    font-size: 13px;
+                }
+
+            .aviso {
+                margin: 20px 24px 0;
+                padding: 13px 15px;
+                border-radius: 9px;
+                background: #fff8f1;
+                border: 1px solid #f6d5b8;
+                color: #6f4a2a;
+                font-size: 13px;
+                line-height: 1.5;
+            }
+
+            .erro {
+                margin: 20px 24px 0;
+                padding: 13px 15px;
+                border-radius: 9px;
+                background: #fff1f0;
+                border: 1px solid #f3c7c3;
+                color: #b42318;
+                font-size: 13px;
+                font-weight: bold;
+            }
+
+            .cliente {
+                padding: 20px 24px 5px;
+            }
+
+                .cliente strong {
+                    display: block;
+                    font-size: 15px;
+                }
+
+                .cliente span {
+                    display: block;
+                    margin-top: 4px;
+                    color: #777;
+                    font-size: 12px;
+                }
+
+            .itens {
+                padding: 15px 24px 5px;
+            }
+
+            .item {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) 130px 150px;
+                gap: 18px;
+                align-items: center;
+                padding: 15px 0;
+                border-bottom: 1px solid #eeeeee;
+            }
+
+                .item:last-child {
+                    border-bottom: 0;
+                }
+
+            .produto strong {
+                display: block;
+                margin-bottom: 4px;
+            }
+
+            .produto span {
+                color: #777;
+                font-size: 12px;
+            }
+
+            .quantidade label {
+                display: block;
+                margin-bottom: 5px;
+                font-size: 12px;
+                font-weight: bold;
+            }
+
+            .quantidade input {
+                width: 100%;
+                height: 42px;
+                padding: 0 10px;
+                border: 1px solid #cccccc;
+                border-radius: 8px;
+                font-size: 15px;
+                text-align: center;
+            }
+
+            .subtotal {
+                text-align: right;
+            }
+
+                .subtotal span {
+                    display: block;
+                    color: #777;
+                    font-size: 11px;
+                    margin-bottom: 4px;
+                }
+
+                .subtotal strong {
+                    font-size: 15px;
+                }
+
+            .resumo {
+                margin: 15px 24px 0;
+                padding: 18px;
+                background: #fafafa;
+                border-radius: 10px;
+            }
+
+            .linha-resumo {
+                display: flex;
+                justify-content: space-between;
+                gap: 20px;
+                padding: 5px 0;
+                font-size: 13px;
+            }
+
+                .linha-resumo.total {
+                    margin-top: 7px;
+                    padding-top: 12px;
+                    border-top: 1px solid #dddddd;
+                    font-size: 20px;
+                    font-weight: 900;
+                }
+
+                    .linha-resumo.total strong {
+                        color: #f58220;
+                    }
+
+            .acoes {
+                padding: 22px 24px 25px;
+                display: flex;
+                justify-content: flex-end;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+
+            .btn {
+                min-height: 44px;
+                padding: 0 18px;
+                border-radius: 8px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                text-decoration: none;
+                font-weight: bold;
+                font-family: inherit;
+                font-size: 13px;
+                cursor: pointer;
+            }
+
+            .btn-cancelar {
+                border: 1px solid #f58220;
+                background: #ffffff;
+                color: #e66f00;
+            }
+
+            .btn-salvar {
+                border: 0;
+                background: #f58220;
+                color: #ffffff;
+            }
+
+            footer {
+                text-align: center;
+                padding: 22px;
+                color: #777;
+                font-size: 12px;
+            }
+
+                footer strong {
+                    color: #f58220;
+                }
+
+            @@media (max-width: 650px) {
+                .item {
+                    grid-template-columns: 1fr;
+                    gap: 10px;
+                }
+
+                .subtotal {
+                    text-align: left;
+                }
+
+                .acoes {
+                    flex-direction: column-reverse;
+                }
+
+                .btn {
+                    width: 100%;
+                }
+            }
+    </style>
+</head>
+
+<body>
+
+    <header class="topo">
+        <div class="marca">
+            <img src="@logoEstabelecimento"
+                 alt="@nomeEstabelecimento" />
+
+            <div>
+                <strong>@nomeEstabelecimento</strong>
+                <span>Edição do pedido</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <a asp-controller="Pedidos"
+           asp-action="Index"
+           class="voltar">
+            ← Voltar para pedidos
+        </a>
+
+        <section class="card">
+
+            <div class="cabecalho">
+                <h1>Editar pedido #@Model.Id</h1>
+                <p>
+                    Ajuste somente as quantidades que realmente serão entregues.
+                </p>
+            </div>
+
+            @if (TempData["Erro"] != null)
+            {
+                <div class="erro">
+                    @TempData["Erro"]
+                </div>
+            }
+
+            <div class="aviso">
+                <strong>Importante:</strong>
+                coloque <strong>0</strong> para retirar um item do pedido.
+                Ao salvar, o subtotal, o total e o financeiro serão recalculados.
+            </div>
+
+            <div class="cliente">
+                <strong>@Model.NomeCliente</strong>
+                <span>
+                    Pedido realizado em
+                    @(Model.DataPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))
+                </span>
+            </div>
+
+            <form asp-controller="Pedidos"
+                  asp-action="Editar"
+                  asp-route-id="@Model.Id"
+                  method="post"
+                  id="form-editar-pedido">
+
+                @Html.AntiForgeryToken()
+
+                <div class="itens">
+
+                    @foreach (var item in Model.Itens.OrderBy(i => i.Id))
+                    {
+                        <div class="item"
+                             data-preco="@item.PrecoUnitario.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+
+                            <input type="hidden"
+                                   name="itemIds"
+                                   value="@item.Id" />
+
+                            <div class="produto">
+                                <strong>@item.NomeProduto</strong>
+                                <span>
+                                    @item.PrecoUnitario.ToString("C2") cada
+                                </span>
+                            </div>
+
+                            <div class="quantidade">
+                                <label>
+                                    Quantidade
+                                </label>
+
+                                <input type="number"
+                                       name="quantidades"
+                                       value="@item.Quantidade"
+                                       min="0"
+                                       step="1"
+                                       required
+                                       class="campo-quantidade" />
+                            </div>
+
+                            <div class="subtotal">
+                                <span>Subtotal do item</span>
+                                <strong class="subtotal-item">
+                                    @item.Subtotal.ToString("C2")
+                                </strong>
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+
+                <div class="resumo">
+
+                    <div class="linha-resumo">
+                        <span>Subtotal</span>
+                        <strong id="subtotal-pedido">
+                            @Model.Subtotal.ToString("C2")
+                        </strong>
+                    </div>
+
+                    @if (Model.TaxaEntrega != 0)
+                    {
+                        <div class="linha-resumo">
+                            <span>Taxa de entrega</span>
+                            <strong>
+                                @Model.TaxaEntrega.ToString("C2")
+                            </strong>
+                        </div>
+                    }
+
+                    @if (Model.Desconto != 0)
+                    {
+                        <div class="linha-resumo">
+                            <span>Desconto</span>
+                            <strong>
+                                - @Model.Desconto.ToString("C2")
+                            </strong>
+                        </div>
+                    }
+
+                    <div class="linha-resumo total">
+                        <span>Novo total</span>
+                        <strong id="total-pedido">
+                            @Model.Total.ToString("C2")
+                        </strong>
+                    </div>
+
+                </div>
+
+                <div class="acoes">
+
+                    <a asp-controller="Pedidos"
+                       asp-action="Index"
+                       class="btn btn-cancelar">
+                        Cancelar
+                    </a>
+
+                    <button type="submit"
+                            class="btn btn-salvar">
+                        Salvar e conferir pedido
+                    </button>
+
+                </div>
+
+            </form>
+
+        </section>
+
+    </main>
+
+    <footer>
+        Desenvolvido por <strong>WLC Sistemas</strong>
+    </footer>
+
+    <script>
+            const taxaEntrega =
+                    @Model.TaxaEntrega.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+            const desconto =
+                    @Model.Desconto.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+            const moeda =
+                new Intl.NumberFormat(
+                    "pt-BR",
+                    {
+                        style: "currency",
+                        currency: "BRL"
+                    });
+
+            function recalcularPedido() {
+
+                let subtotalPedido = 0;
+
+                document
+                    .querySelectorAll(".item")
+                    .forEach(function (linha) {
+
+                        const preco =
+                            Number(
+                                linha.dataset.preco);
+
+                        const campoQuantidade =
+                            linha.querySelector(
+                                ".campo-quantidade");
+
+                        let quantidade =
+                            Number(
+                                campoQuantidade.value);
+
+                        if (!Number.isFinite(quantidade) ||
+                            quantidade < 0) {
+                            quantidade = 0;
+                        }
+
+                        quantidade =
+                            Math.floor(quantidade);
+
+                        const subtotalItem =
+                            preco * quantidade;
+
+                        subtotalPedido +=
+                            subtotalItem;
+
+                        linha
+                            .querySelector(".subtotal-item")
+                            .textContent =
+                            moeda.format(
+                                subtotalItem);
+                    });
+
+                let total =
+                    subtotalPedido +
+                    taxaEntrega -
+                    desconto;
+
+                if (total < 0) {
+                    total = 0;
+                }
+
+                document
+                    .getElementById("subtotal-pedido")
+                    .textContent =
+                    moeda.format(
+                        subtotalPedido);
+
+                document
+                    .getElementById("total-pedido")
+                    .textContent =
+                    moeda.format(
+                        total);
+            }
+
+            document
+                .querySelectorAll(".campo-quantidade")
+                .forEach(function (campo) {
+
+                    campo.addEventListener(
+                        "input",
+                        recalcularPedido);
+                });
+    </script>
+
+</body>
+</html>
