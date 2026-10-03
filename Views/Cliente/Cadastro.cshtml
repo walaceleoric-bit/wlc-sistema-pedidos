@@ -162,6 +162,25 @@
                 font-size: 11px;
             }
 
+            .status-cep {
+                margin-top: 6px;
+                font-size: 12px;
+                line-height: 1.4;
+                min-height: 17px;
+            }
+
+                .status-cep.buscando {
+                    color: #777777;
+                }
+
+                .status-cep.sucesso {
+                    color: #18794e;
+                }
+
+                .status-cep.erro {
+                    color: #b42318;
+                }
+
             .btn-cadastrar {
                 width: 100%;
                 height: 52px;
@@ -408,6 +427,11 @@
                                inputmode="numeric"
                                autocomplete="postal-code" />
 
+                        <div id="status-cep"
+                             class="status-cep"
+                             aria-live="polite">
+                        </div>
+
                     </div>
 
                     <div class="form-group">
@@ -460,6 +484,157 @@
         </div>
 
     </div>
+
+    <script>
+            const campoCep =
+                document.getElementById("cep");
+
+            const campoEndereco =
+                document.getElementById("endereco");
+
+            const campoBairro =
+                document.getElementById("bairro");
+
+            const campoCidade =
+                document.getElementById("cidade");
+
+            const campoNumero =
+                document.getElementById("numero");
+
+            const statusCep =
+                document.getElementById("status-cep");
+
+            let ultimaBuscaCep = "";
+
+            function somenteNumeros(valor) {
+                return valor.replace(/\D/g, "");
+            }
+
+            function formatarCep(valor) {
+                const numeros =
+                    somenteNumeros(valor).slice(0, 8);
+
+                if (numeros.length <= 5) {
+                    return numeros;
+                }
+
+                return numeros.slice(0, 5) +
+                    "-" +
+                    numeros.slice(5);
+            }
+
+            function mostrarStatusCep(
+                mensagem,
+                tipo) {
+
+                statusCep.textContent =
+                    mensagem;
+
+                statusCep.className =
+                    "status-cep" +
+                    (tipo ? " " + tipo : "");
+            }
+
+            async function buscarCep() {
+
+                const cep =
+                    somenteNumeros(
+                        campoCep.value);
+
+                if (cep.length !== 8) {
+                    ultimaBuscaCep = "";
+                    mostrarStatusCep("", "");
+                    return;
+                }
+
+                if (cep === ultimaBuscaCep) {
+                    return;
+                }
+
+                ultimaBuscaCep = cep;
+
+                mostrarStatusCep(
+                    "Buscando endereço...",
+                    "buscando");
+
+                try {
+
+                    const resposta =
+                        await fetch(
+                            "https://viacep.com.br/ws/" +
+                            cep +
+                            "/json/");
+
+                    if (!resposta.ok) {
+                        throw new Error(
+                            "Não foi possível consultar o CEP.");
+                    }
+
+                    const dados =
+                        await resposta.json();
+
+                    if (dados.erro) {
+                        mostrarStatusCep(
+                            "CEP não encontrado. Confira o número informado.",
+                            "erro");
+
+                        return;
+                    }
+
+                    if (dados.logradouro) {
+                        campoEndereco.value =
+                            dados.logradouro;
+                    }
+
+                    if (dados.bairro) {
+                        campoBairro.value =
+                            dados.bairro;
+                    }
+
+                    if (dados.localidade) {
+                        campoCidade.value =
+                            dados.localidade;
+                    }
+
+                    mostrarStatusCep(
+                        "Endereço encontrado. Informe o número e confira os dados.",
+                        "sucesso");
+
+                    campoNumero.focus();
+                }
+                catch (erro) {
+
+                    ultimaBuscaCep = "";
+
+                    mostrarStatusCep(
+                        "Não foi possível buscar o CEP agora. Você pode preencher o endereço manualmente.",
+                        "erro");
+                }
+            }
+
+            campoCep.addEventListener(
+                "input",
+                function () {
+
+                    campoCep.value =
+                        formatarCep(
+                            campoCep.value);
+
+                    if (somenteNumeros(
+                        campoCep.value).length === 8) {
+
+                        buscarCep();
+                    }
+                    else {
+                        ultimaBuscaCep = "";
+                        mostrarStatusCep("", "");
+                    }
+                });
+
+            campoCep.addEventListener(
+                "blur",
+                buscarCep);
+    </script>
 
 </body>
 

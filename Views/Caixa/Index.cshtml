@@ -40,6 +40,21 @@
             as IEnumerable<CategoriaGasto>
         ?? Enumerable.Empty<CategoriaGasto>();
 
+    var gastosPorCategoria =
+        ((IEnumerable<dynamic>)(ViewBag.GastosPorCategoria
+            ?? Enumerable.Empty<dynamic>()))
+        .Select(g => new
+        {
+            Categoria = (string)g.Categoria,
+            Total = (decimal)g.Total
+        })
+        .ToList();
+
+    decimal maiorGastoCategoria =
+        gastosPorCategoria.Any()
+            ? gastosPorCategoria.Max(g => g.Total)
+            : 0m;
+
     var cultura =
         new System.Globalization.CultureInfo("pt-BR");
 }
@@ -63,16 +78,16 @@
             margin-bottom: 25px;
         }
 
-        .cabecalho h1 {
-            font-size: 27px;
-            margin: 0 0 6px 0;
-        }
+            .cabecalho h1 {
+                font-size: 27px;
+                margin: 0 0 6px 0;
+            }
 
-        .cabecalho p {
-            color: #777777;
-            font-size: 14px;
-            margin: 0;
-        }
+            .cabecalho p {
+                color: #777777;
+                font-size: 14px;
+                margin: 0;
+            }
 
         .btn-imprimir {
             border: none;
@@ -105,8 +120,8 @@
         }
 
         /* ==========================================
-           PERÍODOS
-           ========================================== */
+                   PERÍODOS
+                   ========================================== */
 
         .periodos {
             display: flex;
@@ -126,10 +141,10 @@
             font-weight: bold;
         }
 
-        .periodo:hover {
-            border-color: #f57c00;
-            color: #f57c00;
-        }
+            .periodo:hover {
+                border-color: #f57c00;
+                color: #f57c00;
+            }
 
         .periodo-ativo {
             background: #f57c00;
@@ -137,13 +152,13 @@
             color: #ffffff;
         }
 
-        .periodo-ativo:hover {
-            color: #ffffff;
-        }
+            .periodo-ativo:hover {
+                color: #ffffff;
+            }
 
         /* ==========================================
-           RESUMO FINANCEIRO
-           ========================================== */
+                   RESUMO FINANCEIRO
+                   ========================================== */
 
         .resumo-financeiro {
             margin-bottom: 28px;
@@ -153,9 +168,9 @@
             margin-bottom: 20px;
         }
 
-        .resumo-bloco:last-child {
-            margin-bottom: 0;
-        }
+            .resumo-bloco:last-child {
+                margin-bottom: 0;
+            }
 
         .resumo-titulo {
             font-size: 14px;
@@ -179,25 +194,25 @@
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
         }
 
-        .card-resumo span {
-            display: block;
-            color: #777777;
-            font-size: 13px;
-            margin-bottom: 8px;
-        }
+            .card-resumo span {
+                display: block;
+                color: #777777;
+                font-size: 13px;
+                margin-bottom: 8px;
+            }
 
-        .card-resumo strong {
-            display: block;
-            font-size: 25px;
-        }
+            .card-resumo strong {
+                display: block;
+                font-size: 25px;
+            }
 
-        .card-resumo small {
-            display: block;
-            color: #999999;
-            font-size: 11px;
-            line-height: 1.4;
-            margin-top: 8px;
-        }
+            .card-resumo small {
+                display: block;
+                color: #999999;
+                font-size: 11px;
+                line-height: 1.4;
+                margin-top: 8px;
+            }
 
         .valor-registrado {
             color: #207a3c;
@@ -224,8 +239,151 @@
         }
 
         /* ==========================================
-           CATEGORIAS
-           ========================================== */
+                   ANÁLISE DE GASTOS
+                   ========================================== */
+
+        .analise-gastos {
+            background: #ffffff;
+            border: 1px solid #eeeeee;
+            border-radius: 13px;
+            padding: 22px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+        }
+
+        .analise-topo {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 22px;
+        }
+
+            .analise-topo h2 {
+                margin: 0 0 5px 0;
+                font-size: 19px;
+            }
+
+            .analise-topo p {
+                margin: 0;
+                color: #777777;
+                font-size: 12px;
+            }
+
+        .analise-periodo {
+            background: #fff4e8;
+            color: #d96600;
+            border-radius: 20px;
+            padding: 7px 12px;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .grafico-barras {
+            display: flex;
+            flex-direction: column;
+            gap: 13px;
+            margin-bottom: 25px;
+        }
+
+        .barra-item {
+            display: grid;
+            grid-template-columns: 170px minmax(0, 1fr) 120px;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .barra-categoria {
+            font-size: 13px;
+            font-weight: bold;
+            color: #444444;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .barra-trilho {
+            height: 22px;
+            background: #f1f1f1;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .barra-preenchimento {
+            height: 100%;
+            min-width: 4px;
+            border-radius: 20px;
+            background: linear-gradient(90deg, #f57c00, #ff9b3d);
+        }
+
+        .barra-valor {
+            text-align: right;
+            font-size: 13px;
+            font-weight: bold;
+            color: #b42318;
+        }
+
+        .resumo-categorias {
+            border-top: 1px solid #eeeeee;
+            padding-top: 18px;
+        }
+
+            .resumo-categorias h3 {
+                margin: 0 0 12px 0;
+                font-size: 15px;
+            }
+
+        .resumo-categoria-linha {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            padding: 9px 0;
+            border-bottom: 1px solid #f1f1f1;
+            font-size: 13px;
+        }
+
+            .resumo-categoria-linha strong {
+                color: #b42318;
+            }
+
+        .total-gastos-destaque {
+            margin-top: 14px;
+            padding: 16px 18px;
+            border-radius: 10px;
+            background: #fff4e8;
+            border: 1px solid #ffd8b5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+            .total-gastos-destaque span {
+                font-size: 14px;
+                font-weight: bold;
+                color: #555555;
+            }
+
+            .total-gastos-destaque strong {
+                font-size: 22px;
+                color: #b42318;
+            }
+
+        .sem-gastos-analise {
+            padding: 28px 15px;
+            text-align: center;
+            color: #777777;
+            font-size: 13px;
+            background: #fafafa;
+            border-radius: 9px;
+        }
+
+        /* ==========================================
+                   CATEGORIAS
+                   ========================================== */
 
         .categorias-box {
             background: #ffffff;
@@ -243,15 +401,15 @@
             margin-bottom: 15px;
         }
 
-        .categorias-topo h2 {
-            margin: 0;
-            font-size: 18px;
-        }
+            .categorias-topo h2 {
+                margin: 0;
+                font-size: 18px;
+            }
 
-        .categorias-topo span {
-            color: #888888;
-            font-size: 12px;
-        }
+            .categorias-topo span {
+                color: #888888;
+                font-size: 12px;
+            }
 
         .form-categoria {
             display: flex;
@@ -269,10 +427,10 @@
             outline: none;
         }
 
-        .campo-categoria:focus {
-            border-color: #f57c00;
-            box-shadow: 0 0 0 3px rgba(245, 124, 0, .10);
-        }
+            .campo-categoria:focus {
+                border-color: #f57c00;
+                box-shadow: 0 0 0 3px rgba(245, 124, 0, .10);
+            }
 
         .btn-adicionar-categoria {
             height: 42px;
@@ -322,9 +480,9 @@
             padding: 0;
         }
 
-        .btn-excluir-categoria:hover {
-            background: #fff0f0;
-        }
+            .btn-excluir-categoria:hover {
+                background: #fff0f0;
+            }
 
         .sem-categoria {
             color: #777777;
@@ -333,8 +491,8 @@
         }
 
         /* ==========================================
-           NOVO GASTO
-           ========================================== */
+                   NOVO GASTO
+                   ========================================== */
 
         .novo-gasto {
             background: #ffffff;
@@ -344,10 +502,10 @@
             margin-bottom: 25px;
         }
 
-        .novo-gasto h2 {
-            font-size: 18px;
-            margin: 0 0 17px 0;
-        }
+            .novo-gasto h2 {
+                font-size: 18px;
+                margin: 0 0 17px 0;
+            }
 
         .form-gasto {
             display: grid;
@@ -366,10 +524,10 @@
             background: #ffffff;
         }
 
-        .campo:focus {
-            border-color: #f57c00;
-            box-shadow: 0 0 0 3px rgba(245, 124, 0, .10);
-        }
+            .campo:focus {
+                border-color: #f57c00;
+                box-shadow: 0 0 0 3px rgba(245, 124, 0, .10);
+            }
 
         .btn-registrar {
             height: 44px;
@@ -382,13 +540,13 @@
             cursor: pointer;
         }
 
-        .btn-registrar:hover {
-            background: #e66f00;
-        }
+            .btn-registrar:hover {
+                background: #e66f00;
+            }
 
         /* ==========================================
-           TABELA
-           ========================================== */
+                   TABELA
+                   ========================================== */
 
         .titulo-lista {
             margin: 0 0 12px 0;
@@ -456,8 +614,8 @@
         }
 
         /* ==========================================
-           PAGINAÇÃO
-           ========================================== */
+                   PAGINAÇÃO
+                   ========================================== */
 
         .paginacao {
             display: flex;
@@ -483,10 +641,10 @@
             font-size: 13px;
         }
 
-        .pagina:hover {
-            border-color: #f57c00;
-            color: #f57c00;
-        }
+            .pagina:hover {
+                border-color: #f57c00;
+                color: #f57c00;
+            }
 
         .pagina-atual {
             background: #f57c00;
@@ -495,8 +653,8 @@
         }
 
         /* ==========================================
-           RESPONSIVO
-           ========================================== */
+                   RESPONSIVO
+                   ========================================== */
 
         @@media (max-width: 900px) {
 
@@ -506,6 +664,10 @@
 
             .form-gasto {
                 grid-template-columns: 1fr;
+            }
+
+            .barra-item {
+                grid-template-columns: 140px minmax(0, 1fr) 105px;
             }
         }
 
@@ -527,11 +689,30 @@
             .btn-adicionar-categoria {
                 width: 100%;
             }
+
+            .analise-topo {
+                flex-direction: column;
+            }
+
+            .barra-item {
+                grid-template-columns: 1fr;
+                gap: 5px;
+            }
+
+            .barra-valor {
+                text-align: left;
+            }
+
+            .total-gastos-destaque {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 6px;
+            }
         }
 
         /* ==========================================
-           IMPRESSÃO
-           ========================================== */
+                   IMPRESSÃO
+                   ========================================== */
 
         @@media print {
 
@@ -756,6 +937,108 @@
             </div>
 
         </div>
+
+    </section>
+
+    <!-- ==========================================
+         ANÁLISE DE GASTOS POR CATEGORIA
+         ========================================== -->
+
+    <section class="analise-gastos">
+
+        <div class="analise-topo">
+
+            <div>
+                <h2>Gastos por categoria</h2>
+                <p>
+                    Veja onde o dinheiro foi gasto no período selecionado.
+                </p>
+            </div>
+
+            <div class="analise-periodo">
+                @(periodo == "hoje"
+                    ? "Hoje"
+                    : periodo == "semana"
+                        ? "Esta semana"
+                        : "Este mês")
+            </div>
+
+        </div>
+
+        @if (gastosPorCategoria.Any())
+        {
+            <div class="grafico-barras">
+
+                @foreach (var item in gastosPorCategoria)
+                {
+                    decimal percentual =
+                        maiorGastoCategoria > 0
+                            ? (item.Total / maiorGastoCategoria) * 100m
+                            : 0m;
+
+                    <div class="barra-item">
+
+                        <div class="barra-categoria"
+                             title="@item.Categoria">
+                            @item.Categoria
+                        </div>
+
+                        <div class="barra-trilho">
+                            <div class="barra-preenchimento"
+                                 style="width: @percentual.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)%;">
+                            </div>
+                        </div>
+
+                        <div class="barra-valor">
+                            @item.Total.ToString("C2", cultura)
+                        </div>
+
+                    </div>
+                }
+
+            </div>
+
+            <div class="resumo-categorias">
+
+                <h3>
+                    Resumo por categoria
+                </h3>
+
+                @foreach (var item in gastosPorCategoria)
+                {
+                    <div class="resumo-categoria-linha">
+
+                        <span>
+                            @item.Categoria
+                        </span>
+
+                        <strong>
+                            @item.Total.ToString("C2", cultura)
+                        </strong>
+
+                    </div>
+                }
+
+                <div class="total-gastos-destaque">
+
+                    <span>
+                        TOTAL DE TODOS OS GASTOS
+                    </span>
+
+                    <strong>
+                        @totalGastos.ToString("C2", cultura)
+                    </strong>
+
+                </div>
+
+            </div>
+        }
+        else
+        {
+            <div class="sem-gastos-analise">
+                Nenhum gasto registrado no período selecionado.
+            </div>
+        }
 
     </section>
 
@@ -992,7 +1275,6 @@
     <!-- ==========================================
          PAGINAÇÃO
          ========================================== -->
-
     @if (totalPaginas > 1)
     {
         <div class="paginacao">
