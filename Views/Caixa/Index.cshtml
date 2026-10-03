@@ -89,6 +89,35 @@
                 margin: 0;
             }
 
+        .cabecalho-acoes {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-agenda {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            border: 1px solid #ffd8b5;
+            background: #fff4e8;
+            color: #d96600;
+            padding: 12px 18px;
+            border-radius: 9px;
+            font-size: 14px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: all .18s ease;
+        }
+
+        .btn-agenda:hover {
+            background: #f57c00;
+            border-color: #f57c00;
+            color: #ffffff;
+        }
+
         .btn-imprimir {
             border: none;
             background: #333333;
@@ -717,6 +746,7 @@
         @@media print {
 
             .admin-topo,
+            .btn-agenda,
             .btn-imprimir,
             .novo-gasto,
             .categorias-box,
@@ -775,11 +805,21 @@
 
         </div>
 
-        <button type="button"
-                class="btn-imprimir"
-                onclick="window.print()">
-            🖨 Imprimir
-        </button>
+        <div class="cabecalho-acoes">
+
+            <a asp-controller="AgendaPagamentos"
+               asp-action="Index"
+               class="btn-agenda">
+                📅 Agenda de pagamentos
+            </a>
+
+            <button type="button"
+                    class="btn-imprimir"
+                    onclick="window.print()">
+                🖨 Imprimir
+            </button>
+
+        </div>
 
     </div>
 

@@ -1,0 +1,1096 @@
+﻿@using WlcSistemaPedidos.Models
+@model IEnumerable<AgendamentoPagamento>
+
+@{
+    ViewData["Title"] = "Agenda de Pagamentos";
+
+    var categorias =
+        ViewBag.CategoriasGastos
+            as IEnumerable<CategoriaGasto>
+        ?? Enumerable.Empty<CategoriaGasto>();
+
+    var hoje =
+        ViewBag.Hoje is DateTime dataHoje
+            ? dataHoje.Date
+            : DateTime.Today;
+
+    var amanha = hoje.AddDays(1);
+
+    DateTime DataLocal(AgendamentoPagamento item)
+    {
+        var utc =
+            item.DataVencimento.Kind == DateTimeKind.Utc
+                ? item.DataVencimento
+                : DateTime.SpecifyKind(
+                    item.DataVencimento,
+                    DateTimeKind.Utc);
+
+        try
+        {
+            var fuso =
+                TimeZoneInfo.FindSystemTimeZoneById(
+                    "America/Sao_Paulo");
+
+            return TimeZoneInfo.ConvertTimeFromUtc(
+                utc,
+                fuso);
+        }
+        catch
+        {
+            try
+            {
+                var fuso =
+                    TimeZoneInfo.FindSystemTimeZoneById(
+                        "E. South America Standard Time");
+
+                return TimeZoneInfo.ConvertTimeFromUtc(
+                    utc,
+                    fuso);
+            }
+            catch
+            {
+                return item.DataVencimento.ToLocalTime();
+            }
+        }
+    }
+
+    var lista = Model.ToList();
+
+    var pagamentosHoje =
+        lista
+            .Where(a =>
+                DataLocal(a).Date == hoje)
+            .OrderBy(a => a.Beneficiario)
+            .ToList();
+
+    var pagamentosAmanha =
+        lista
+            .Where(a =>
+                DataLocal(a).Date == amanha)
+            .OrderBy(a => a.Beneficiario)
+            .ToList();
+
+    var inicioProximoMes =
+        new DateTime(
+            hoje.Year,
+            hoje.Month,
+            1)
+        .AddMonths(1);
+
+    var pagamentosMes =
+        lista
+            .Where(a =>
+                DataLocal(a).Date > amanha &&
+                DataLocal(a).Date < inicioProximoMes)
+            .OrderBy(a => DataLocal(a))
+            .ThenBy(a => a.Beneficiario)
+            .ToList();
+
+    var pagamentosFuturos =
+        lista
+            .Where(a =>
+                DataLocal(a).Date >= inicioProximoMes)
+            .OrderBy(a => DataLocal(a))
+            .ThenBy(a => a.Beneficiario)
+            .ToList();
+
+    var totalHoje =
+        pagamentosHoje
+            .Where(a =>
+                a.Ativo &&
+                !a.Pago)
+            .Sum(a => a.Valor);
+
+    var totalAmanha =
+        pagamentosAmanha
+            .Where(a =>
+                a.Ativo &&
+                !a.Pago)
+            .Sum(a => a.Valor);
+
+    var totalMes =
+        lista
+            .Where(a =>
+                a.Ativo &&
+                !a.Pago &&
+                DataLocal(a).Year == hoje.Year &&
+                DataLocal(a).Month == hoje.Month)
+            .Sum(a => a.Valor);
+}
+
+<style>
+    .agenda-pagina {
+        max-width: 1220px;
+        margin: 0 auto;
+        padding: 28px 18px 50px;
+    }
+
+    .agenda-topo {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    .agenda-topo h1 {
+        margin: 0;
+        color: #172033;
+        font-size: 30px;
+        font-weight: 800;
+    }
+
+    .agenda-topo p {
+        margin: 6px 0 0;
+        color: #6b7280;
+    }
+
+    .btn-voltar {
+        padding: 11px 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        background: white;
+        color: #374151;
+        text-decoration: none;
+        font-weight: 700;
+    }
+
+    .alerta {
+        padding: 13px 16px;
+        border-radius: 12px;
+        margin-bottom: 18px;
+        font-weight: 600;
+    }
+
+    .alerta-sucesso {
+        background: #ecfdf5;
+        border: 1px solid #a7f3d0;
+        color: #047857;
+    }
+
+    .alerta-erro {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #b91c1c;
+    }
+
+    .resumo-grid {
+        display: grid;
+        grid-template-columns: 1.35fr 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .resumo-card {
+        background: white;
+        border: 1px solid #e8ebf0;
+        border-radius: 20px;
+        padding: 22px;
+        box-shadow: 0 8px 25px rgba(15,23,42,.06);
+    }
+
+    .resumo-card.hoje {
+        color: white;
+        border: none;
+        background:
+            linear-gradient(
+                135deg,
+                #172033,
+                #34466f);
+    }
+
+    .resumo-icone {
+        font-size: 24px;
+        margin-bottom: 12px;
+    }
+
+    .resumo-label {
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .8px;
+        opacity: .78;
+    }
+
+    .resumo-valor {
+        margin-top: 7px;
+        font-size: 27px;
+        font-weight: 850;
+    }
+
+    .resumo-info {
+        margin-top: 6px;
+        font-size: 13px;
+        opacity: .72;
+    }
+
+    .novo-card {
+        background: white;
+        border: 1px solid #e8ebf0;
+        border-radius: 20px;
+        padding: 22px;
+        margin-bottom: 28px;
+        box-shadow: 0 8px 25px rgba(15,23,42,.05);
+    }
+
+    .novo-card h2 {
+        margin: 0 0 5px;
+        color: #172033;
+        font-size: 20px;
+        font-weight: 800;
+    }
+
+    .novo-card .subtitulo {
+        color: #6b7280;
+        font-size: 13px;
+        margin-bottom: 18px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns:
+            1.2fr 1fr 1.5fr .8fr .9fr;
+        gap: 12px;
+    }
+
+    .campo {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .campo label {
+        color: #4b5563;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .campo input,
+    .campo select {
+        width: 100%;
+        padding: 10px 11px;
+        border: 1px solid #dfe3ea;
+        border-radius: 11px;
+        background: white;
+        color: #111827;
+    }
+
+    .campo-largo {
+        grid-column: span 3;
+    }
+
+    .recorrencia-box {
+        grid-column: span 2;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+    }
+
+    .recorrencia-check {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 13px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .recorrencia-check input {
+        width: 18px;
+        height: 18px;
+    }
+
+    .recorrencia-box select {
+        flex: 1;
+        padding: 8px;
+        border: 1px solid #dfe3ea;
+        border-radius: 9px;
+        background: white;
+    }
+
+    .form-acoes {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 16px;
+    }
+
+    .btn-principal {
+        padding: 11px 18px;
+        border: none;
+        border-radius: 11px;
+        background: #172033;
+        color: white;
+        font-weight: 800;
+        cursor: pointer;
+    }
+
+    .bloco {
+        margin-bottom: 28px;
+    }
+
+    .bloco h2 {
+        margin: 0;
+        color: #172033;
+        font-size: 20px;
+        font-weight: 850;
+    }
+
+    .bloco-subtitulo {
+        margin: 4px 0 13px;
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+    .lista {
+        display: grid;
+        gap: 10px;
+    }
+
+    .pagamento-card {
+        display: grid;
+        grid-template-columns:
+            minmax(220px,1.5fr)
+            minmax(150px,.8fr)
+            minmax(120px,.7fr)
+            auto;
+
+        align-items: center;
+        gap: 14px;
+
+        padding: 16px 17px;
+
+        background: white;
+        border: 1px solid #e8ebf0;
+        border-radius: 16px;
+
+        box-shadow:
+            0 5px 18px rgba(15,23,42,.04);
+    }
+
+    .pagamento-card.inativo {
+        opacity: .62;
+        background: #f9fafb;
+    }
+
+    .pagamento-card.pago {
+        background: #f0fdf4;
+        border-color: #bbf7d0;
+    }
+
+    .pagamento-nome {
+        color: #172033;
+        font-weight: 850;
+    }
+
+    .pagamento-descricao {
+        margin-top: 3px;
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+    .pagamento-meta {
+        color: #64748b;
+        font-size: 13px;
+    }
+
+    .pagamento-meta strong {
+        display: block;
+        margin-bottom: 3px;
+        color: #172033;
+    }
+
+    .pagamento-valor {
+        color: #172033;
+        font-size: 18px;
+        font-weight: 850;
+        white-space: nowrap;
+    }
+
+    .badge {
+        display: inline-block;
+        margin-top: 7px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .badge-recorrente {
+        background: #eef2ff;
+        color: #4338ca;
+    }
+
+    .badge-pausado {
+        background: #f3f4f6;
+        color: #6b7280;
+    }
+
+    .badge-pago {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .acoes {
+        display: flex;
+        justify-content: flex-end;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .acoes form {
+        margin: 0;
+    }
+
+    .btn-acao {
+        padding: 7px 9px;
+        border: 1px solid #e5e7eb;
+        border-radius: 9px;
+        background: white;
+        color: #374151;
+        font-size: 12px;
+        font-weight: 800;
+        cursor: pointer;
+    }
+
+    .btn-pago {
+        color: #15803d;
+        border-color: #bbf7d0;
+        background: #f0fdf4;
+    }
+
+    .btn-excluir {
+        color: #b91c1c;
+        border-color: #fecaca;
+        background: #fff7f7;
+    }
+
+    .vazio {
+        padding: 24px;
+        text-align: center;
+        color: #6b7280;
+        background: white;
+        border: 1px dashed #d7dce3;
+        border-radius: 15px;
+    }
+
+    @@media (max-width: 1000px) {
+        .resumo-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .campo-largo,
+        .recorrencia-box {
+            grid-column: span 2;
+        }
+
+        .pagamento-card {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .acoes {
+            justify-content: flex-start;
+        }
+    }
+
+    @@media (max-width: 650px) {
+        .agenda-topo {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .campo-largo,
+        .recorrencia-box {
+            grid-column: span 1;
+        }
+
+        .recorrencia-box {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .pagamento-card {
+            grid-template-columns: 1fr;
+        }
+
+        .acoes {
+            justify-content: flex-start;
+        }
+    }
+</style>
+
+@functions {
+    string FrequenciaTexto(
+        AgendamentoPagamento item)
+    {
+        if (item.Frequencia ==
+            FrequenciaAgendamentoPagamento.Semanal)
+        {
+            return "Semanal";
+        }
+
+        if (item.Frequencia ==
+            FrequenciaAgendamentoPagamento.Mensal)
+        {
+            return "Mensal";
+        }
+
+        return "";
+    }
+}
+
+<div class="agenda-pagina">
+
+    <div class="agenda-topo">
+
+        <div>
+            <h1>📅 Agenda de Pagamentos</h1>
+            <p>
+                Organize seus compromissos sem misturar
+                contas futuras com gastos já realizados.
+            </p>
+        </div>
+
+        <a asp-controller="Caixa"
+           asp-action="Index"
+           class="btn-voltar">
+            ← Voltar ao Caixa
+        </a>
+
+    </div>
+
+    @if (TempData["SucessoAgenda"] != null)
+    {
+        <div class="alerta alerta-sucesso">
+            @TempData["SucessoAgenda"]
+        </div>
+    }
+
+    @if (TempData["ErroAgenda"] != null)
+    {
+        <div class="alerta alerta-erro">
+            @TempData["ErroAgenda"]
+        </div>
+    }
+
+    <div class="resumo-grid">
+
+        <div class="resumo-card hoje">
+
+            <div class="resumo-icone">☀️</div>
+
+            <div class="resumo-label">
+                Pagamentos de hoje
+            </div>
+
+            <div class="resumo-valor">
+                @totalHoje.ToString(
+                    "C",
+                    new System.Globalization.CultureInfo("pt-BR"))
+            </div>
+
+            <div class="resumo-info">
+                @pagamentosHoje.Count compromisso(s)
+                para @hoje.ToString("dd/MM")
+            </div>
+
+        </div>
+
+        <div class="resumo-card">
+
+            <div class="resumo-icone">⏭️</div>
+
+            <div class="resumo-label">
+                Amanhã
+            </div>
+
+            <div class="resumo-valor">
+                @totalAmanha.ToString(
+                    "C",
+                    new System.Globalization.CultureInfo("pt-BR"))
+            </div>
+
+            <div class="resumo-info">
+                @pagamentosAmanha.Count compromisso(s)
+                para @amanha.ToString("dd/MM")
+            </div>
+
+        </div>
+
+        <div class="resumo-card">
+
+            <div class="resumo-icone">🗓️</div>
+
+            <div class="resumo-label">
+                Total agendado no mês
+            </div>
+
+            <div class="resumo-valor">
+                @totalMes.ToString(
+                    "C",
+                    new System.Globalization.CultureInfo("pt-BR"))
+            </div>
+
+            <div class="resumo-info">
+                Compromissos ativos e pendentes
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="novo-card">
+
+        <h2>+ Novo compromisso</h2>
+
+        <div class="subtitulo">
+            Cadastre uma conta única, semanal ou mensal.
+        </div>
+
+        <form asp-controller="AgendaPagamentos"
+              asp-action="Criar"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
+            <div class="form-grid">
+
+                <div class="campo">
+
+                    <label>
+                        Quem preciso pagar
+                    </label>
+
+                    <input type="text"
+                           name="beneficiario"
+                           maxlength="150"
+                           placeholder="Ex.: Fornecedor Silva"
+                           required />
+
+                </div>
+
+                <div class="campo">
+
+                    <label>Categoria</label>
+
+                    <select name="categoria"
+                            required>
+
+                        <option value="">
+                            Selecione
+                        </option>
+
+                        @foreach (var categoria in categorias)
+                        {
+                            <option value="@categoria.Nome">
+                                @categoria.Nome
+                            </option>
+                        }
+
+                    </select>
+
+                </div>
+
+                <div class="campo">
+
+                    <label>Descrição</label>
+
+                    <input type="text"
+                           name="descricao"
+                           maxlength="250"
+                           placeholder="Ex.: Compra de embalagens"
+                           required />
+
+                </div>
+
+                <div class="campo">
+
+                    <label>Valor</label>
+
+                    <input type="number"
+                           name="valor"
+                           min="0.01"
+                           step="0.01"
+                           placeholder="0,00"
+                           required />
+
+                </div>
+
+                <div class="campo">
+
+                    <label>Vencimento</label>
+
+                    <input type="date"
+                           name="dataVencimento"
+                           value="@hoje.ToString("yyyy-MM-dd")"
+                           required />
+
+                </div>
+
+                <div class="campo campo-largo">
+
+                    <label>Observação</label>
+
+                    <input type="text"
+                           name="observacao"
+                           maxlength="500"
+                           placeholder="Informação opcional sobre este pagamento" />
+
+                </div>
+
+                <div class="recorrencia-box">
+
+                    <label class="recorrencia-check">
+
+                        <input type="checkbox"
+                               id="recorrente"
+                               name="recorrente"
+                               value="true" />
+
+                        Repetir este pagamento
+
+                    </label>
+
+                    <select id="frequencia"
+                            name="frequencia"
+                            disabled>
+
+                        <option value="">
+                            Escolha a frequência
+                        </option>
+
+                        <option value="1">
+                            Semanal
+                        </option>
+
+                        <option value="2">
+                            Mensal
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+            <div class="form-acoes">
+
+                <button type="submit"
+                        class="btn-principal">
+                    + Agendar pagamento
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+    @{
+        async Task MostrarCard(
+            AgendamentoPagamento item)
+        {
+            var data = DataLocal(item);
+
+            var classe = "pagamento-card";
+
+            if (!item.Ativo)
+            {
+                classe += " inativo";
+            }
+
+            if (item.Pago)
+            {
+                classe += " pago";
+            }
+
+            <div class="@classe">
+
+                <div>
+
+                    <div class="pagamento-nome">
+                        @item.Beneficiario
+                    </div>
+
+                    <div class="pagamento-descricao">
+                        @item.Descricao
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(
+                        item.Observacao))
+                    {
+                        <div class="pagamento-descricao">
+                            @item.Observacao
+                        </div>
+                    }
+
+                    @if (item.Recorrente)
+                    {
+                        <span class="badge badge-recorrente">
+                            ↻ @FrequenciaTexto(item)
+                        </span>
+                    }
+
+                    @if (!item.Ativo && !item.Pago)
+                    {
+                        <span class="badge badge-pausado">
+                            Pausado
+                        </span>
+                    }
+
+                    @if (item.Pago)
+                    {
+                        <span class="badge badge-pago">
+                            ✓ Pago
+                        </span>
+                    }
+
+                </div>
+
+                <div class="pagamento-meta">
+
+                    <strong>
+                        @item.Categoria
+                    </strong>
+
+                    Vencimento
+                    @data.ToString("dd/MM/yyyy")
+
+                </div>
+
+                <div class="pagamento-valor">
+
+                    @item.Valor.ToString(
+                        "C",
+                        new System.Globalization.CultureInfo("pt-BR"))
+
+                </div>
+
+                <div class="acoes">
+
+                    @if (!item.Pago)
+                    {
+                        <form asp-controller="AgendaPagamentos"
+                              asp-action="AlternarAtivo"
+                              method="post">
+
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden"
+                                   name="id"
+                                   value="@item.Id" />
+
+                            <button type="submit"
+                                    class="btn-acao">
+                                @(item.Ativo
+                                    ? "Pausar"
+                                    : "Ativar")
+                            </button>
+
+                        </form>
+                    }
+
+                    @if (item.Ativo &&
+                         !item.Pago)
+                    {
+                        <form asp-controller="AgendaPagamentos"
+                              asp-action="MarcarComoPago"
+                              method="post"
+                              onsubmit="return confirm('Confirmar que este pagamento foi realizado?');">
+
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden"
+                                   name="id"
+                                   value="@item.Id" />
+
+                            <button type="submit"
+                                    class="btn-acao btn-pago">
+                                ✓ Pago
+                            </button>
+
+                        </form>
+                    }
+
+                    <form asp-controller="AgendaPagamentos"
+                          asp-action="Excluir"
+                          method="post"
+                          onsubmit="return confirm('Deseja realmente excluir este agendamento?');">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               name="id"
+                               value="@item.Id" />
+
+                        <button type="submit"
+                                class="btn-acao btn-excluir">
+                            Excluir
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+        }
+    }
+
+    <div class="bloco">
+
+        <h2>☀️ Hoje</h2>
+
+        <div class="bloco-subtitulo">
+            Prioridade do dia
+        </div>
+
+        @if (pagamentosHoje.Any())
+        {
+            <div class="lista">
+
+                @foreach (var item in pagamentosHoje)
+                {
+                    await MostrarCard(item);
+                }
+
+            </div>
+        }
+        else
+        {
+            <div class="vazio">
+                Nenhum pagamento agendado para hoje.
+            </div>
+        }
+
+    </div>
+
+    <div class="bloco">
+
+        <h2>⏭️ Amanhã</h2>
+
+        <div class="bloco-subtitulo">
+            Próximos compromissos
+        </div>
+
+        @if (pagamentosAmanha.Any())
+        {
+            <div class="lista">
+
+                @foreach (var item in pagamentosAmanha)
+                {
+                    await MostrarCard(item);
+                }
+
+            </div>
+        }
+        else
+        {
+            <div class="vazio">
+                Nenhum pagamento agendado para amanhã.
+            </div>
+        }
+
+    </div>
+
+    <div class="bloco">
+
+        <h2>🗓️ Próximos pagamentos do mês</h2>
+
+        <div class="bloco-subtitulo">
+            Demais compromissos deste mês
+        </div>
+
+        @if (pagamentosMes.Any())
+        {
+            <div class="lista">
+
+                @foreach (var item in pagamentosMes)
+                {
+                    await MostrarCard(item);
+                }
+
+            </div>
+        }
+        else
+        {
+            <div class="vazio">
+                Não existem outros pagamentos agendados neste mês.
+            </div>
+        }
+
+    </div>
+
+    <div class="bloco">
+
+        <h2>📆 Próximos meses</h2>
+
+        <div class="bloco-subtitulo">
+            Compromissos que continuam agendados após este mês
+        </div>
+
+        @if (pagamentosFuturos.Any())
+        {
+            <div class="lista">
+
+                @foreach (var item in pagamentosFuturos)
+                {
+                    await MostrarCard(item);
+                }
+
+            </div>
+        }
+        else
+        {
+            <div class="vazio">
+                Não existem pagamentos agendados para os próximos meses.
+            </div>
+        }
+
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            const recorrente =
+                document.getElementById(
+                    "recorrente");
+
+            const frequencia =
+                document.getElementById(
+                    "frequencia");
+
+            function atualizarRecorrencia() {
+
+                frequencia.disabled =
+                    !recorrente.checked;
+
+                frequencia.required =
+                    recorrente.checked;
+
+                if (!recorrente.checked) {
+                    frequencia.value = "";
+                }
+            }
+
+            recorrente.addEventListener(
+                "change",
+                atualizarRecorrencia);
+
+            atualizarRecorrencia();
+        });
+</script>

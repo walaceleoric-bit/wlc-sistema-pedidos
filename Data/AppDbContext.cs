@@ -24,6 +24,9 @@ namespace WlcSistemaPedidos.Data
         public DbSet<GastoCaixa> GastosCaixa { get; set; }
         public DbSet<CategoriaGasto> CategoriasGastos { get; set; }
 
+        // Agenda de pagamentos
+        public DbSet<AgendamentoPagamento> AgendamentosPagamentos { get; set; }
+
         // Acessos seguros enviados aos clientes
         public DbSet<AcessoCliente> AcessosClientes { get; set; }
 
@@ -211,6 +214,40 @@ namespace WlcSistemaPedidos.Data
             builder.Entity<CategoriaGasto>()
                 .HasIndex(c => c.Nome)
                 .IsUnique();
+
+            // ==========================================
+            // CAIXA - AGENDA DE PAGAMENTOS
+            // ==========================================
+
+            // Administrador responsável pelo agendamento.
+            builder.Entity<AgendamentoPagamento>()
+                .HasOne(a => a.UsuarioResponsavel)
+                .WithMany()
+                .HasForeignKey(a => a.UsuarioResponsavelId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Ajuda a localizar rapidamente pagamentos
+            // pela data de vencimento.
+            builder.Entity<AgendamentoPagamento>()
+                .HasIndex(a => a.DataVencimento);
+
+            // Ajuda nas consultas de pagamentos ativos,
+            // pendentes, de hoje e dos próximos dias.
+            builder.Entity<AgendamentoPagamento>()
+                .HasIndex(a => new
+                {
+                    a.Ativo,
+                    a.Pago,
+                    a.DataVencimento
+                });
+
+            // Ajuda nos filtros por categoria e período.
+            builder.Entity<AgendamentoPagamento>()
+                .HasIndex(a => new
+                {
+                    a.Categoria,
+                    a.DataVencimento
+                });
         }
     }
 }
