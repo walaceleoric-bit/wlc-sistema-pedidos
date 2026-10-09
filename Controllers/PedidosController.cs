@@ -269,7 +269,8 @@ namespace WlcSistemaPedidos.Controllers
         public async Task<IActionResult> Editar(
             int id,
             List<int> itemIds,
-            List<int> quantidades)
+            List<int> quantidades,
+            decimal desconto)
         {
             var usuario =
                 await _userManager.GetUserAsync(User);
@@ -375,10 +376,20 @@ namespace WlcSistemaPedidos.Controllers
                     new { id });
             }
 
+            if (desconto < 0 || desconto > novoSubtotal + pedido.TaxaEntrega)
+            {
+                TempData["Erro"] =
+                    "O desconto deve estar entre zero e o valor total do pedido antes do desconto.";
+
+                return RedirectToAction(
+                    nameof(Editar),
+                    new { id });
+            }
+
             decimal novoTotal =
                 novoSubtotal +
                 pedido.TaxaEntrega -
-                pedido.Desconto;
+                desconto;
 
             if (novoTotal < 0)
             {
@@ -432,6 +443,9 @@ namespace WlcSistemaPedidos.Controllers
 
                 pedido.Subtotal =
                     novoSubtotal;
+
+                pedido.Desconto =
+                    desconto;
 
                 pedido.Total =
                     novoTotal;

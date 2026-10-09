@@ -202,6 +202,38 @@
                     font-size: 15px;
                 }
 
+            .campo-desconto {
+                margin: 16px 24px 0;
+                padding: 16px 18px;
+                border: 1px solid #f6d5b8;
+                border-radius: 10px;
+                background: #fffaf5;
+            }
+
+            .campo-desconto label {
+                display: block;
+                font-weight: bold;
+                font-size: 13px;
+                margin-bottom: 8px;
+            }
+
+            .campo-desconto input {
+                width: 180px;
+                max-width: 100%;
+                height: 42px;
+                padding: 0 12px;
+                border: 1px solid #cccccc;
+                border-radius: 8px;
+                font-size: 15px;
+            }
+
+            .campo-desconto small {
+                display: block;
+                color: #777;
+                margin-top: 8px;
+                font-size: 12px;
+            }
+
             .resumo {
                 margin: 15px 24px 0;
                 padding: 18px;
@@ -322,7 +354,7 @@
             <div class="cabecalho">
                 <h1>Editar pedido #@Model.Id</h1>
                 <p>
-                    Ajuste somente as quantidades que realmente serão entregues.
+                    Ajuste as quantidades e informe um desconto em reais, se necessário.
                 </p>
             </div>
 
@@ -336,7 +368,7 @@
             <div class="aviso">
                 <strong>Importante:</strong>
                 coloque <strong>0</strong> para retirar um item do pedido.
-                Ao salvar, o subtotal, o total e o financeiro serão recalculados.
+                Ao salvar, o subtotal, o desconto, o total e o financeiro serão recalculados.
             </div>
 
             <div class="cliente">
@@ -399,6 +431,18 @@
 
                 </div>
 
+                <div class="campo-desconto">
+                    <label for="desconto">Desconto no pedido (R$)</label>
+                    <input type="number"
+                           id="desconto"
+                           name="desconto"
+                           min="0"
+                           step="0.01"
+                           value="@Model.Desconto.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                           required />
+                    <small>Informe o valor total do desconto em reais. Use 0 para nenhum desconto.</small>
+                </div>
+
                 <div class="resumo">
 
                     <div class="linha-resumo">
@@ -418,15 +462,12 @@
                         </div>
                     }
 
-                    @if (Model.Desconto != 0)
-                    {
-                        <div class="linha-resumo">
-                            <span>Desconto</span>
-                            <strong>
-                                - @Model.Desconto.ToString("C2")
-                            </strong>
-                        </div>
-                    }
+                    <div class="linha-resumo">
+                        <span>Desconto</span>
+                        <strong id="desconto-resumo">
+                            - @Model.Desconto.ToString("C2")
+                        </strong>
+                    </div>
 
                     <div class="linha-resumo total">
                         <span>Novo total</span>
@@ -466,8 +507,7 @@
             const taxaEntrega =
                     @Model.TaxaEntrega.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
-            const desconto =
-                    @Model.Desconto.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            const campoDesconto = document.getElementById("desconto");
 
             const moeda =
                 new Intl.NumberFormat(
@@ -518,6 +558,11 @@
                                 subtotalItem);
                     });
 
+                const desconto = Math.max(0, Number(campoDesconto.value) || 0);
+
+                document.getElementById("desconto-resumo").textContent =
+                    "- " + moeda.format(desconto);
+
                 let total =
                     subtotalPedido +
                     taxaEntrega -
@@ -539,6 +584,8 @@
                     moeda.format(
                         total);
             }
+
+            campoDesconto.addEventListener("input", recalcularPedido);
 
             document
                 .querySelectorAll(".campo-quantidade")

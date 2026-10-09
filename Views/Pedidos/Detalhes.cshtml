@@ -682,7 +682,15 @@
 
                     </div>
 
-                    <div class="linha total">
+                    @if (Model.Desconto > 0)
+                {
+                    <div class="linha" style="color: #16803c;">
+                        <span style="color: #16803c;">Desconto aplicado</span>
+                        <strong>- @Model.Desconto.ToString("C2")</strong>
+                    </div>
+                }
+
+                <div class="linha total">
 
                         <span>
                             TOTAL
@@ -749,6 +757,10 @@
                 }
             </div>
             <div class="via-linha"><span>Subtotal</span><strong>@Model.Subtotal.ToString("C2")</strong></div>
+            @if (Model.Desconto > 0)
+            {
+                <div class="via-linha"><span>Desconto aplicado</span><strong>- @Model.Desconto.ToString("C2")</strong></div>
+            }
             <div class="via-linha via-total"><span>TOTAL</span><strong>@Model.Total.ToString("C2")</strong></div>
             @if (!string.IsNullOrWhiteSpace(Model.Observacao))
             {
