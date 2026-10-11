@@ -31,6 +31,9 @@
     string logoEstabelecimento =
         ViewBag.LogoEstabelecimento
         ?? "/images/logo-wlc.png";
+
+    string chavePix = ViewBag.ChavePix as string ?? "";
+    string nomeRecebedorPix = ViewBag.NomeRecebedorPix as string ?? "";
 }
 
 <!DOCTYPE html>
@@ -253,6 +256,65 @@
 
             .status-bloqueado {
                 color: #c62828;
+            }
+
+            /* =========================
+               PIX DO ESTABELECIMENTO
+            ========================= */
+
+            .pix-info {
+                background: #fff;
+                border: 1px solid #e5e5e5;
+                border-radius: 12px;
+                padding: 12px 16px;
+                min-width: 230px;
+                max-width: 330px;
+                flex: 1 1 230px;
+            }
+
+            .pix-info small {
+                display: block;
+                color: #777;
+                margin-bottom: 5px;
+                font-size: 12px;
+            }
+
+            .pix-recebedor {
+                display: block;
+                font-size: 13px;
+                font-weight: 700;
+                margin-bottom: 5px;
+            }
+
+            .pix-chave {
+                display: block;
+                font-size: 12px;
+                color: #555;
+                overflow-wrap: anywhere;
+                margin-bottom: 9px;
+            }
+
+            .btn-copiar-pix {
+                border: 0;
+                background: #f58220;
+                color: #fff;
+                font-size: 12px;
+                font-weight: 700;
+                border-radius: 7px;
+                padding: 9px 12px;
+                cursor: pointer;
+                width: 100%;
+            }
+
+            .btn-copiar-pix:hover {
+                background: #df6d0c;
+            }
+
+            .pix-feedback {
+                display: block;
+                font-size: 11px;
+                margin-top: 5px;
+                color: #218838;
             }
 
             /* =========================
@@ -573,7 +635,8 @@
                 }
 
                 .cliente-info,
-                .saldo-info {
+                .saldo-info,
+                .pix-info {
                     flex: 1;
                 }
 
@@ -611,8 +674,10 @@
                 }
 
                 .cliente-info,
-                .saldo-info {
+                .saldo-info,
+                .pix-info {
                     width: 100%;
+                    max-width: none;
                 }
             }
 
@@ -747,6 +812,28 @@
                     }
 
                 </div>
+
+                @if (!string.IsNullOrWhiteSpace(chavePix))
+                {
+                    <div class="pix-info">
+                        <small>Pagamento via PIX</small>
+
+                        @if (!string.IsNullOrWhiteSpace(nomeRecebedorPix))
+                        {
+                            <strong class="pix-recebedor">@nomeRecebedorPix</strong>
+                        }
+
+                        <span class="pix-chave" id="chave-pix">@chavePix</span>
+
+                        <button type="button"
+                                class="btn-copiar-pix"
+                                onclick="copiarChavePix()">
+                            Copiar chave PIX
+                        </button>
+
+                        <span class="pix-feedback" id="pix-feedback" role="status" aria-live="polite"></span>
+                    </div>
+                }
 
             </div>
 
@@ -999,5 +1086,23 @@
         <strong>WLC Sistemas</strong>
     </footer>
 
+    <script>
+        async function copiarChavePix() {
+            const elementoChave = document.getElementById('chave-pix');
+            const feedback = document.getElementById('pix-feedback');
+            if (!elementoChave || !feedback) return;
+
+            const chave = elementoChave.textContent.trim();
+            try {
+                if (!navigator.clipboard || !navigator.clipboard.writeText) {
+                    throw new Error('Área de transferência indisponível');
+                }
+                await navigator.clipboard.writeText(chave);
+                feedback.textContent = 'Chave PIX copiada!';
+            } catch (erro) {
+                feedback.textContent = 'Não foi possível copiar automaticamente. Selecione a chave acima para copiar.';
+            }
+        }
+    </script>
 </body>
 </html>

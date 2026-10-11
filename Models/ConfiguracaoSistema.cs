@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WlcSistemaPedidos.Models
@@ -23,6 +24,13 @@ namespace WlcSistemaPedidos.Models
         // Número que receberá os pedidos enviados pelo WhatsApp
         [StringLength(20)]
         public string? WhatsAppPedidos { get; set; }
+
+        // Configuração do PIX para pagamento dos clientes
+        [StringLength(150)]
+        public string? ChavePix { get; set; }
+
+        [StringLength(150)]
+        public string? NomeRecebedorPix { get; set; }
 
         // URL pública utilizada nos links enviados aos clientes
         [StringLength(500)]

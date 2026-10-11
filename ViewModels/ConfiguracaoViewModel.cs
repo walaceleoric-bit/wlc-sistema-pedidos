@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿
+using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
 namespace WlcSistemaPedidos.ViewModels
@@ -40,6 +41,18 @@ namespace WlcSistemaPedidos.ViewModels
         [StringLength(20)]
         [Display(Name = "WhatsApp para receber pedidos")]
         public string? WhatsAppPedidos { get; set; }
+
+        // ==========================================
+        // PAGAMENTO VIA PIX
+        // ==========================================
+
+        [StringLength(150)]
+        [Display(Name = "Chave PIX")]
+        public string? ChavePix { get; set; }
+
+        [StringLength(150)]
+        [Display(Name = "Nome do recebedor PIX")]
+        public string? NomeRecebedorPix { get; set; }
 
         // ==========================================
         // LINK PÚBLICO DO SISTEMA

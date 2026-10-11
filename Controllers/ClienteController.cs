@@ -797,6 +797,16 @@ namespace WlcSistemaPedidos.Controllers
             ViewBag.CategoriaId =
                 categoriaId;
 
+            // Dados do PIX exibidos na página de produtos.
+            var configuracaoPix = await _context.ConfiguracoesSistema
+                .AsNoTracking()
+                .OrderBy(c => c.Id)
+                .Select(c => new { c.ChavePix, c.NomeRecebedorPix })
+                .FirstOrDefaultAsync();
+
+            ViewBag.ChavePix = configuracaoPix?.ChavePix;
+            ViewBag.NomeRecebedorPix = configuracaoPix?.NomeRecebedorPix;
+
             await CarregarEstabelecimento();
 
             return View(produtos);

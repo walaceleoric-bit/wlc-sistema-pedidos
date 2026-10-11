@@ -416,6 +416,10 @@ namespace WlcSistemaPedidos.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("character varying(10)");
 
+                    b.Property<string>("ChavePix")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
                     b.Property<string>("Cidade")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
@@ -452,6 +456,10 @@ namespace WlcSistemaPedidos.Migrations
 
                     b.Property<string>("NomeEstabelecimento")
                         .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("NomeRecebedorPix")
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
 

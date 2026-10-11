@@ -103,6 +103,12 @@ namespace WlcSistemaPedidos.Controllers
                     WhatsAppPedidos =
                         configuracao.WhatsAppPedidos,
 
+                    ChavePix =
+                        configuracao.ChavePix,
+
+                    NomeRecebedorPix =
+                        configuracao.NomeRecebedorPix,
+
                     UrlSistema =
                         configuracao.UrlSistema,
 
@@ -192,6 +198,12 @@ namespace WlcSistemaPedidos.Controllers
 
             model.WhatsAppPedidos =
                 SomenteNumeros(model.WhatsAppPedidos);
+
+            model.ChavePix =
+                LimparTexto(model.ChavePix);
+
+            model.NomeRecebedorPix =
+                LimparTexto(model.NomeRecebedorPix);
 
             model.UrlSistema =
                 LimparTexto(model.UrlSistema);
@@ -314,6 +326,12 @@ namespace WlcSistemaPedidos.Controllers
 
             configuracao.WhatsAppPedidos =
                 model.WhatsAppPedidos;
+
+            configuracao.ChavePix =
+                model.ChavePix;
+
+            configuracao.NomeRecebedorPix =
+                model.NomeRecebedorPix;
 
             configuracao.UrlSistema =
                 model.UrlSistema;

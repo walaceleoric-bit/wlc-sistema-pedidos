@@ -681,6 +681,32 @@
 
                 </div>
 
+                <!-- PAGAMENTO VIA PIX -->
+                <div class="grupo">
+                    <label asp-for="ChavePix"></label>
+                    <input asp-for="ChavePix"
+                           class="campo"
+                           maxlength="150"
+                           autocomplete="off"
+                           placeholder="CPF, CNPJ, e-mail, telefone ou chave aleatória" />
+                    <span asp-validation-for="ChavePix" class="validacao"></span>
+                    <small class="ajuda">
+                        Chave que o cliente poderá copiar para realizar o pagamento.
+                    </small>
+                </div>
+
+                <div class="grupo">
+                    <label asp-for="NomeRecebedorPix"></label>
+                    <input asp-for="NomeRecebedorPix"
+                           class="campo"
+                           maxlength="150"
+                           placeholder="Nome do titular da chave PIX" />
+                    <span asp-validation-for="NomeRecebedorPix" class="validacao"></span>
+                    <small class="ajuda">
+                        Nome que será exibido ao cliente junto à chave PIX.
+                    </small>
+                </div>
+
                 <div class="grupo">
 
                     <label asp-for="UrlSistema"></label>
