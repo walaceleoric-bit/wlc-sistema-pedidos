@@ -204,6 +204,17 @@
             background: #df6d0c;
         }
 
+        .endereco-confirmacao {
+            background: #fff9f3;
+            border: 1px solid #f7d4b1;
+            border-radius: 10px;
+            padding: 16px;
+            overflow-wrap: anywhere;
+        }
+        .endereco-titulo { color: #187b42; font-weight: 700; margin-bottom: 12px; }
+        .endereco-confirmacao p { margin: 7px 0; line-height: 1.5; }
+        .endereco-confirmacao small { display: block; margin-top: 14px; color: #666; line-height: 1.5; }
+
         footer {
             background: #fff;
             border-top: 1px solid #e5e5e5;
@@ -259,43 +270,30 @@
 
         <section class="card">
             <h2>Endereço de entrega</h2>
-
-            <div class="campo-grupo">
-                <label asp-for="EnderecoEntrega">Endereço</label>
-                <input asp-for="EnderecoEntrega" />
-                <span asp-validation-for="EnderecoEntrega"
-                      class="erro"></span>
+            <div class="endereco-confirmacao">
+                <div class="endereco-titulo">✓ Entrega no endereço cadastrado</div>
+                <p><strong>Rua / Avenida:</strong> @Model.EnderecoEntrega, nº @Model.NumeroEntrega</p>
+                <p><strong>Bairro:</strong> @Model.BairroEntrega</p>
+                @if (!string.IsNullOrWhiteSpace(Convert.ToString(ViewBag.CidadeEntrega)))
+                {
+                    <p><strong>Cidade:</strong> @ViewBag.CidadeEntrega</p>
+                }
+                @if (!string.IsNullOrWhiteSpace(Convert.ToString(ViewBag.CepEntrega)))
+                {
+                    <p><strong>CEP:</strong> @ViewBag.CepEntrega</p>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.ComplementoEntrega))
+                {
+                    <p><strong>Complemento:</strong> @Model.ComplementoEntrega</p>
+                }
+                <small>Confira o endereço acima. Para alterá-lo, entre em contato com o estabelecimento antes de confirmar.</small>
             </div>
 
-            <div class="grid">
-                <div class="campo-grupo">
-                    <label asp-for="BairroEntrega">Bairro</label>
-                    <input asp-for="BairroEntrega" />
-                    <span asp-validation-for="BairroEntrega"
-                          class="erro"></span>
-                </div>
-
-                <div class="campo-grupo">
-                    <label asp-for="NumeroEntrega">Número</label>
-                    <input asp-for="NumeroEntrega" />
-                    <span asp-validation-for="NumeroEntrega"
-                          class="erro"></span>
-                </div>
-            </div>
-
-            <div class="campo-grupo">
-                <label asp-for="ComplementoEntrega">Complemento</label>
-                <input asp-for="ComplementoEntrega" />
-                <span asp-validation-for="ComplementoEntrega"
-                      class="erro"></span>
-            </div>
-
-            <div class="campo-grupo">
+            <div class="campo-grupo" style="margin-top:20px">
                 <label asp-for="Observacao">Observação do pedido</label>
                 <textarea asp-for="Observacao"
                           placeholder="Ex.: entregar após as 14h, referência do endereço..."></textarea>
-                <span asp-validation-for="Observacao"
-                      class="erro"></span>
+                <span asp-validation-for="Observacao" class="erro"></span>
             </div>
         </section>
 

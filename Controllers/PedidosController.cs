@@ -55,39 +55,31 @@ namespace WlcSistemaPedidos.Controllers
         {
             if (!await UsuarioEhAdministrador())
             {
-                return RedirectToAction(
-                    "AcessoNegado",
-                    "Conta");
+                return RedirectToAction("AcessoNegado", "Conta");
             }
 
             const int itensPorPagina = 10;
+            pagina = Math.Max(1, pagina);
 
-            if (pagina < 1)
-            {
-                pagina = 1;
-            }
+            // O banco armazena datas em UTC; o dia operacional segue Brasília.
+            var fusoBrasilia = TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo");
+            var agoraBrasilia = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, fusoBrasilia);
+            var inicioDiaLocal = DateTime.SpecifyKind(agoraBrasilia.Date, DateTimeKind.Unspecified);
+            var fimDiaLocal = inicioDiaLocal.AddDays(1);
+            var inicioUtc = TimeZoneInfo.ConvertTimeToUtc(inicioDiaLocal, fusoBrasilia);
+            var fimUtc = TimeZoneInfo.ConvertTimeToUtc(fimDiaLocal, fusoBrasilia);
 
             var consulta = _context.Pedidos
                 .AsNoTracking()
                 .Include(p => p.Cliente)
-                .AsQueryable();
+                .Where(p => p.DataPedido >= inicioUtc &&
+                            p.DataPedido < fimUtc &&
+                            p.Status != StatusPedido.Finalizado &&
+                            p.Status != StatusPedido.Cancelado);
 
-            if (status.HasValue)
-            {
-                consulta = consulta.Where(p =>
-                    p.Status == status.Value);
-            }
-
-            var totalPedidos =
-                await consulta.CountAsync();
-
-            var totalPaginas =
-                (int)Math.Ceiling(
-                    totalPedidos /
-                    (double)itensPorPagina);
-
-            if (totalPaginas > 0 &&
-                pagina > totalPaginas)
+            var totalPedidos = await consulta.CountAsync();
+            var totalPaginas = (int)Math.Ceiling(totalPedidos / (double)itensPorPagina);
+            if (totalPaginas > 0 && pagina > totalPaginas)
             {
                 pagina = totalPaginas;
             }
@@ -104,7 +96,6 @@ namespace WlcSistemaPedidos.Controllers
             ViewBag.StatusSelecionado = status;
 
             await CarregarEstabelecimento();
-
             return View(pedidos);
         }
 
@@ -112,79 +103,68 @@ namespace WlcSistemaPedidos.Controllers
         public async Task<IActionResult> Historico(
             int pagina = 1,
             string? busca = null,
-            StatusPedido? status = null)
+            StatusPedido? status = null,
+            DateTime? data = null)
         {
             if (!await UsuarioEhAdministrador())
             {
-                return RedirectToAction(
-                    "AcessoNegado",
-                    "Conta");
+                return RedirectToAction("AcessoNegado", "Conta");
             }
 
             const int itensPorPagina = 10;
+            pagina = Math.Max(1, pagina);
 
-            if (pagina < 1)
-            {
-                pagina = 1;
-            }
-
+            // A consulta geral inclui pedidos de todos os status e datas.
             var consulta = _context.Pedidos
                 .AsNoTracking()
                 .Include(p => p.Cliente)
-                .Where(p =>
-                    p.Status == StatusPedido.Finalizado ||
-                    p.Status == StatusPedido.Cancelado)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(busca))
             {
                 busca = busca.Trim();
+                var termo = busca.StartsWith("#")
+                    ? busca.Substring(1).Trim()
+                    : busca;
 
-                var buscaSemCerquilha =
-                    busca.StartsWith("#")
-                        ? busca.Substring(1).Trim()
-                        : busca;
-
-                if (int.TryParse(
-                    buscaSemCerquilha,
-                    out int numeroPedido))
+                if (int.TryParse(termo, out int numeroPedido))
                 {
-                    consulta = consulta.Where(p =>
-                        p.Id == numeroPedido);
+                    consulta = consulta.Where(p => p.Id == numeroPedido);
                 }
                 else
                 {
                     consulta = consulta.Where(p =>
-                        EF.Functions.ILike(
-                            p.NomeCliente,
-                            $"%{busca}%"));
+                        EF.Functions.ILike(p.NomeCliente, $"%{busca}%"));
                 }
             }
 
-            if (status.HasValue &&
-                (status.Value == StatusPedido.Finalizado ||
-                 status.Value == StatusPedido.Cancelado))
+            if (status.HasValue && Enum.IsDefined(typeof(StatusPedido), status.Value))
             {
-                consulta = consulta.Where(p =>
-                    p.Status == status.Value);
+                consulta = consulta.Where(p => p.Status == status.Value);
             }
 
-            var totalPedidos =
-                await consulta.CountAsync();
+            if (data.HasValue)
+            {
+                var fusoBrasilia = TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo");
+                var inicioLocal = DateTime.SpecifyKind(data.Value.Date, DateTimeKind.Unspecified);
+                var fimLocal = inicioLocal.AddDays(1);
+                var inicioUtc = TimeZoneInfo.ConvertTimeToUtc(inicioLocal, fusoBrasilia);
+                var fimUtc = TimeZoneInfo.ConvertTimeToUtc(fimLocal, fusoBrasilia);
 
-            var totalPaginas =
-                (int)Math.Ceiling(
-                    totalPedidos /
-                    (double)itensPorPagina);
+                consulta = consulta.Where(p =>
+                    p.DataPedido >= inicioUtc && p.DataPedido < fimUtc);
+            }
 
-            if (totalPaginas > 0 &&
-                pagina > totalPaginas)
+            var totalPedidos = await consulta.CountAsync();
+            var totalPaginas = (int)Math.Ceiling(totalPedidos / (double)itensPorPagina);
+            if (totalPaginas > 0 && pagina > totalPaginas)
             {
                 pagina = totalPaginas;
             }
 
             var pedidos = await consulta
                 .OrderByDescending(p => p.DataPedido)
+                .ThenByDescending(p => p.Id)
                 .Skip((pagina - 1) * itensPorPagina)
                 .Take(itensPorPagina)
                 .ToListAsync();
@@ -194,9 +174,9 @@ namespace WlcSistemaPedidos.Controllers
             ViewBag.TotalPedidos = totalPedidos;
             ViewBag.Busca = busca;
             ViewBag.StatusSelecionado = status;
+            ViewBag.DataSelecionada = data?.ToString("yyyy-MM-dd");
 
             await CarregarEstabelecimento();
-
             return View(pedidos);
         }
 
@@ -566,31 +546,13 @@ namespace WlcSistemaPedidos.Controllers
                     new { id });
             }
 
-            bool transicaoValida =
-                (pedido.Status == StatusPedido.Novo &&
-                    (status == StatusPedido.Confirmado ||
-                     status == StatusPedido.Cancelado)) ||
-
-                (pedido.Status == StatusPedido.Confirmado &&
-                    (status == StatusPedido.Preparando ||
-                     status == StatusPedido.Cancelado)) ||
-
-                (pedido.Status == StatusPedido.Preparando &&
-                    (status == StatusPedido.SaiuParaEntrega ||
-                     status == StatusPedido.Cancelado)) ||
-
-                (pedido.Status == StatusPedido.SaiuParaEntrega &&
-                    (status == StatusPedido.Finalizado ||
-                     status == StatusPedido.Cancelado));
-
-            if (!transicaoValida)
+            // Atendimento simplificado: concluir ou cancelar diretamente.
+            // Outros status intermediários não são mais necessários.
+            if (status != StatusPedido.Finalizado &&
+                status != StatusPedido.Cancelado)
             {
-                TempData["Erro"] =
-                    "Alteração de status não permitida. Siga a sequência normal do pedido.";
-
-                return RedirectToAction(
-                    nameof(Detalhes),
-                    new { id });
+                TempData["Erro"] = "Selecione concluir ou cancelar o pedido.";
+                return RedirectToAction(nameof(Detalhes), new { id });
             }
 
             await using var transacao =
@@ -691,9 +653,7 @@ namespace WlcSistemaPedidos.Controllers
                         $"Status do pedido #{pedido.Id} atualizado.";
                 }
 
-                return RedirectToAction(
-                    nameof(Detalhes),
-                    new { id = pedido.Id });
+                return RedirectToAction(nameof(Index));
             }
             catch
             {

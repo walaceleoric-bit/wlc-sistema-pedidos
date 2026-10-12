@@ -1,8 +1,11 @@
-﻿@model WlcSistemaPedidos.Models.Pedido
+﻿@using WlcSistemaPedidos.Models
+@model WlcSistemaPedidos.Models.Pedido
 
 @{
     Layout = null;
     ViewData["Title"] = $"Pedido #{Model.Id}";
+
+    bool pedidoEncerrado = Model.Status == StatusPedido.Finalizado || Model.Status == StatusPedido.Cancelado;
 
     string nomeEstabelecimento =
         ViewBag.NomeEstabelecimento
@@ -113,6 +116,27 @@
                 color: #e96e00;
                 border: 1px solid #f58220;
             }
+
+             .btn-confirmar {
+                 background: #198754;
+                 color: #ffffff;
+             }
+
+             .btn-confirmar:hover { background: #146c43; }
+
+             .btn-cancelar {
+                 background: #ffffff;
+                 color: #b42318;
+                 border: 1px solid #b42318;
+             }
+
+             .btn-cancelar:hover { background: #fff0f0; }
+
+             .acoes-form { display: inline-flex; margin: 0; }
+
+             .mensagem { padding: 12px 15px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
+             .mensagem-sucesso { background: #eef9f0; color: #207a3c; border: 1px solid #cce8d1; }
+             .mensagem-erro { background: #fff0f0; color: #b42318; border: 1px solid #f1c1c1; }
 
             .btn-imprimir {
                 background: #f58220;
@@ -439,7 +463,7 @@
                     background: #fff;
                 }
 
-                .topo, .acoes, .pedido, footer {
+                 .topo, .acoes, .mensagem, .pedido, footer {
                     display: none !important;
                 }
 
@@ -512,6 +536,39 @@
             </button>
 
         </div>
+
+         @if (TempData["Sucesso"] != null)
+         {
+             <div class="mensagem mensagem-sucesso">@TempData["Sucesso"]</div>
+         }
+         @if (TempData["Erro"] != null)
+         {
+             <div class="mensagem mensagem-erro">@TempData["Erro"]</div>
+         }
+
+         @if (!pedidoEncerrado)
+         {
+             <div class="acoes">
+                 <form asp-controller="Pedidos" asp-action="AlterarStatus" method="post" class="acoes-form"
+                       onsubmit="return confirm('Confirmar que o pedido #@Model.Id foi realizado? Ele sairá da lista de pedidos e ficará no histórico.');">
+                     @Html.AntiForgeryToken()
+                     <input type="hidden" name="id" value="@Model.Id" />
+                     <input type="hidden" name="status" value="@((int)StatusPedido.Finalizado)" />
+                     <button type="submit" class="btn btn-confirmar">✓ Confirmar pedido realizado</button>
+                 </form>
+                 <form asp-controller="Pedidos" asp-action="AlterarStatus" method="post" class="acoes-form"
+                       onsubmit="return confirm('Deseja realmente CANCELAR o pedido #@Model.Id? O cancelamento pode gerar estorno no financeiro.');">
+                     @Html.AntiForgeryToken()
+                     <input type="hidden" name="id" value="@Model.Id" />
+                     <input type="hidden" name="status" value="@((int)StatusPedido.Cancelado)" />
+                     <button type="submit" class="btn btn-cancelar">✕ Cancelar pedido</button>
+                 </form>
+             </div>
+         }
+         else
+         {
+             <div class="mensagem mensagem-sucesso">Pedido encerrado: @Model.Status. Disponível no histórico.</div>
+         }
 
         <article class="pedido">
 

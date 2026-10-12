@@ -3,7 +3,7 @@
 
 @{
     Layout = "_AdminLayout";
-    ViewData["Title"] = "Histórico de Pedidos";
+    ViewData["Title"] = "Consulta de Pedidos";
 
     var cultura =
         new System.Globalization.CultureInfo("pt-BR");
@@ -22,6 +22,8 @@
 
     StatusPedido? statusSelecionado =
         ViewBag.StatusSelecionado as StatusPedido?;
+
+    string dataSelecionada = ViewBag.DataSelecionada as string ?? "";
 }
 
 @section Styles {
@@ -58,7 +60,7 @@
 
             .filtros-form {
                 display: grid;
-                grid-template-columns: 1fr 220px auto auto;
+                grid-template-columns: minmax(180px, 1fr) 170px 210px auto auto;
                 gap: 10px;
                 align-items: center;
             }
@@ -169,6 +171,11 @@
                     color: #b42318;
                 }
 
+            .status.pendente {
+                background: #fff4e5;
+                color: #9a5700;
+            }
+
             .btn-detalhes {
                 display: inline-block;
                 color: #f57c00;
@@ -249,9 +256,9 @@
 
 <div class="historico-conteudo">
 <section class="cabecalho">
-            <h1>Histórico de pedidos</h1>
+            <h1>Consulta de pedidos</h1>
             <p>
-                Consulte pedidos finalizados e cancelados.
+                Consulte todos os pedidos, de qualquer data e situação.
             </p>
         </section>
 
@@ -268,41 +275,30 @@
                        class="campo"
                        placeholder="Nº do pedido ou nome do cliente" />
 
-                <select name="status"
-                        class="campo">
+                <input type="date"
+                       name="data"
+                       value="@dataSelecionada"
+                       class="campo"
+                       aria-label="Filtrar por data" />
 
-                    <option value="">
-                        Finalizados e cancelados
-                    </option>
-
+                <select name="status" class="campo" aria-label="Filtrar por situação">
+                    <option value="">Todos os status</option>
                     @if (statusSelecionado == StatusPedido.Finalizado)
                     {
-                        <option value="@((int)StatusPedido.Finalizado)"
-                                selected>
-                            Finalizado
-                        </option>
+                        <option value="@((int)StatusPedido.Finalizado)" selected>Finalizado</option>
                     }
                     else
                     {
-                        <option value="@((int)StatusPedido.Finalizado)">
-                            Finalizado
-                        </option>
+                        <option value="@((int)StatusPedido.Finalizado)">Finalizado</option>
                     }
-
                     @if (statusSelecionado == StatusPedido.Cancelado)
                     {
-                        <option value="@((int)StatusPedido.Cancelado)"
-                                selected>
-                            Cancelado
-                        </option>
+                        <option value="@((int)StatusPedido.Cancelado)" selected>Cancelado</option>
                     }
                     else
                     {
-                        <option value="@((int)StatusPedido.Cancelado)">
-                            Cancelado
-                        </option>
+                        <option value="@((int)StatusPedido.Cancelado)">Cancelado</option>
                     }
-
                 </select>
 
                 <button type="submit"
@@ -348,7 +344,9 @@
                             string classeStatus =
                                 pedido.Status == StatusPedido.Cancelado
                                     ? "cancelado"
-                                    : "finalizado";
+                                    : pedido.Status == StatusPedido.Finalizado
+                                        ? "finalizado"
+                                        : "pendente";
 
                             <tr>
 
@@ -406,6 +404,7 @@
                            asp-action="Historico"
                            asp-route-pagina="@(paginaAtual - 1)"
                            asp-route-busca="@busca"
+                           asp-route-data="@dataSelecionada"
                            asp-route-status="@statusSelecionado">
                             ‹
                         </a>
@@ -423,6 +422,7 @@
                                asp-action="Historico"
                                asp-route-pagina="@i"
                                asp-route-busca="@busca"
+                           asp-route-data="@dataSelecionada"
                                asp-route-status="@statusSelecionado">
                                 @i
                             </a>
@@ -435,6 +435,7 @@
                            asp-action="Historico"
                            asp-route-pagina="@(paginaAtual + 1)"
                            asp-route-busca="@busca"
+                           asp-route-data="@dataSelecionada"
                            asp-route-status="@statusSelecionado">
                             ›
                         </a>

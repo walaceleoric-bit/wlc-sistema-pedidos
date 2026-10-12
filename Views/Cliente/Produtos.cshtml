@@ -506,6 +506,50 @@
                 margin-bottom: 11px;
             }
 
+            /* QUANTIDADE NA LISTA DE PRODUTOS */
+            .produto-quantidade {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-bottom: 10px;
+            }
+
+            .produto-quantidade button {
+                width: 40px;
+                height: 40px;
+                flex: 0 0 40px;
+                border: 1px solid #f58220;
+                border-radius: 8px;
+                background: #fff7f0;
+                color: #e67210;
+                font-size: 21px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+
+            .produto-quantidade button:hover {
+                background: #ffe7d4;
+            }
+
+            .produto-quantidade input {
+                width: 100%;
+                min-width: 0;
+                height: 40px;
+                text-align: center;
+                border: 1px solid #d8d8d8;
+                border-radius: 8px;
+                font-size: 16px;
+                font-weight: bold;
+                color: #292929;
+                -moz-appearance: textfield;
+            }
+
+            .produto-quantidade input::-webkit-inner-spin-button,
+            .produto-quantidade input::-webkit-outer-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
+
             .btn-adicionar {
                 display: block;
                 width: 100%;
@@ -1009,6 +1053,25 @@
                                                name="produtoId"
                                                value="@produto.Id" />
 
+                                        <div class="produto-quantidade" aria-label="Quantidade do produto">
+                                            <button type="button"
+                                                    aria-label="Diminuir quantidade"
+                                                    onclick="ajustarQuantidadeProduto(this, -1)">−</button>
+                                            <input type="number"
+                                                   name="quantidade"
+                                                   value="1"
+                                                   min="1"
+                                                   max="9999"
+                                                   step="1"
+                                                   inputmode="numeric"
+                                                   aria-label="Quantidade desejada"
+                                                   required
+                                                   onblur="validarQuantidadeProduto(this)" />
+                                            <button type="button"
+                                                    aria-label="Aumentar quantidade"
+                                                    onclick="ajustarQuantidadeProduto(this, 1)">+</button>
+                                        </div>
+
                                         <button type="submit"
                                                 class="btn-adicionar">
                                             Adicionar ao pedido
@@ -1116,6 +1179,18 @@
     </footer>
 
     <script>
+        function validarQuantidadeProduto(campo) {
+            const numero = Number(campo.value);
+            const quantidade = Number.isFinite(numero) ? Math.floor(numero) : 1;
+            campo.value = Math.min(9999, Math.max(1, quantidade || 1));
+        }
+
+        function ajustarQuantidadeProduto(botao, diferenca) {
+            const campo = botao.parentElement.querySelector('input[name="quantidade"]');
+            validarQuantidadeProduto(campo);
+            campo.value = Math.min(9999, Math.max(1, Number(campo.value) + diferenca));
+        }
+
         async function copiarChavePix() {
             const elementoChave = document.getElementById('chave-pix');
             const feedback = document.getElementById('pix-feedback');

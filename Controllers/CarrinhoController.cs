@@ -209,7 +209,8 @@ namespace WlcSistemaPedidos.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Adicionar(
-            int produtoId)
+            int produtoId,
+            int quantidade = 1)
         {
             var cliente = await ObterClienteIdentificado();
 
@@ -265,6 +266,12 @@ namespace WlcSistemaPedidos.Controllers
                     "Cliente");
             }
 
+            if (quantidade < 1 || quantidade > 9999)
+            {
+                TempData["Erro"] = "Informe uma quantidade entre 1 e 9999.";
+                return RedirectToAction("Produtos", "Cliente");
+            }
+
             var carrinho = ObterCarrinho();
 
             var itemExistente =
@@ -273,7 +280,13 @@ namespace WlcSistemaPedidos.Controllers
 
             if (itemExistente != null)
             {
-                itemExistente.Quantidade++;
+                if (itemExistente.Quantidade > 9999 - quantidade)
+                {
+                    TempData["Erro"] = "A quantidade máxima por produto é 9999.";
+                    return RedirectToAction("Produtos", "Cliente");
+                }
+
+                itemExistente.Quantidade += quantidade;
             }
             else
             {
@@ -284,14 +297,14 @@ namespace WlcSistemaPedidos.Controllers
                         NomeProduto = produto.Nome,
                         ImagemUrl = produto.ImagemUrl,
                         PrecoUnitario = produto.Preco,
-                        Quantidade = 1
+                        Quantidade = quantidade
                     });
             }
 
             SalvarCarrinho(carrinho);
 
             TempData["Sucesso"] =
-                $"\"{produto.Nome}\" foi adicionado ao pedido.";
+                $"{quantidade} unidade(s) de \"{produto.Nome}\" adicionada(s) ao pedido.";
 
             return RedirectToAction(
                 "Produtos",
@@ -463,6 +476,14 @@ namespace WlcSistemaPedidos.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        private static bool EnderecoCadastradoCompleto(Cliente cliente)
+        {
+            return !string.IsNullOrWhiteSpace(cliente.Endereco)
+                && !string.IsNullOrWhiteSpace(cliente.Numero)
+                && !string.IsNullOrWhiteSpace(cliente.Bairro)
+                && !string.IsNullOrWhiteSpace(cliente.Cidade);
+        }
+
         [HttpGet]
         public async Task<IActionResult> Finalizar()
         {
@@ -480,6 +501,13 @@ namespace WlcSistemaPedidos.Controllers
                 TempData["Erro"] =
                     "Novos pedidos estão bloqueados para este cliente.";
 
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (!EnderecoCadastradoCompleto(cliente))
+            {
+                TempData["Erro"] =
+                    "O endereço cadastrado está incompleto. Entre em contato com o estabelecimento para atualizá-lo.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -520,6 +548,8 @@ namespace WlcSistemaPedidos.Controllers
                 Total = subtotal
             };
 
+            ViewBag.CidadeEntrega = cliente.Cidade;
+            ViewBag.CepEntrega = cliente.Cep;
             await CarregarEstabelecimento();
 
             return View(model);
@@ -546,6 +576,25 @@ namespace WlcSistemaPedidos.Controllers
 
                 return RedirectToAction(nameof(Index));
             }
+
+            if (!EnderecoCadastradoCompleto(cliente))
+            {
+                TempData["Erro"] =
+                    "O endereço cadastrado está incompleto. Entre em contato com o estabelecimento para atualizá-lo.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Dados de entrega sempre vêm do cadastro, nunca do formulário.
+            ModelState.Remove(nameof(FinalizarPedidoViewModel.EnderecoEntrega));
+            ModelState.Remove(nameof(FinalizarPedidoViewModel.BairroEntrega));
+            ModelState.Remove(nameof(FinalizarPedidoViewModel.NumeroEntrega));
+            ModelState.Remove(nameof(FinalizarPedidoViewModel.ComplementoEntrega));
+            model.EnderecoEntrega = cliente.Endereco!.Trim();
+            model.BairroEntrega = cliente.Bairro!.Trim();
+            model.NumeroEntrega = cliente.Numero!.Trim();
+            model.ComplementoEntrega = cliente.Complemento?.Trim();
+            ViewBag.CidadeEntrega = cliente.Cidade;
+            ViewBag.CepEntrega = cliente.Cep;
 
             var carrinho = ObterCarrinho();
 
