@@ -1,3 +1,4 @@
+
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WlcSistemaPedidos.Data;
@@ -7,21 +8,16 @@ using WlcSistemaPedidos.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// =========================================================
-// BANCO DE DADOS POSTGRESQL
-// =========================================================
-
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+// BANCO DE DADOS
+var connectionString = builder.Configuration
+    .GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException(
         "A connection string 'DefaultConnection' não foi configurada.");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-// =========================================================
 // IDENTITY
-// =========================================================
-
 builder.Services
     .AddIdentity<Usuario, IdentityRole<int>>(options =>
     {
@@ -32,9 +28,7 @@ builder.Services
         options.Password.RequireLowercase = false;
         options.Password.RequireNonAlphanumeric = false;
 
-        options.Lockout.AllowedForNewUsers = true;
-        options.Lockout.MaxFailedAccessAttempts = 5;
-        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+        options.Lockout.AllowedForNewUsers = false;
 
         options.User.RequireUniqueEmail = false;
     })
@@ -43,41 +37,17 @@ builder.Services
 
 builder.Services.AddScoped<IPasswordValidator<Usuario>, SenhaNumericaValidator>();
 
-// =========================================================
-// SERVIÇOS DA APLICAÇÃO
-// =========================================================
-
+// SERVIÇOS
 builder.Services.AddScoped<AcessoClienteService>();
-
-// Processa a regra dos lembretes recorrentes.
 builder.Services.AddScoped<ProcessadorLembretesService>();
 
-// =========================================================
 // WHATSAPP
-// =========================================================
-
-/*
- * Implementação temporária.
- *
- * Enquanto a API real do WhatsApp não estiver configurada,
- * EstaConfigurado será false e nenhum lembrete será enviado.
- */
 builder.Services.AddSingleton<IWhatsAppSender, WhatsAppSenderPendente>();
 
-// =========================================================
-// PROCESSAMENTO AUTOMÁTICO DOS LEMBRETES
-// =========================================================
-
-/*
- * Serviço em segundo plano que verifica periodicamente
- * se existem lembretes que chegaram ao horário programado.
- */
+// LEMBRETES AUTOMÁTICOS
 builder.Services.AddHostedService<LembretesBackgroundService>();
 
-// =========================================================
-// COOKIE DE LOGIN
-// =========================================================
-
+// COOKIE
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Conta/Login";
@@ -86,10 +56,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.SlidingExpiration = true;
 });
 
-// =========================================================
-// SESSÃO DO CARRINHO / CLIENTE
-// =========================================================
-
+// SESSÃO
 builder.Services.AddDistributedMemoryCache();
 
 builder.Services.AddSession(options =>
@@ -99,18 +66,12 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-// =========================================================
 // MVC
-// =========================================================
-
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// =========================================================
 // INICIALIZAÇÃO DO BANCO
-// =========================================================
-
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -118,13 +79,14 @@ using (var scope = app.Services.CreateScope())
     var context = services.GetRequiredService<AppDbContext>();
     var userManager = services.GetRequiredService<UserManager<Usuario>>();
 
-    await DbInitializer.InicializarAsync(context, userManager);
+    await DbInitializer.InicializarAsync(
+        context,
+        userManager,
+        app.Configuration,
+        app.Environment);
 }
 
-// =========================================================
-// PIPELINE HTTP
-// =========================================================
-
+// PIPELINE
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -135,7 +97,6 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
 app.UseSession();
 
 app.UseAuthentication();

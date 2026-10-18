@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using WlcSistemaPedidos.Models;
@@ -72,28 +73,26 @@ namespace WlcSistemaPedidos.Controllers
 
             if (!usuario.Ativo)
             {
-                ViewBag.Erro = "Este usuário está bloqueado.";
+                ViewBag.Erro = "Este usuário está bloqueado pelo administrador.";
                 return View();
+            }
+
+            // Limpa eventual bloqueio anterior por tentativas incorretas.
+            if (await _userManager.IsLockedOutAsync(usuario))
+            {
+                await _userManager.SetLockoutEndDateAsync(usuario, null);
+                await _userManager.ResetAccessFailedCountAsync(usuario);
             }
 
             var resultado = await _signInManager.PasswordSignInAsync(
                 usuario,
                 senha,
                 isPersistent: false,
-                lockoutOnFailure: true);
+                lockoutOnFailure: false);
 
             if (!resultado.Succeeded)
             {
-                if (resultado.IsLockedOut)
-                {
-                    ViewBag.Erro =
-                        "Usuário temporariamente bloqueado por excesso de tentativas.";
-                }
-                else
-                {
-                    ViewBag.Erro = "Login ou senha inválidos.";
-                }
-
+                ViewBag.Erro = "Login ou senha inválidos.";
                 return View();
             }
 

@@ -9,6 +9,9 @@
     var cultura =
         new System.Globalization.CultureInfo("pt-BR");
 
+    int paginaClientes = ViewBag.PaginaClientes ?? 1;
+    string? buscaClientes = ViewBag.BuscaClientes as string;
+
     int paginaAtual = ViewBag.PaginaAtual ?? 1;
     int totalPaginas = ViewBag.TotalPaginas ?? 0;
     int totalMovimentacoes = ViewBag.TotalMovimentacoes ?? 0;
@@ -644,6 +647,8 @@
 
     <a asp-controller="Clientes"
        asp-action="Index"
+       asp-route-pagina="@paginaClientes"
+       asp-route-busca="@buscaClientes"
        class="voltar">
         ← Voltar para clientes
     </a>
@@ -732,6 +737,8 @@
 
             <form asp-controller="Clientes"
                   asp-action="AlterarLiberacaoPedidos"
+                  asp-route-paginaClientes="@paginaClientes"
+                  asp-route-buscaClientes="@buscaClientes"
                   asp-route-id="@Model.ClienteId"
                   method="post">
 
@@ -777,6 +784,8 @@
 
             <form asp-controller="Clientes"
                   asp-action="Financeiro"
+                  asp-route-paginaClientes="@paginaClientes"
+                  asp-route-buscaClientes="@buscaClientes"
                   method="post">
 
                 @Html.AntiForgeryToken()
@@ -1003,6 +1012,8 @@
                                asp-action="Financeiro"
                                asp-route-id="@Model.ClienteId"
                                asp-route-pagina="@(paginaAtual - 1)"
+                                asp-route-paginaClientes="@paginaClientes"
+                                asp-route-buscaClientes="@buscaClientes"
                                class="pagina">
                                 ‹ Anterior
                             </a>
@@ -1014,6 +1025,8 @@
                                asp-action="Financeiro"
                                asp-route-id="@Model.ClienteId"
                                asp-route-pagina="@i"
+                                asp-route-paginaClientes="@paginaClientes"
+                                asp-route-buscaClientes="@buscaClientes"
                                class="pagina @(i == paginaAtual ? "pagina-atual" : "")">
                                 @i
                             </a>
@@ -1025,6 +1038,8 @@
                                asp-action="Financeiro"
                                asp-route-id="@Model.ClienteId"
                                asp-route-pagina="@(paginaAtual + 1)"
+                                asp-route-paginaClientes="@paginaClientes"
+                                asp-route-buscaClientes="@buscaClientes"
                                class="pagina">
                                 Próxima ›
                             </a>

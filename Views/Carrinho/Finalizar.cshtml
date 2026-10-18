@@ -257,7 +257,7 @@
 <main class="container">
 
     <h1>Finalizar pedido</h1>
-    <p class="subtitulo">Confirme os dados para entrega.</p>
+    <p class="subtitulo">Confirme os dados do pedido.</p>
 
     <form asp-controller="Carrinho"
           asp-action="Finalizar"
@@ -270,10 +270,40 @@
 
         <section class="card">
             <h2>Endereço de entrega</h2>
-            <div class="endereco-confirmacao">
-                <div class="endereco-titulo">✓ Entrega no endereço cadastrado</div>
-                <p><strong>Rua / Avenida:</strong> @Model.EnderecoEntrega, nº @Model.NumeroEntrega</p>
-                <p><strong>Bairro:</strong> @Model.BairroEntrega</p>
+            <p style="color:#666;font-size:14px;line-height:1.5;">
+                Escolha se deseja incluir o endereço cadastrado neste pedido.
+            </p>
+
+            <div class="campo-grupo">
+                <label style="display:flex;align-items:center;gap:9px;cursor:pointer;">
+                    <input type="radio" name="UsarEnderecoCadastrado" value="true"
+                           checked="@(Model.UsarEnderecoCadastrado ? "checked" : null)"
+                           style="width:auto;" onchange="alternarEndereco()" />
+                    Usar endereço cadastrado
+                </label>
+                <label style="display:flex;align-items:center;gap:9px;cursor:pointer;margin-top:12px;">
+                    <input type="radio" name="UsarEnderecoCadastrado" value="false"
+                           checked="@(!Model.UsarEnderecoCadastrado ? "checked" : null)"
+                           style="width:auto;" onchange="alternarEndereco()" />
+                    Não informar endereço neste pedido
+                </label>
+            </div>
+
+            <div id="endereco-cadastrado" class="endereco-confirmacao">
+                <div class="endereco-titulo">✓ Endereço cadastrado</div>
+                @if (!string.IsNullOrWhiteSpace(Model.EnderecoEntrega))
+                {
+                    <p><strong>Rua / Avenida:</strong> @Model.EnderecoEntrega
+                        @if (!string.IsNullOrWhiteSpace(Model.NumeroEntrega))
+                        {
+                            <text>, nº @Model.NumeroEntrega</text>
+                        }
+                    </p>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.BairroEntrega))
+                {
+                    <p><strong>Bairro:</strong> @Model.BairroEntrega</p>
+                }
                 @if (!string.IsNullOrWhiteSpace(Convert.ToString(ViewBag.CidadeEntrega)))
                 {
                     <p><strong>Cidade:</strong> @ViewBag.CidadeEntrega</p>
@@ -286,7 +316,11 @@
                 {
                     <p><strong>Complemento:</strong> @Model.ComplementoEntrega</p>
                 }
-                <small>Confira o endereço acima. Para alterá-lo, entre em contato com o estabelecimento antes de confirmar.</small>
+                <small>Para atualizar seu endereço cadastrado, entre em contato com o estabelecimento.</small>
+            </div>
+            <div id="sem-endereco" class="endereco-confirmacao" style="display:none;">
+                <strong>Pedido sem endereço informado.</strong>
+                <p>O estabelecimento receberá seu pedido normalmente.</p>
             </div>
 
             <div class="campo-grupo" style="margin-top:20px">
@@ -337,5 +371,14 @@
     Desenvolvido por <strong>WLC Sistemas</strong>
 </footer>
 
+<script>
+    function alternarEndereco() {
+        const selecionado = document.querySelector('input[name="UsarEnderecoCadastrado"]:checked');
+        const usarEndereco = selecionado ? selecionado.value === "true" : true;
+        document.getElementById("endereco-cadastrado").style.display = usarEndereco ? "block" : "none";
+        document.getElementById("sem-endereco").style.display = usarEndereco ? "none" : "block";
+    }
+    alternarEndereco();
+</script>
 </body>
 </html>

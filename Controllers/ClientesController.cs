@@ -160,7 +160,7 @@ namespace WlcSistemaPedidos.Controllers
         // =========================================================
 
         [HttpGet]
-        public async Task<IActionResult> Acesso(int id)
+        public async Task<IActionResult> Acesso(int id, int paginaClientes = 1, string? buscaClientes = null)
         {
             if (!await UsuarioEhAdministrador())
             {
@@ -183,7 +183,7 @@ namespace WlcSistemaPedidos.Controllers
                 TempData["Erro"] =
                     $"O cliente \"{cliente.Nome}\" está inativo e não pode receber um link de acesso.";
 
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new { pagina = paginaClientes, busca = buscaClientes });
             }
 
             var dataExpiracao =
@@ -209,9 +209,11 @@ namespace WlcSistemaPedidos.Controllers
                 TempData["Erro"] =
                     "Não foi possível gerar o link de acesso do cliente.";
 
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new { pagina = paginaClientes, busca = buscaClientes });
             }
 
+            ViewBag.PaginaClientes = paginaClientes;
+            ViewBag.BuscaClientes = buscaClientes;
             ViewBag.ClienteId = cliente.Id;
             ViewBag.NomeCliente = cliente.Nome;
             ViewBag.TelefoneCliente = cliente.Telefone;
@@ -313,7 +315,7 @@ namespace WlcSistemaPedidos.Controllers
         // =========================================================
 
         [HttpGet]
-        public async Task<IActionResult> Editar(int id)
+        public async Task<IActionResult> Editar(int id, int paginaClientes = 1, string? buscaClientes = null)
         {
             if (!await UsuarioEhAdministrador())
             {
@@ -331,6 +333,8 @@ namespace WlcSistemaPedidos.Controllers
                 return NotFound();
             }
 
+            ViewBag.PaginaClientes = paginaClientes;
+            ViewBag.BuscaClientes = buscaClientes;
             await CarregarEstabelecimento();
 
             return View(cliente);
@@ -344,7 +348,9 @@ namespace WlcSistemaPedidos.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Editar(
             int id,
-            Cliente cliente)
+            Cliente cliente,
+            int paginaClientes = 1,
+            string? buscaClientes = null)
         {
             if (!await UsuarioEhAdministrador())
             {
@@ -388,6 +394,8 @@ namespace WlcSistemaPedidos.Controllers
                 cliente.SaldoDevedor =
                     clienteBanco.SaldoDevedor;
 
+                ViewBag.PaginaClientes = paginaClientes;
+                ViewBag.BuscaClientes = buscaClientes;
                 await CarregarEstabelecimento();
 
                 return View(cliente);
@@ -434,7 +442,7 @@ namespace WlcSistemaPedidos.Controllers
             TempData["Sucesso"] =
                 $"Cliente \"{clienteBanco.Nome}\" atualizado com sucesso.";
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { pagina = paginaClientes, busca = buscaClientes });
         }
 
         // =========================================================
@@ -444,7 +452,9 @@ namespace WlcSistemaPedidos.Controllers
         [HttpGet]
         public async Task<IActionResult> Financeiro(
             int id,
-            int pagina = 1)
+            int pagina = 1,
+            int paginaClientes = 1,
+            string? buscaClientes = null)
         {
             if (!await UsuarioEhAdministrador())
             {
@@ -515,6 +525,8 @@ namespace WlcSistemaPedidos.Controllers
             ViewBag.PaginaAtual = pagina;
             ViewBag.TotalPaginas = totalPaginas;
             ViewBag.TotalMovimentacoes = totalMovimentacoes;
+            ViewBag.PaginaClientes = paginaClientes;
+            ViewBag.BuscaClientes = buscaClientes;
 
             await CarregarEstabelecimento();
 
@@ -528,7 +540,9 @@ namespace WlcSistemaPedidos.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Financeiro(
-            ClienteFinanceiroViewModel model)
+            ClienteFinanceiroViewModel model,
+            int paginaClientes = 1,
+            string? buscaClientes = null)
         {
             if (!await UsuarioEhAdministrador())
             {
@@ -603,6 +617,8 @@ namespace WlcSistemaPedidos.Controllers
 
             if (!ModelState.IsValid)
             {
+                ViewBag.PaginaClientes = paginaClientes;
+                ViewBag.BuscaClientes = buscaClientes;
                 model.Movimentacoes =
                     await _context.MovimentacoesFinanceiras
                         .AsNoTracking()
@@ -789,7 +805,9 @@ namespace WlcSistemaPedidos.Controllers
                 nameof(Financeiro),
                 new
                 {
-                    id = cliente.Id
+                    id = cliente.Id,
+                    paginaClientes,
+                    buscaClientes
                 });
         }
 
@@ -800,7 +818,9 @@ namespace WlcSistemaPedidos.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AlterarLiberacaoPedidos(
-            int id)
+            int id,
+            int paginaClientes = 1,
+            string? buscaClientes = null)
         {
             if (!await UsuarioEhAdministrador())
             {
@@ -832,7 +852,9 @@ namespace WlcSistemaPedidos.Controllers
                 nameof(Financeiro),
                 new
                 {
-                    id = cliente.Id
+                    id = cliente.Id,
+                    paginaClientes,
+                    buscaClientes
                 });
         }
 
@@ -842,7 +864,7 @@ namespace WlcSistemaPedidos.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Excluir(int id)
+        public async Task<IActionResult> Excluir(int id, int paginaClientes = 1, string? buscaClientes = null)
         {
             if (!await UsuarioEhAdministrador())
             {
@@ -875,7 +897,7 @@ namespace WlcSistemaPedidos.Controllers
                 TempData["Erro"] =
                     "Este cliente possui histórico de pedidos ou financeiro e não pode ser excluído. Desative o cliente para preservar o histórico.";
 
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new { pagina = paginaClientes, busca = buscaClientes });
             }
 
             var nomeCliente = cliente.Nome;
@@ -887,7 +909,7 @@ namespace WlcSistemaPedidos.Controllers
             TempData["Sucesso"] =
                 $"Cliente \"{nomeCliente}\" excluído com sucesso.";
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { pagina = paginaClientes, busca = buscaClientes });
         }
 
         // =========================================================

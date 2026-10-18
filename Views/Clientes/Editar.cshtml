@@ -5,6 +5,9 @@
     ViewData["Title"] = "Editar Cliente";
     Layout = null;
 
+    int paginaClientes = ViewBag.PaginaClientes ?? 1;
+    string? buscaClientes = ViewBag.BuscaClientes as string;
+
     string nomeEstabelecimento =
         ViewBag.NomeEstabelecimento
         ?? "Sistema de Pedidos";
@@ -477,6 +480,8 @@
         <form asp-controller="Clientes"
               asp-action="Editar"
               asp-route-id="@Model.Id"
+              asp-route-paginaClientes="@paginaClientes"
+              asp-route-buscaClientes="@buscaClientes"
               method="post">
 
             @Html.AntiForgeryToken()
@@ -772,6 +777,8 @@
 
                 <a asp-controller="Clientes"
                    asp-action="Index"
+                   asp-route-pagina="@paginaClientes"
+                   asp-route-busca="@buscaClientes"
                    class="btn btn-voltar">
                     Cancelar
                 </a>

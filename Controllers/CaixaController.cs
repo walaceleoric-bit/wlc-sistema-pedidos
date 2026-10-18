@@ -29,7 +29,9 @@ namespace WlcSistemaPedidos.Controllers
         [HttpGet]
         public async Task<IActionResult> Index(
             string periodo = "hoje",
-            int pagina = 1)
+            int pagina = 1,
+            int paginaRecebimentos = 1,
+            string? buscaRecebimento = null)
         {
             var usuario =
                 await ObterAdministradorAsync();
@@ -252,6 +254,60 @@ namespace WlcSistemaPedidos.Controllers
                         tamanhoPagina)
                     .Take(tamanhoPagina)
                     .ToListAsync();
+
+            // =====================================================
+            // HISTÓRICO DE RECEBIMENTOS - PAGINAÇÃO INDEPENDENTE
+            // =====================================================
+
+            const int tamanhoPaginaRecebimentos = 10;
+
+            if (paginaRecebimentos < 1)
+            {
+                paginaRecebimentos = 1;
+            }
+
+            buscaRecebimento = buscaRecebimento?.Trim() ?? string.Empty;
+
+            var consultaRecebimentos = _context.MovimentacoesFinanceiras
+                .AsNoTracking()
+                .Include(m => m.Cliente)
+                .Include(m => m.UsuarioResponsavel)
+                .Where(m =>
+                    m.Tipo == TipoMovimentacaoFinanceira.Pagamento &&
+                    m.DataMovimentacao >= inicioUtc &&
+                    m.DataMovimentacao < fimUtc);
+
+            if (!string.IsNullOrWhiteSpace(buscaRecebimento))
+            {
+                var termo = buscaRecebimento.ToLower();
+                consultaRecebimentos = consultaRecebimentos
+                    .Where(m => m.Cliente.Nome.ToLower().Contains(termo));
+            }
+
+            var totalRecebimentosRegistros =
+                await consultaRecebimentos.CountAsync();
+
+            var totalPaginasRecebimentos = (int)Math.Ceiling(
+                totalRecebimentosRegistros / (double)tamanhoPaginaRecebimentos);
+
+            if (totalPaginasRecebimentos > 0 &&
+                paginaRecebimentos > totalPaginasRecebimentos)
+            {
+                paginaRecebimentos = totalPaginasRecebimentos;
+            }
+
+            var historicoRecebimentos = await consultaRecebimentos
+                .OrderByDescending(m => m.DataMovimentacao)
+                .ThenByDescending(m => m.Id)
+                .Skip((paginaRecebimentos - 1) * tamanhoPaginaRecebimentos)
+                .Take(tamanhoPaginaRecebimentos)
+                .ToListAsync();
+
+            ViewBag.HistoricoRecebimentos = historicoRecebimentos;
+            ViewBag.PaginaRecebimentos = paginaRecebimentos;
+            ViewBag.TotalPaginasRecebimentos = totalPaginasRecebimentos;
+            ViewBag.TotalRegistrosRecebimentos = totalRecebimentosRegistros;
+            ViewBag.BuscaRecebimento = buscaRecebimento;
 
             // =====================================================
             // VIEWBAG

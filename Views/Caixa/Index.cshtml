@@ -57,6 +57,15 @@
 
     var cultura =
         new System.Globalization.CultureInfo("pt-BR");
+
+    var historicoRecebimentos =
+        ViewBag.HistoricoRecebimentos as IEnumerable<MovimentacaoFinanceira>
+        ?? Enumerable.Empty<MovimentacaoFinanceira>();
+
+    int paginaRecebimentos = ViewBag.PaginaRecebimentos ?? 1;
+    int totalPaginasRecebimentos = ViewBag.TotalPaginasRecebimentos ?? 0;
+    int totalRegistrosRecebimentos = ViewBag.TotalRegistrosRecebimentos ?? 0;
+    string buscaRecebimento = ViewBag.BuscaRecebimento as string ?? "";
 }
 
 @section Styles {
@@ -749,6 +758,7 @@
             .btn-agenda,
             .btn-imprimir,
             .novo-gasto,
+            .recebimentos-filtro,
             .categorias-box,
             .periodos,
             .btn-excluir,
@@ -771,6 +781,74 @@
                 grid-template-columns: repeat(3, 1fr);
             }
         }
+
+
+        /* Painel Caixa — organização visual */
+        .caixa-conteudo { max-width: 1320px; padding: 30px 0 55px; }
+        .cabecalho { margin-bottom: 18px; }
+        .cabecalho h1 { font-size: 30px; letter-spacing: -.6px; }
+        .periodos { margin-bottom: 16px; }
+        .periodo { transition: background .15s, border-color .15s; }
+        .atalhos-caixa { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:26px; padding:12px; border:1px solid #e9edf1; background:#fff; border-radius:12px; }
+        .atalhos-caixa a { display:inline-flex; align-items:center; gap:8px; padding:10px 16px; color:#424953; background:#f6f7f9; text-decoration:none; font-size:13px; font-weight:700; border-radius:8px; border:1px solid #e9edf1; }
+        .atalhos-caixa a:hover { color:#d96600; border-color:#ffcf9e; background:#fff7ed; }
+        .resumo-financeiro { margin-bottom:25px; }
+        .resumo-bloco { margin-bottom:15px; }
+        .resumo-titulo { font-size:13px; text-transform:uppercase; letter-spacing:.6px; color:#717985; margin-bottom:10px; }
+        .cards { gap:13px; }
+        .card-resumo { border-color:#e8ecf0; padding:20px 22px; box-shadow:0 3px 13px rgba(21,35,53,.035); }
+        .card-resumo strong { font-size:clamp(20px,2vw,26px); letter-spacing:-.5px; }
+        .card-resumo small { line-height:1.5; }
+        .secao-caixa-titulo { display:flex; align-items:center; gap:10px; margin:32px 0 14px; font-size:20px; font-weight:800; color:#252b34; }
+        .secao-caixa-titulo::before { content:''; width:5px; height:24px; border-radius:5px; background:#f57c00; }
+        .recebimentos-box { background:#fff; border:1px solid #e8ecf0; border-radius:14px; padding:22px; margin-bottom:28px; box-shadow:0 3px 14px rgba(21,35,53,.035); scroll-margin-top:20px; }
+        .recebimentos-cabecalho { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:18px; margin-bottom:16px; }
+        .recebimentos-cabecalho h2 { margin:0 0 6px; }
+        .recebimentos-cabecalho p { color:#79818c; font-size:13px; margin:0; }
+        .recebimentos-filtro { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+        .recebimentos-filtro .campo { width:260px; max-width:100%; }
+        .recebimentos-filtro .btn-registrar, .recebimentos-filtro .periodo { height:44px; display:inline-flex; align-items:center; justify-content:center; }
+        .recebimentos-box .tabela-container { border-radius:10px; }
+        .tabela-recebimentos { min-width:850px; }
+        .tabela-recebimentos th, .tabela-recebimentos td { padding:14px 15px; }
+        .tabela-recebimentos tbody tr:hover, .tabela-container tbody tr:hover { background:#fffaf5; }
+        .observacao-recebimento { max-width:320px; white-space:normal; overflow-wrap:anywhere; line-height:1.5; }
+        .link-cliente-recebimento { color:#1769aa; font-weight:700; text-decoration:none; }
+        .link-cliente-recebimento:hover { text-decoration:underline; }
+        .recebimentos-box .resumo-registros { margin-bottom:12px; }
+        .analise-gastos, .categorias-box, .novo-gasto { border-color:#e8ecf0; box-shadow:0 3px 14px rgba(21,35,53,.035); }
+        .analise-gastos { scroll-margin-top:20px; }
+        .categorias-box { scroll-margin-top:20px; }
+        .novo-gasto { scroll-margin-top:20px; }
+        .tabela-container { box-shadow:0 3px 14px rgba(21,35,53,.025); }
+        .paginacao { margin:16px 0 10px; }
+        .pagina { transition:all .15s; }
+        #historico-gastos { scroll-margin-top:20px; }
+        @@media (max-width:900px) { .recebimentos-cabecalho { flex-direction:column; } .recebimentos-filtro { width:100%; } .recebimentos-filtro .campo { flex:1; width:180px; } }
+        @@media (max-width:550px) { .caixa-conteudo { padding-top:20px; } .cabecalho h1 { font-size:26px; } .recebimentos-box { padding:15px; } .atalhos-caixa { gap:6px; padding:8px; } .atalhos-caixa a { flex:1; justify-content:center; padding:10px 8px; font-size:12px; } .recebimentos-filtro .campo { width:100%; flex-basis:100%; } }
+        @@media print { .atalhos-caixa, .recebimentos-filtro { display:none !important; } .recebimentos-box { break-inside:avoid; } }
+
+        /* Acabamento: hierarquia dos títulos e leitura das tabelas */
+        .secao-caixa-titulo, .recebimentos-cabecalho .titulo-lista,
+        #historico-gastos { font-size:21px; font-weight:800; letter-spacing:-.35px; color:#202936; }
+        .recebimentos-cabecalho .titulo-lista { display:flex; align-items:center; gap:10px; }
+        .recebimentos-cabecalho .titulo-lista::before,
+        #historico-gastos::before { content:''; display:inline-block; width:5px; height:22px; background:#f57c00; border-radius:4px; flex-shrink:0; }
+        #historico-gastos { display:flex; align-items:center; gap:10px; margin-top:28px; }
+        .analise-topo h2, .categorias-topo h2, .novo-gasto h2 { font-size:19px; font-weight:800; color:#202936; letter-spacing:-.25px; }
+        .tabela-container { border-color:#e4e9ef; border-radius:12px; }
+        .tabela-container table { width:100%; }
+        .tabela-container th { background:#f3f6f9; color:#4a5565; font-size:12px; font-weight:800; letter-spacing:.2px; padding:15px 16px; white-space:nowrap; }
+        .tabela-container td { color:#344054; padding:15px 16px; line-height:1.5; border-bottom:1px solid #edf0f3; }
+        .tabela-container tbody tr:nth-child(even) { background:#fcfdfe; }
+        .tabela-container tbody tr:hover { background:#fff7ed; }
+        .tabela-container tbody tr:last-child td { border-bottom:0; }
+        .tabela-recebimentos td:nth-child(1), .tabela-recebimentos td:nth-child(3),
+        .tabela-recebimentos td:nth-child(5) { white-space:nowrap; }
+        .tabela-recebimentos .observacao-recebimento { min-width:170px; }
+        .resumo-registros { color:#687384; line-height:1.5; }
+        @@media print { .tabela-container th { background:#f3f6f9 !important; } .tabela-container td { padding:9px 10px; } }
+
 
     </style>
 }
@@ -980,11 +1058,118 @@
 
     </section>
 
+    <nav class="atalhos-caixa" aria-label="Seções do caixa">
+        <a href="#historico-recebimentos">💰 Recebimentos</a>
+        <a href="#registrar-gasto">🧾 Registrar gasto</a>
+        <a href="#historico-gastos">📋 Histórico de gastos</a>
+        <a href="#analise-categorias">📊 Análise por categoria</a>
+    </nav>
+
+    <!-- ==========================================
+         HISTÓRICO DE RECEBIMENTOS
+         ========================================== -->
+
+    <section class="recebimentos-box" id="historico-recebimentos">
+        <div class="recebimentos-cabecalho">
+            <div>
+                <h2 class="titulo-lista">Histórico de recebimentos</h2>
+                <p>Pagamentos registrados no Financeiro dos Clientes, do mais recente para o mais antigo.</p>
+            </div>
+            <form asp-controller="Caixa" asp-action="Index" method="get" class="recebimentos-filtro">
+                <input type="hidden" name="periodo" value="@periodo" />
+                <input type="hidden" name="pagina" value="@paginaAtual" />
+                <input class="campo" type="search" name="buscaRecebimento"
+                       value="@buscaRecebimento" placeholder="Pesquisar cliente" />
+                <button type="submit" class="btn-registrar">Buscar</button>
+                <a asp-controller="Caixa" asp-action="Index"
+                   asp-route-periodo="@periodo" asp-route-pagina="@paginaAtual"
+                   class="periodo">Limpar</a>
+            </form>
+        </div>
+
+        <div class="resumo-registros">
+            @totalRegistrosRecebimentos pagamento(s) encontrado(s) no período selecionado.
+            Exibindo até 10 por página.
+        </div>
+
+        <div class="tabela-container">
+            @if (historicoRecebimentos.Any())
+            {
+                <table class="tabela-recebimentos">
+                    <thead>
+                        <tr>
+                            <th>Data e hora</th>
+                            <th>Cliente</th>
+                            <th>Valor recebido</th>
+                            <th>Observação</th>
+                            <th>Responsável</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var pagamento in historicoRecebimentos)
+                        {
+                            <tr>
+                                <td>@pagamento.DataMovimentacao.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    <a asp-controller="Clientes" asp-action="Financeiro"
+                                       asp-route-id="@pagamento.ClienteId" class="link-cliente-recebimento">
+                                        @(pagamento.Cliente?.Nome ?? "Cliente não encontrado")
+                                    </a>
+                                </td>
+                                <td class="valor-recebido"><strong>@pagamento.Valor.ToString("C2", cultura)</strong></td>
+                                <td class="observacao-recebimento">
+                                    @(string.IsNullOrWhiteSpace(pagamento.Observacao) ? "—" : pagamento.Observacao)
+                                </td>
+                                <td>@(pagamento.UsuarioResponsavel?.UserName ?? "—")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="vazio">Nenhum pagamento encontrado para este período ou pesquisa.</div>
+            }
+        </div>
+
+        @if (totalPaginasRecebimentos > 1)
+        {
+            <div class="paginacao">
+                @if (paginaRecebimentos > 1)
+                {
+                    <a asp-controller="Caixa" asp-action="Index"
+                       asp-route-periodo="@periodo" asp-route-pagina="@paginaAtual"
+                       asp-route-buscaRecebimento="@buscaRecebimento"
+                       asp-route-paginaRecebimentos="@(paginaRecebimentos - 1)"
+                       asp-fragment="historico-recebimentos" class="pagina">‹</a>
+                }
+                @for (int i = 1; i <= totalPaginasRecebimentos; i++)
+                {
+                    <a asp-controller="Caixa" asp-action="Index"
+                       asp-route-periodo="@periodo" asp-route-pagina="@paginaAtual"
+                       asp-route-buscaRecebimento="@buscaRecebimento"
+                       asp-route-paginaRecebimentos="@i"
+                       asp-fragment="historico-recebimentos"
+                       class="pagina @(i == paginaRecebimentos ? "pagina-atual" : "")">@i</a>
+                }
+                @if (paginaRecebimentos < totalPaginasRecebimentos)
+                {
+                    <a asp-controller="Caixa" asp-action="Index"
+                       asp-route-periodo="@periodo" asp-route-pagina="@paginaAtual"
+                       asp-route-buscaRecebimento="@buscaRecebimento"
+                       asp-route-paginaRecebimentos="@(paginaRecebimentos + 1)"
+                       asp-fragment="historico-recebimentos" class="pagina">›</a>
+                }
+            </div>
+        }
+    </section>
+
     <!-- ==========================================
          ANÁLISE DE GASTOS POR CATEGORIA
          ========================================== -->
 
-    <section class="analise-gastos">
+    <h2 class="secao-caixa-titulo">Análise das despesas</h2>
+    <section class="analise-gastos" id="analise-categorias">
 
         <div class="analise-topo">
 
@@ -1086,6 +1271,7 @@
          CATEGORIAS DE GASTOS
          ========================================== -->
 
+    <h2 class="secao-caixa-titulo">Gestão de gastos</h2>
     <div class="categorias-box">
 
         <div class="categorias-topo">
@@ -1168,7 +1354,7 @@
          REGISTRAR GASTO
          ========================================== -->
 
-    <div class="novo-gasto">
+    <div class="novo-gasto" id="registrar-gasto">
 
         <h2>
             Registrar gasto
@@ -1227,7 +1413,7 @@
          HISTÓRICO DE GASTOS
          ========================================== -->
 
-    <h2 class="titulo-lista">
+    <h2 class="titulo-lista" id="historico-gastos">
         Gastos do período
     </h2>
 
@@ -1325,6 +1511,8 @@
                    asp-action="Index"
                    asp-route-periodo="@periodo"
                    asp-route-pagina="@(paginaAtual - 1)"
+                   asp-route-paginaRecebimentos="@paginaRecebimentos"
+                   asp-route-buscaRecebimento="@buscaRecebimento"
                    class="pagina">
                     ‹
                 </a>
@@ -1336,6 +1524,8 @@
                    asp-action="Index"
                    asp-route-periodo="@periodo"
                    asp-route-pagina="@i"
+                   asp-route-paginaRecebimentos="@paginaRecebimentos"
+                   asp-route-buscaRecebimento="@buscaRecebimento"
                    class="pagina @(i == paginaAtual ? "pagina-atual" : "")">
                     @i
                 </a>
@@ -1347,6 +1537,8 @@
                    asp-action="Index"
                    asp-route-periodo="@periodo"
                    asp-route-pagina="@(paginaAtual + 1)"
+                   asp-route-paginaRecebimentos="@paginaRecebimentos"
+                   asp-route-buscaRecebimento="@buscaRecebimento"
                    class="pagina">
                     ›
                 </a>

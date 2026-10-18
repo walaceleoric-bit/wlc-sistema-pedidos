@@ -155,17 +155,32 @@ namespace WlcSistemaPedidos.Controllers
             mensagem.AppendLine();
             mensagem.AppendLine("*ENTREGA*");
 
-            mensagem.AppendLine(
-                $"{pedido.EnderecoEntrega}, {pedido.NumeroEntrega}");
-
-            mensagem.AppendLine(
-                $"Bairro: {pedido.BairroEntrega}");
-
-            if (!string.IsNullOrWhiteSpace(
-                    pedido.ComplementoEntrega))
+            if (string.IsNullOrWhiteSpace(pedido.EnderecoEntrega) &&
+                string.IsNullOrWhiteSpace(pedido.NumeroEntrega) &&
+                string.IsNullOrWhiteSpace(pedido.BairroEntrega) &&
+                string.IsNullOrWhiteSpace(pedido.ComplementoEntrega))
             {
-                mensagem.AppendLine(
-                    $"Complemento: {pedido.ComplementoEntrega}");
+                mensagem.AppendLine("Endereço não informado pelo cliente.");
+            }
+            else
+            {
+                if (!string.IsNullOrWhiteSpace(pedido.EnderecoEntrega))
+                {
+                    var endereco = pedido.EnderecoEntrega;
+                    if (!string.IsNullOrWhiteSpace(pedido.NumeroEntrega))
+                        endereco += $", {pedido.NumeroEntrega}";
+                    mensagem.AppendLine(endereco);
+                }
+                else if (!string.IsNullOrWhiteSpace(pedido.NumeroEntrega))
+                {
+                    mensagem.AppendLine($"Número: {pedido.NumeroEntrega}");
+                }
+
+                if (!string.IsNullOrWhiteSpace(pedido.BairroEntrega))
+                    mensagem.AppendLine($"Bairro: {pedido.BairroEntrega}");
+
+                if (!string.IsNullOrWhiteSpace(pedido.ComplementoEntrega))
+                    mensagem.AppendLine($"Complemento: {pedido.ComplementoEntrega}");
             }
 
             if (!string.IsNullOrWhiteSpace(
@@ -476,14 +491,6 @@ namespace WlcSistemaPedidos.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private static bool EnderecoCadastradoCompleto(Cliente cliente)
-        {
-            return !string.IsNullOrWhiteSpace(cliente.Endereco)
-                && !string.IsNullOrWhiteSpace(cliente.Numero)
-                && !string.IsNullOrWhiteSpace(cliente.Bairro)
-                && !string.IsNullOrWhiteSpace(cliente.Cidade);
-        }
-
         [HttpGet]
         public async Task<IActionResult> Finalizar()
         {
@@ -501,13 +508,6 @@ namespace WlcSistemaPedidos.Controllers
                 TempData["Erro"] =
                     "Novos pedidos estão bloqueados para este cliente.";
 
-                return RedirectToAction(nameof(Index));
-            }
-
-            if (!EnderecoCadastradoCompleto(cliente))
-            {
-                TempData["Erro"] =
-                    "O endereço cadastrado está incompleto. Entre em contato com o estabelecimento para atualizá-lo.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -577,22 +577,25 @@ namespace WlcSistemaPedidos.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            if (!EnderecoCadastradoCompleto(cliente))
-            {
-                TempData["Erro"] =
-                    "O endereço cadastrado está incompleto. Entre em contato com o estabelecimento para atualizá-lo.";
-                return RedirectToAction(nameof(Index));
-            }
-
             // Dados de entrega sempre vêm do cadastro, nunca do formulário.
             ModelState.Remove(nameof(FinalizarPedidoViewModel.EnderecoEntrega));
             ModelState.Remove(nameof(FinalizarPedidoViewModel.BairroEntrega));
             ModelState.Remove(nameof(FinalizarPedidoViewModel.NumeroEntrega));
             ModelState.Remove(nameof(FinalizarPedidoViewModel.ComplementoEntrega));
-            model.EnderecoEntrega = cliente.Endereco!.Trim();
-            model.BairroEntrega = cliente.Bairro!.Trim();
-            model.NumeroEntrega = cliente.Numero!.Trim();
-            model.ComplementoEntrega = cliente.Complemento?.Trim();
+            // O cliente pode optar por não informar endereço neste pedido.
+            // Dados de endereço nunca são aceitos diretamente do formulário.
+            model.EnderecoEntrega = model.UsarEnderecoCadastrado
+                ? cliente.Endereco?.Trim() ?? string.Empty
+                : string.Empty;
+            model.BairroEntrega = model.UsarEnderecoCadastrado
+                ? cliente.Bairro?.Trim() ?? string.Empty
+                : string.Empty;
+            model.NumeroEntrega = model.UsarEnderecoCadastrado
+                ? cliente.Numero?.Trim() ?? string.Empty
+                : string.Empty;
+            model.ComplementoEntrega = model.UsarEnderecoCadastrado
+                ? cliente.Complemento?.Trim()
+                : null;
             ViewBag.CidadeEntrega = cliente.Cidade;
             ViewBag.CepEntrega = cliente.Cep;
 
