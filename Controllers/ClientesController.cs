@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -266,6 +267,13 @@ namespace WlcSistemaPedidos.Controllers
 
             PrepararModelCriacao(model);
 
+            if (await TelefoneJaCadastradoAsync(model.Telefone))
+            {
+                ModelState.AddModelError(
+                    nameof(model.Telefone),
+                    "Este WhatsApp já está cadastrado para outro cliente. Informe outro número ou utilize o cadastro existente.");
+            }
+
             if (!ModelState.IsValid)
             {
                 await CarregarEstabelecimento();
@@ -375,6 +383,13 @@ namespace WlcSistemaPedidos.Controllers
             PrepararCliente(cliente);
 
             ModelState.Remove(nameof(Cliente.Usuario));
+
+            if (await TelefoneJaCadastradoAsync(cliente.Telefone, id))
+            {
+                ModelState.AddModelError(
+                    nameof(cliente.Telefone),
+                    "Este WhatsApp já está cadastrado para outro cliente. Informe outro número ou utilize o cadastro existente.");
+            }
 
             if (cliente.SaldoDevedor < 0)
             {
@@ -864,52 +879,93 @@ namespace WlcSistemaPedidos.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Excluir(int id, int paginaClientes = 1, string? buscaClientes = null)
+        public async Task<IActionResult> Excluir(
+            int id,
+            int paginaClientes = 1,
+            string? buscaClientes = null,
+            bool confirmarExclusao = false)
         {
             if (!await UsuarioEhAdministrador())
             {
-                return RedirectToAction(
-                    "AcessoNegado",
-                    "Conta");
+                return RedirectToAction("AcessoNegado", "Conta");
             }
 
-            var cliente = await _context.Clientes
-                .FirstOrDefaultAsync(c => c.Id == id);
-
-            if (cliente == null)
-            {
-                return NotFound();
-            }
-
-            var possuiPedidos =
-                await _context.Pedidos
-                    .AnyAsync(p =>
-                        p.ClienteId == id);
-
-            var possuiMovimentacoes =
-                await _context.MovimentacoesFinanceiras
-                    .AnyAsync(m =>
-                        m.ClienteId == id);
-
-            if (possuiPedidos ||
-                possuiMovimentacoes)
+            if (!confirmarExclusao)
             {
                 TempData["Erro"] =
-                    "Este cliente possui histórico de pedidos ou financeiro e não pode ser excluído. Desative o cliente para preservar o histórico.";
+                    "Confirme a exclusão definitiva pelo botão Excluir. O cliente e todos os seus registros vinculados serão apagados.";
 
-                return RedirectToAction(nameof(Index), new { pagina = paginaClientes, busca = buscaClientes });
+                return RedirectToAction(nameof(Index),
+                    new { pagina = paginaClientes, busca = buscaClientes });
             }
 
-            var nomeCliente = cliente.Nome;
+            await using var transacao = await _context.Database
+                .BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
 
-            _context.Clientes.Remove(cliente);
+            try
+            {
+                var cliente = await _context.Clientes
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(c => c.Id == id);
 
-            await _context.SaveChangesAsync();
+                if (cliente == null)
+                {
+                    await transacao.RollbackAsync();
+                    return NotFound();
+                }
 
-            TempData["Sucesso"] =
-                $"Cliente \"{nomeCliente}\" excluído com sucesso.";
+                var pedidosDoCliente = _context.Pedidos
+                    .Where(p => p.ClienteId == id)
+                    .Select(p => p.Id);
 
-            return RedirectToAction(nameof(Index), new { pagina = paginaClientes, busca = buscaClientes });
+                // Remove as dependências antes dos pedidos e do cliente.
+                // Todos os comandos participam da mesma transação.
+                await _context.LembretesPedidos
+                    .Where(l => l.ClienteId == id)
+                    .ExecuteDeleteAsync();
+
+                await _context.AcessosClientes
+                    .Where(a => a.ClienteId == id)
+                    .ExecuteDeleteAsync();
+
+                await _context.MovimentacoesFinanceiras
+                    .Where(m => m.ClienteId == id ||
+                        (m.PedidoId.HasValue &&
+                         pedidosDoCliente.Contains(m.PedidoId.Value)))
+                    .ExecuteDeleteAsync();
+
+                await _context.NotasFiscais
+                    .Where(n => pedidosDoCliente.Contains(n.PedidoId))
+                    .ExecuteDeleteAsync();
+
+                await _context.ItensPedido
+                    .Where(i => pedidosDoCliente.Contains(i.PedidoId))
+                    .ExecuteDeleteAsync();
+
+                await _context.Pedidos
+                    .Where(p => p.ClienteId == id)
+                    .ExecuteDeleteAsync();
+
+                await _context.Clientes
+                    .Where(c => c.Id == id)
+                    .ExecuteDeleteAsync();
+
+                await transacao.CommitAsync();
+
+                TempData["Sucesso"] =
+                    $"Cliente \"{cliente.Nome}\" e seus registros vinculados excluídos definitivamente.";
+            }
+            catch (Exception ex) when (
+                ex is DbUpdateException || ex is Npgsql.NpgsqlException)
+            {
+                await transacao.RollbackAsync();
+
+                TempData["Erro"] =
+                    "Não foi possível concluir a exclusão. Nenhum registro foi apagado. Atualize a página e tente novamente.";
+            }
+
+            return RedirectToAction(nameof(Index),
+                new { pagina = paginaClientes, busca = buscaClientes });
         }
 
         // =========================================================
@@ -1006,6 +1062,51 @@ namespace WlcSistemaPedidos.Controllers
             cliente.Cep =
                 LimparOuRetornarNulo(
                     cliente.Cep);
+        }
+
+        // =========================================================
+        // VERIFICA WHATSAPP REPETIDO, INCLUSIVE DE CLIENTES INATIVOS
+        // =========================================================
+
+        private static string SomenteNumeros(string? valor)
+        {
+            return new string(
+                (valor ?? string.Empty)
+                    .Where(char.IsDigit)
+                    .ToArray());
+        }
+
+        private async Task<bool> TelefoneJaCadastradoAsync(
+            string? telefone,
+            int? clienteIdIgnorar = null)
+        {
+            var telefoneInformado = SomenteNumeros(telefone);
+
+            // Mantém a regra atual de permitir telefone não preenchido.
+            if (string.IsNullOrEmpty(telefoneInformado))
+            {
+                return false;
+            }
+
+            var consulta = _context.Clientes
+                .AsNoTracking()
+                .Where(c => c.Telefone != null);
+
+            // Na edição, o cliente pode manter o próprio número.
+            if (clienteIdIgnorar.HasValue)
+            {
+                var idIgnorar = clienteIdIgnorar.Value;
+                consulta = consulta.Where(c => c.Id != idIgnorar);
+            }
+
+            // A comparação em memória também reconhece números antigos
+            // gravados com espaços, parênteses ou traços.
+            var telefones = await consulta
+                .Select(c => c.Telefone)
+                .ToListAsync();
+
+            return telefones.Any(t =>
+                SomenteNumeros(t) == telefoneInformado);
         }
 
         // =========================================================

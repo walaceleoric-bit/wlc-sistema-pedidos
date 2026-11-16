@@ -657,7 +657,12 @@
                                           asp-action="Excluir"
                                           asp-route-id="@cliente.Id"
                                           method="post"
-                                          onsubmit="return confirm('Tem certeza que deseja excluir o cliente @cliente.Nome?');">
+                                          data-cliente-nome="@cliente.Nome"
+                                          onsubmit="return confirmarExclusaoCliente(this);">
+
+                                        <input type="hidden" name="confirmarExclusao" value="true" />
+                                        <input type="hidden" name="paginaClientes" value="@paginaAtual" />
+                                        <input type="hidden" name="buscaClientes" value="@busca" />
 
                                         @Html.AntiForgeryToken()
 
@@ -737,6 +742,20 @@
 </div>
 
 <script>
+
+    function confirmarExclusaoCliente(formulario) {
+        const nome = formulario.dataset.clienteNome || "selecionado";
+
+        return window.confirm(
+            'Excluir definitivamente o cliente "' + nome + '"?\n\n' +
+            'ATENÇÃO: serão apagados o cadastro, os pedidos e seus itens, ' +
+            ' as movimentações financeiras, ' +
+            'os lembretes e os links de acesso deste cliente.\n\n' +
+            'Os relatórios e o controle das dívidas serão afetados. ' +
+            'Esta ação não pode ser desfeita.\n\n' +
+            'Clique em OK para excluir tudo ou em Cancelar para manter os dados.'
+        );
+    }
 
     async function copiarLinkNovosClientes() {
 
