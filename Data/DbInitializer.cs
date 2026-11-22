@@ -1,5 +1,4 @@
-﻿
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -17,15 +16,22 @@ namespace WlcSistemaPedidos.Data
         {
             await context.Database.MigrateAsync();
 
-            const string loginAdminInicial = "adm";
-            const string senhaAdminInicial = "123456";
-
             var adminExistente = await context.Users
                 .FirstOrDefaultAsync(u =>
                     u.Perfil == PerfilUsuario.Administrador);
 
             if (adminExistente == null)
             {
+                var loginAdminInicial = configuration["AdminInicial:Login"]?.Trim();
+                var senhaAdminInicial = configuration["AdminInicial:Senha"];
+
+                if (string.IsNullOrWhiteSpace(loginAdminInicial) ||
+                    string.IsNullOrWhiteSpace(senhaAdminInicial))
+                {
+                    throw new InvalidOperationException(
+                        "Configure AdminInicial:Login e AdminInicial:Senha.");
+                }
+
                 var admin = new Usuario
                 {
                     UserName = loginAdminInicial,
@@ -44,7 +50,8 @@ namespace WlcSistemaPedidos.Data
                         resultado.Errors.Select(e => e.Description)));
                 }
             }
-            else if (environment.IsDevelopment())
+            else if (environment.IsDevelopment() ||
+         configuration.GetValue<bool>("AdminReset:PermitirEmProducao"))
             {
                 // Recuperação temporária por User Secrets.
                 // Executa somente quando a chave Executar é true.
@@ -53,11 +60,8 @@ namespace WlcSistemaPedidos.Data
 
                 if (executarReset)
                 {
-                    string? novoLogin =
-                        configuration["AdminReset:Login"];
-
-                    string? novaSenha =
-                        configuration["AdminReset:Senha"];
+                    string? novoLogin = configuration["AdminReset:Login"];
+                    string? novaSenha = configuration["AdminReset:Senha"];
 
                     if (string.IsNullOrWhiteSpace(novoLogin) ||
                         string.IsNullOrWhiteSpace(novaSenha))
@@ -82,14 +86,12 @@ namespace WlcSistemaPedidos.Data
                     if (adminExistente.UserName != novoLogin)
                     {
                         var resultadoLogin = await userManager
-                            .SetUserNameAsync(
-                                adminExistente, novoLogin);
+                            .SetUserNameAsync(adminExistente, novoLogin);
 
                         if (!resultadoLogin.Succeeded)
                         {
                             throw new Exception(string.Join(" | ",
-                                resultadoLogin.Errors
-                                    .Select(e => e.Description)));
+                                resultadoLogin.Errors.Select(e => e.Description)));
                         }
                     }
 
@@ -97,21 +99,16 @@ namespace WlcSistemaPedidos.Data
                         .GeneratePasswordResetTokenAsync(adminExistente);
 
                     var resultadoSenha = await userManager
-                        .ResetPasswordAsync(
-                            adminExistente, token, novaSenha);
+                        .ResetPasswordAsync(adminExistente, token, novaSenha);
 
                     if (!resultadoSenha.Succeeded)
                     {
                         throw new Exception(string.Join(" | ",
-                            resultadoSenha.Errors
-                                .Select(e => e.Description)));
+                            resultadoSenha.Errors.Select(e => e.Description)));
                     }
 
-                    await userManager.SetLockoutEndDateAsync(
-                        adminExistente, null);
-
-                    await userManager.ResetAccessFailedCountAsync(
-                        adminExistente);
+                    await userManager.SetLockoutEndDateAsync(adminExistente, null);
+                    await userManager.ResetAccessFailedCountAsync(adminExistente);
 
                     Console.WriteLine(
                         $"Recuperação concluída. Login: {novoLogin}");
@@ -125,8 +122,7 @@ namespace WlcSistemaPedidos.Data
                     NomeEstabelecimento = "Padaria",
                     AceitarPedidos = true,
                     TaxaEntregaPadrao = 0,
-                    MensagemInicial =
-                        "Faça seu pedido de forma rápida e fácil.",
+                    MensagemInicial = "Faça seu pedido de forma rápida e fácil.",
                     EmissaoFiscalAtiva = false,
                     DataAtualizacao = DateTime.UtcNow
                 };
