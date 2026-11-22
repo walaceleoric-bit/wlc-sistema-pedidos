@@ -1,11 +1,22 @@
-﻿@{
+﻿@using Microsoft.EntityFrameworkCore
+@inject WlcSistemaPedidos.Data.AppDbContext Db
+
+@{
+    var marca = await Db.ConfiguracoesSistema
+        .AsNoTracking()
+        .OrderBy(c => c.Id)
+        .Select(c => new { c.NomeEstabelecimento, c.LogoUrl })
+        .FirstOrDefaultAsync();
+
     string nomeEstabelecimento =
-        ViewBag.NomeEstabelecimento
-        ?? "Sistema de Pedidos";
+        string.IsNullOrWhiteSpace(marca?.NomeEstabelecimento)
+            ? "Sistema de Pedidos"
+            : marca.NomeEstabelecimento;
 
     string logoEstabelecimento =
-        ViewBag.LogoEstabelecimento
-        ?? "/images/logo-wlc.png";
+        string.IsNullOrWhiteSpace(marca?.LogoUrl)
+            ? "/images/logo-wlc.png"
+            : marca.LogoUrl;
 
     string controllerAtual =
         ViewContext.RouteData.Values["controller"]?
@@ -53,236 +64,203 @@
 
     <style>
 
-        * {
-            box-sizing: border-box;
-        }
+            * {
+                box-sizing: border-box;
+            }
 
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-        }
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+            }
 
-        body {
-            min-height: 100vh;
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f6f7f9;
-            color: #262626;
-            display: flex;
-            flex-direction: column;
-        }
+            body {
+                min-height: 100vh;
+                font-family: Arial, Helvetica, sans-serif;
+                background: #f6f7f9;
+                color: #262626;
+                display: flex;
+                flex-direction: column;
+            }
 
-        /* ==========================================
-           TOPO
-           ========================================== */
-
-        .admin-topo {
-            background: #ffffff;
-            border-bottom: 1px solid #e8e8e8;
-            min-height: 72px;
-
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            gap: 20px;
-
-            padding: 10px 4%;
-
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        /* ==========================================
-           MARCA
-           ========================================== */
-
-        .admin-marca {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-
-            flex-shrink: 0;
-
-            text-decoration: none;
-            color: inherit;
-        }
-
-        .admin-logo {
-            width: 95px;
-            height: 48px;
-
-            object-fit: contain;
-        }
-
-        .admin-nome-sistema {
-            border-left: 1px solid #dddddd;
-            padding-left: 14px;
-
-            white-space: nowrap;
-        }
-
-        .admin-nome-sistema strong {
-            display: block;
-
-            font-size: 15px;
-            color: #333333;
-        }
-
-        .admin-nome-sistema span {
-            display: block;
-
-            margin-top: 3px;
-
-            font-size: 12px;
-            color: #888888;
-        }
-
-        /* ==========================================
-           MENU
-           ========================================== */
-
-        .admin-menu {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-
-            gap: 4px;
-
-            flex-wrap: wrap;
-        }
-
-        .admin-menu a,
-        .admin-btn-sair {
-            border: none;
-            background: transparent;
-
-            color: #444444;
-
-            text-decoration: none;
-
-            padding: 9px 10px;
-
-            border-radius: 8px;
-
-            font-size: 13px;
-            font-weight: 600;
-
-            cursor: pointer;
-
-            font-family: inherit;
-
-            white-space: nowrap;
-
-            transition:
-                background-color .15s,
-                color .15s;
-        }
-
-        .admin-menu a:hover,
-        .admin-btn-sair:hover {
-            background: #fff3e6;
-            color: #f57c00;
-        }
-
-        .admin-menu a.ativo {
-            background: #f57c00;
-            color: #ffffff;
-        }
-
-        .admin-menu a.ativo:hover {
-            background: #e66f00;
-            color: #ffffff;
-        }
-
-        .admin-form-sair {
-            margin: 0;
-            padding: 0;
-        }
-
-        /* ==========================================
-           CONTEÚDO DAS TELAS
-           ========================================== */
-
-        .admin-conteudo {
-            flex: 1;
-            width: 100%;
-        }
-
-        /* ==========================================
-           RODAPÉ
-           ========================================== */
-
-        .admin-rodape {
-            background: #ffffff;
-
-            border-top: 1px solid #e8e8e8;
-
-            text-align: center;
-
-            padding: 15px 18px;
-
-            color: #777777;
-
-            font-size: 12px;
-        }
-
-        .admin-rodape strong {
-            color: #f57c00;
-        }
-
-        .admin-contato {
-            margin-top: 5px;
-
-            font-size: 11px;
-            font-weight: normal;
-
-            color: #999999;
-
-            letter-spacing: 0.1px;
-        }
-
-        /* ==========================================
-           RESPONSIVO
-           ========================================== */
-
-        @@media (max-width: 1180px) {
+            /* ==========================================
+                       TOPO
+                       ========================================== */
 
             .admin-topo {
-                flex-direction: column;
-                gap: 10px;
-
-                padding: 12px 4%;
+                background: #ffffff;
+                border-bottom: 1px solid #e8e8e8;
+                min-height: 72px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 20px;
+                padding: 10px 4%;
+                position: sticky;
+                top: 0;
+                z-index: 1000;
             }
 
-            .admin-menu {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-
-        @@media (max-width: 650px) {
+            /* ==========================================
+                       MARCA
+                       ========================================== */
 
             .admin-marca {
-                width: 100%;
-                justify-content: center;
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                flex-shrink: 0;
+                text-decoration: none;
+                color: inherit;
+            }
+
+            .admin-logo {
+                width: 95px;
+                height: 48px;
+                object-fit: contain;
             }
 
             .admin-nome-sistema {
-                display: none;
+                border-left: 1px solid #dddddd;
+                padding-left: 14px;
+                white-space: nowrap;
             }
+
+                .admin-nome-sistema strong {
+                    display: block;
+                    font-size: 15px;
+                    color: #333333;
+                }
+
+                .admin-nome-sistema span {
+                    display: block;
+                    margin-top: 3px;
+                    font-size: 12px;
+                    color: #888888;
+                }
+
+            /* ==========================================
+                       MENU
+                       ========================================== */
 
             .admin-menu {
-                gap: 3px;
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                gap: 4px;
+                flex-wrap: wrap;
             }
 
-            .admin-menu a,
-            .admin-btn-sair {
-                padding: 8px;
+                .admin-menu a,
+                .admin-btn-sair {
+                    border: none;
+                    background: transparent;
+                    color: #444444;
+                    text-decoration: none;
+                    padding: 9px 10px;
+                    border-radius: 8px;
+                    font-size: 13px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    font-family: inherit;
+                    white-space: nowrap;
+                    transition: background-color .15s, color .15s;
+                }
+
+                    .admin-menu a:hover,
+                    .admin-btn-sair:hover {
+                        background: #fff3e6;
+                        color: #f57c00;
+                    }
+
+                    .admin-menu a.ativo {
+                        background: #f57c00;
+                        color: #ffffff;
+                    }
+
+                        .admin-menu a.ativo:hover {
+                            background: #e66f00;
+                            color: #ffffff;
+                        }
+
+            .admin-form-sair {
+                margin: 0;
+                padding: 0;
+            }
+
+            /* ==========================================
+                       CONTEÚDO DAS TELAS
+                       ========================================== */
+
+            .admin-conteudo {
+                flex: 1;
+                width: 100%;
+            }
+
+            /* ==========================================
+                       RODAPÉ
+                       ========================================== */
+
+            .admin-rodape {
+                background: #ffffff;
+                border-top: 1px solid #e8e8e8;
+                text-align: center;
+                padding: 15px 18px;
+                color: #777777;
                 font-size: 12px;
             }
-        }
+
+                .admin-rodape strong {
+                    color: #f57c00;
+                }
+
+            .admin-contato {
+                margin-top: 5px;
+                font-size: 11px;
+                font-weight: normal;
+                color: #999999;
+                letter-spacing: 0.1px;
+            }
+
+            /* ==========================================
+                       RESPONSIVO
+                       ========================================== */
+
+            @@media (max-width: 1180px) {
+
+                .admin-topo {
+                    flex-direction: column;
+                    gap: 10px;
+                    padding: 12px 4%;
+                }
+
+                .admin-menu {
+                    width: 100%;
+                    justify-content: center;
+                }
+            }
+
+            @@media (max-width: 650px) {
+
+                .admin-marca {
+                    width: 100%;
+                    justify-content: center;
+                }
+
+                .admin-nome-sistema {
+                    display: none;
+                }
+
+                .admin-menu {
+                    gap: 3px;
+                }
+
+                    .admin-menu a,
+                    .admin-btn-sair {
+                        padding: 8px;
+                        font-size: 12px;
+                    }
+            }
 
     </style>
 
